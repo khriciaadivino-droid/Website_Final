@@ -1,0 +1,120 @@
+{% extends '_layouts/master.html.twig' %}
+
+{% block title %}Orders{% endblock %}
+
+{% block body %}
+<div class="container mx-auto px-6 py-6" style="font-family: 'Poppins', 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;">
+    <!-- Header Section -->
+    <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-4 mb-8">
+        <h1 class="text-3xl font-bold text-gray-800 tracking-tight">Orders</h1>
+        <a href="{{ path('app_orders_new') }}"
+           class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-2 rounded-xl transition duration-200 flex items-center gap-2 shadow-sm">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+            </svg>
+            Create New Order
+        </a>
+    </div>
+
+    <!-- Table Section -->
+    <div class="bg-white rounded-2xl shadow-lg overflow-hidden p-4">
+        <div class="overflow-x-auto rounded-xl">
+            <table id="ordersTable" class="w-full text-sm text-gray-700">
+                <thead class="bg-gray-100 border-b border-gray-200 text-xs uppercase tracking-wider">
+                    <tr>
+                        <th class="px-4 py-3 text-left font-semibold">Order #</th>
+                        <th class="px-4 py-3 text-left font-semibold">Product</th>
+                        <th class="px-4 py-3 text-left font-semibold">Customer Name</th>
+                        <th class="px-4 py-3 text-left font-semibold">Email</th>
+                        <th class="px-4 py-3 text-left font-semibold">Order Date</th>
+                        <th class="px-4 py-3 text-left font-semibold">Total Amount</th>
+                        <th class="px-4 py-3 text-left font-semibold">Status</th>
+                        <th class="px-4 py-3 text-center font-semibold">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100">
+                {% for order in orders %}
+                    <tr class="hover:bg-gray-50 transition duration-150">
+                        <td class="px-4 py-3 font-medium text-gray-900">{{ order.orderNumber }}</td>
+                        <td class="px-4 py-3 text-gray-900">
+                            {% if order.product %}
+                                {{ order.product.name }}
+                            {% else %}
+                                <span class="text-gray-400 italic">No product</span>
+                            {% endif %}
+                        </td>
+                        <td class="px-4 py-3 text-gray-900">{{ order.customerName }}</td>
+                        <td class="px-4 py-3 text-gray-600">{{ order.customerEmail ?? '-' }}</td>
+                        <td class="px-4 py-3 text-gray-600">{{ order.orderDate|date('Y-m-d H:i') }}</td>
+                        <td class="px-4 py-3 font-semibold text-gray-900">₱{{ order.totalAmount|number_format(2, '.', ',') }}</td>
+                        <td class="px-4 py-3">
+                            {% if order.status == 'Completed' %}
+                                <span class="px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-800">{{ order.status }}</span>
+                            {% elseif order.status == 'Processing' %}
+                                <span class="px-3 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-800">{{ order.status }}</span>
+                            {% elseif order.status == 'Pending' %}
+                                <span class="px-3 py-1 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-800">{{ order.status }}</span>
+                            {% else %}
+                                <span class="px-3 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-800">{{ order.status }}</span>
+                            {% endif %}
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                            <div class="flex justify-center gap-2">
+                                <a href="{{ path('app_orders_show', {'id': order.id}) }}"
+                                   class="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded-md flex items-center gap-1 text-xs font-medium shadow-sm transition duration-200">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                                    </svg>
+                                </a>
+                                {% if order.status != 'Completed' %}
+                                <a href="{{ path('app_orders_edit', {'id': order.id}) }}"
+                                   class="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded-md flex items-center gap-1 text-xs font-medium shadow-sm transition duration-200">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                                    </svg>
+                                </a>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                {% else %}
+                    <tr>
+                        <td colspan="8" class="px-4 py-8 text-center text-gray-500">
+                            No orders found. <a href="{{ path('app_orders_new') }}" class="text-blue-600 hover:underline">Create one now</a>
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    $(document).ready(function() {
+        // Only initialize DataTables if there are data rows
+        if ($('#ordersTable tbody tr').length > 0 && !$('#ordersTable tbody tr td[colspan]').length) {
+            $('#ordersTable').DataTable({
+                responsive: true,
+                order: [[3, 'desc']],
+                pageLength: 10,
+                columnDefs: [
+                    { orderable: false, targets: 6 }
+                ],
+                language: {
+                    search: "Search orders:",
+                    lengthMenu: "Show _MENU_ orders per page",
+                    info: "Showing _START_ to _END_ of _TOTAL_ orders",
+                    paginate: {
+                        first: "First",
+                        last: "Last",
+                        next: "Next",
+                        previous: "Previous"
+                    }
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}

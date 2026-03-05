@@ -1,0 +1,67 @@
+{% extends '_layouts/master.html.twig' %}
+
+{% block title %}New Pet Owner{% endblock %}
+
+{% block body %}
+<div class="container mx-auto px-6 py-8">
+    <div class="max-w-3xl mx-auto">
+        <div class="mb-6">
+            <h1 class="text-3xl font-bold text-gray-800">Add New Pet Owner</h1>
+            <p class="text-gray-600 mt-2">Fill in the details below to register a new pet owner</p>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-lg p-6">
+            {{ form_start(form, {'attr': {'class': 'space-y-6'}}) }}
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">First Name</label>
+                    {{ form_widget(form.firstName) }}
+                    {{ form_errors(form.firstName) }}
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Last Name</label>
+                    {{ form_widget(form.lastName) }}
+                    {{ form_errors(form.lastName) }}
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Email</label>
+                {{ form_widget(form.email) }}
+                {{ form_errors(form.email) }}
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Phone Number</label>
+                {{ form_widget(form.phoneNumber) }}
+                {{ form_errors(form.phoneNumber) }}
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Address</label>
+                {{ form_widget(form.address) }}
+                {{ form_errors(form.address) }}
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Registration Date</label>
+                {{ form_widget(form.registrationDate) }}
+                {{ form_errors(form.registrationDate) }}
+            </div>
+
+            <div class="flex gap-3 pt-4">
+                <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-2 rounded-lg transition duration-200">
+                    Add Pet Owner
+                </button>
+                <a href="{{ path('app_pet_owners_index') }}" class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-semibold px-6 py-2 rounded-lg transition duration-200">
+                    Cancel
+                </a>
+            </div>
+
+            {{ form_end(form) }}
+        </div>
+    </div>
+</div>
+{% endblock %}

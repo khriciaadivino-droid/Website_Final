@@ -1,0 +1,105 @@
+{% extends '_layouts/master.html.twig' %}
+
+{% block title %}User Management{% endblock %}
+
+{% block body %}
+<div class="container mx-auto px-6 py-6" style="font-family: 'Poppins', sans-serif;">
+    <!-- Flash Messages -->
+    {% for label, messages in app.flashes %}
+        {% for message in messages %}
+            <div class="mb-4 p-4 rounded-lg {% if label == 'success' %}bg-green-100 text-green-800{% elseif label == 'error' %}bg-red-100 text-red-800{% else %}bg-blue-100 text-blue-800{% endif %}">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endfor %}
+
+    <div class="flex justify-between items-center mb-8">
+        <h1 class="text-3xl font-bold text-gray-800">User Management</h1>
+        <a href="{{ path('app_user_management_new') }}" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-2 rounded-lg transition duration-200 flex items-center gap-2">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+            </svg>
+            Create New User
+        </a>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+        <table id="usersTable" class="w-full text-sm text-gray-700">
+            <thead class="bg-gray-100 border-b border-gray-200">
+                <tr>
+                    <th class="px-4 py-3 text-left font-semibold">ID</th>
+                    <th class="px-4 py-3 text-left font-semibold">Full Name</th>
+                    <th class="px-4 py-3 text-left font-semibold">Email</th>
+                    <th class="px-4 py-3 text-left font-semibold">Role</th>
+                    <th class="px-4 py-3 text-left font-semibold">Status</th>
+                    <th class="px-4 py-3 text-left font-semibold">Created At</th>
+                    <th class="px-4 py-3 text-center font-semibold">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100">
+            {% for user in users %}
+                <tr class="hover:bg-gray-50">
+                    <td class="px-4 py-3">{{ user.id }}</td>
+                    <td class="px-4 py-3 font-medium">{{ user.fullName }}</td>
+                    <td class="px-4 py-3">{{ user.email }}</td>
+                    <td class="px-4 py-3">
+                        {% if user.isAdmin %}
+                            <span class="px-3 py-1 bg-red-100 text-red-800 rounded-full text-xs font-semibold">Admin</span>
+                        {% elseif user.isStaff %}
+                            <span class="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-semibold">Staff</span>
+                        {% else %}
+                            <span class="px-3 py-1 bg-gray-100 text-gray-800 rounded-full text-xs font-semibold">User</span>
+                        {% endif %}
+                    </td>
+                    <td class="px-4 py-3">
+                        {% if user.status == 'active' %}
+                            <span class="px-3 py-1 bg-green-100 text-green-800 rounded-full text-xs font-semibold">Active</span>
+                        {% else %}
+                            <span class="px-3 py-1 bg-gray-100 text-gray-800 rounded-full text-xs font-semibold">Disabled</span>
+                        {% endif %}
+                    </td>
+                    <td class="px-4 py-3">{{ user.createdAt|date('Y-m-d') }}</td>
+                    <td class="px-4 py-3">
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <a href="{{ path('app_user_management_show', {'id': user.id}) }}" style="background: #10b981; color: white; padding: 6px 12px; border-radius: 6px; text-decoration: none; font-size: 12px; font-weight: 500; white-space: nowrap; display: inline-block;">View</a>
+                            <a href="{{ path('app_user_management_edit', {'id': user.id}) }}" style="background: #eab308; color: white; padding: 6px 12px; border-radius: 6px; text-decoration: none; font-size: 12px; font-weight: 500; white-space: nowrap; display: inline-block;">Edit</a>
+                            
+                            {% set isStaffOnly = 'ROLE_STAFF' in user.roles and 'ROLE_ADMIN' not in user.roles %}
+                            {% if isStaffOnly %}
+                                <form method="post" action="{{ path('app_user_management_toggle_status', {'id': user.id}) }}" style="margin: 0; padding: 0; display: inline-block;">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('toggle_status' ~ user.id) }}">
+                                    {% if user.status == 'active' %}
+                                        <button type="submit" style="background: #f97316; color: white; padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 500; white-space: nowrap; border: none; cursor: pointer; display: inline-block;" onclick="return confirm('Are you sure you want to deactivate this staff account?');" onmouseover="this.style.background='#ea580c'" onmouseout="this.style.background='#f97316'">Deactivate</button>
+                                    {% else %}
+                                        <button type="submit" style="background: #059669; color: white; padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 500; white-space: nowrap; border: none; cursor: pointer; display: inline-block;" onmouseover="this.style.background='#047857'" onmouseout="this.style.background='#059669'">Activate</button>
+                                    {% endif %}
+                                </form>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+            {% else %}
+                <tr>
+                    <td colspan="7" class="px-4 py-8 text-center text-gray-500">No users found.</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    $(document).ready(function() {
+        if ($('#usersTable tbody tr').length > 0 && !$('#usersTable tbody tr td[colspan]').length) {
+            $('#usersTable').DataTable({
+                responsive: true,
+                order: [[0, 'desc']],
+                pageLength: 10,
+                columnDefs: [
+                    { orderable: false, targets: 6 }
+                ]
+            });
+        }
+    });
+</script>
+{% endblock %}

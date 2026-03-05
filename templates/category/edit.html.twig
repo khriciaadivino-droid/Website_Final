@@ -1,0 +1,99 @@
+{% extends '_layouts/master.html.twig' %}
+
+{% block title %}Edit {{ category.name }}{% endblock %}
+
+{% block body %}
+<div style="padding: 20px;">
+    <div class="container mx-auto px-1 py-1" style="font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;">
+
+        <!-- Header -->
+        <div class="flex justify-between items-center mb-6">
+            <h1 class="text-3xl font-bold text-gray-800">Edit Category</h1>
+            <a href="{{ path('app_category_index') }}" 
+               style="display: inline-flex; align-items: center; gap: 8px; background: #10b981; color: white; padding: 10px 20px; border-radius: 6px; text-decoration: none; font-size: 14px; font-weight: 600; transition: background 0.2s;">
+                <svg style="width: 16px; height: 16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+                </svg>
+                Back to List
+            </a>
+        </div>
+
+        <!-- Edit Card -->
+        <div style="display: flex; justify-content: center;">
+            <div style="background: white; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); width: 460px; padding: 28px; text-align: center;">
+
+                <!-- Icon -->
+                {% set icon %}
+                    {% if 'food' in category.name|lower %}
+                        🍔
+                    {% elseif 'drink' in category.name|lower %}
+                        🧋
+                    {% elseif 'clothe' in category.name|lower %}
+                        👕
+                    {% elseif 'toy' in category.name|lower %}
+                        🧸
+                    {% elseif 'tech' in category.name|lower or 'gadget' in category.name|lower %}
+                        💻
+                    {% elseif 'book' in category.name|lower %}
+                        📚
+                    {% elseif 'beauty' in category.name|lower or 'makeup' in category.name|lower %}
+                        💄
+                    {% elseif 'pet' in category.name|lower %}
+                        🐾
+                    {% elseif 'plant' in category.name|lower %}
+                        🌿
+                    {% elseif 'game' in category.name|lower %}
+                        🎮
+                    {% else %}
+                        🛍️
+                    {% endif %}
+                {% endset %}
+                <div style="font-size: 64px; margin-bottom: 12px;">{{ icon }}</div>
+
+                <!-- Category Name -->
+                <h3 style="font-size: 22px; font-weight: 700; color: #1f2937; margin-bottom: 20px;">
+                    {{ category.name }}
+                </h3>
+
+                <!-- Form -->
+                <div style="margin-bottom: 24px;">
+                    {{ form_start(form, {'attr': {'id': 'category_form'}}) }}
+                        {{ form_widget(form) }}
+                    {{ form_end(form) }}
+                </div>
+
+                <!-- Buttons Section -->
+                <div style="display: flex; justify-content: center; gap: 12px; margin-top: 10px; flex-wrap: wrap;">
+
+                    <!-- Update Button -->
+                    <button type="submit" form="category_form"
+                            style="background: #3b82f6; color: white; padding: 10px 22px; border-radius: 8px; border: none; font-size: 14px; font-weight: 600; cursor: pointer; transition: background 0.2s;">
+                        💾 Update
+                    </button>
+
+                    <!-- View Button -->
+                    <a href="{{ path('app_category_show', {'id': category.id}) }}"
+                       style="background: #8b5cf6; color: white; padding: 10px 22px; border-radius: 8px; font-size: 14px; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                        </svg>
+                    </a>
+
+                    <!-- Delete Button -->
+                    <form method="post" action="{{ path('app_category_delete', {'id': category.id}) }}" 
+                          onsubmit="return confirm('Are you sure you want to delete this category?');" style="margin: 0;">
+                        <input type="hidden" name  ="_token" value="{{ csrf_token('delete' ~ category.id) }}">
+                        <button type="submit" 
+                                style="background: #ef4444; color: white; padding: 10px 22px; border-radius: 8px; border: none; font-size: 14px; font-weight: 600; cursor: pointer; transition: background 0.2s;">
+                            🗑️ Delete
+                        </button>
+                    </form>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,356 @@
+{% extends '_layouts/master.html.twig' %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block body %}
+
+<!-- Header Section -->
+<div class="mb-8">
+    <h3 class="text-4xl font-bold text-gray-800 mb-2">Dashboard</h3>
+    <p class="text-gray-600">Welcome back! Here's your system overview.</p>
+</div>
+
+<!-- Stats Grid -->
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+    <!-- Pet Profiles Card -->
+    <div class="bg-gradient-to-br from-indigo-500 via-indigo-600 to-purple-700 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1">
+        <div class="p-6">
+            <div class="flex items-center justify-between mb-4">
+                <div class="p-3 bg-white bg-opacity-20 rounded-lg backdrop-blur-sm">
+                    <svg class="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                </div>
+                <div class="text-right">
+                    <p class="text-white text-opacity-90 text-sm font-medium mb-1">Pet Profiles</p>
+                    <h4 class="text-4xl font-bold text-white">{{ totalPetProfiles }}</h4>
+                </div>
+            </div>
+            <div class="mt-4 pt-4 border-t border-white border-opacity-20">
+                <p class="text-white text-opacity-80 text-xs">Total registered pets</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Total Orders Card -->
+    <div class="bg-gradient-to-br from-orange-500 via-orange-600 to-red-600 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1">
+        <div class="p-6">
+            <div class="flex items-center justify-between mb-4">
+                <div class="p-3 bg-white bg-opacity-20 rounded-lg backdrop-blur-sm">
+                    <svg class="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                    </svg>
+                </div>
+                <div class="text-right">
+                    <p class="text-white text-opacity-90 text-sm font-medium mb-1">Total Orders</p>
+                    <h4 class="text-4xl font-bold text-white">{{ totalOrders }}</h4>
+                </div>
+            </div>
+            <div class="mt-4 pt-4 border-t border-white border-opacity-20">
+                <p class="text-white text-opacity-80 text-xs">All time orders</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Available Products Card -->
+    <div class="bg-gradient-to-br from-pink-500 via-pink-600 to-rose-600 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1">
+        <div class="p-6">
+            <div class="flex items-center justify-between mb-4">
+                <div class="p-3 bg-white bg-opacity-20 rounded-lg backdrop-blur-sm">
+                    <svg class="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                    </svg>
+                </div>
+                <div class="text-right">
+                    <p class="text-white text-opacity-90 text-sm font-medium mb-1">Products</p>
+                    <h4 class="text-4xl font-bold text-white">{{ totalProducts }}</h4>
+                </div>
+            </div>
+            <div class="mt-4 pt-4 border-t border-white border-opacity-20">
+                <p class="text-white text-opacity-80 text-xs">Available in stock</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Total Stocks Card -->
+    <div class="bg-gradient-to-br from-green-500 via-green-600 to-emerald-600 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1">
+        <div class="p-6">
+            <div class="flex items-center justify-between mb-4">
+                <div class="p-3 bg-white bg-opacity-20 rounded-lg backdrop-blur-sm">
+                    <svg class="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                    </svg>
+                </div>
+                <div class="text-right">
+                    <p class="text-white text-opacity-90 text-sm font-medium mb-1">Stock Items</p>
+                    <h4 class="text-4xl font-bold text-white">{{ totalStocks }}</h4>
+                </div>
+            </div>
+            <div class="mt-4 pt-4 border-t border-white border-opacity-20">
+                <p class="text-white text-opacity-80 text-xs">Total stock records</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Admin Statistics (Admin Only) -->
+{% if is_granted('ROLE_ADMIN') and totalUsers > 0 %}
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+    <!-- Total Users -->
+    <div class="relative overflow-hidden bg-gradient-to-br from-blue-500 via-blue-600 to-indigo-700 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1">
+        <div class="absolute top-0 right-0 w-32 h-32 transform translate-x-8 -translate-y-8">
+            <div class="absolute inset-0 bg-white opacity-10 rounded-full"></div>
+        </div>
+        <div class="relative p-6">
+            <div class="flex items-center justify-between mb-4">
+                <div class="p-3 bg-white bg-opacity-20 rounded-xl backdrop-blur-sm">
+                    <svg class="w-10 h-10 text-white" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z"/>
+                    </svg>
+                </div>
+                <div class="text-right">
+                    <p class="text-white text-opacity-90 text-sm font-medium mb-1">Total Users</p>
+                    <h2 class="text-5xl font-bold text-white">{{ totalUsers }}</h2>
+                </div>
+            </div>
+            <div class="mt-4 pt-4 border-t border-white border-opacity-20">
+                <p class="text-white text-opacity-80 text-sm">Registered users</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Total Admins -->
+    <div class="relative overflow-hidden bg-gradient-to-br from-purple-500 via-purple-600 to-pink-700 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1">
+        <div class="absolute top-0 right-0 w-32 h-32 transform translate-x-8 -translate-y-8">
+            <div class="absolute inset-0 bg-white opacity-10 rounded-full"></div>
+        </div>
+        <div class="relative p-6">
+            <div class="flex items-center justify-between mb-4">
+                <div class="p-3 bg-white bg-opacity-20 rounded-xl backdrop-blur-sm">
+                    <svg class="w-10 h-10 text-white" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"/>
+                    </svg>
+                </div>
+                <div class="text-right">
+                    <p class="text-white text-opacity-90 text-sm font-medium mb-1">Administrators</p>
+                    <h2 class="text-5xl font-bold text-white">{{ totalAdmins }}</h2>
+                </div>
+            </div>
+            <div class="mt-4 pt-4 border-t border-white border-opacity-20">
+                <p class="text-white text-opacity-80 text-sm">System admins</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Total Staff -->
+    <div class="relative overflow-hidden bg-gradient-to-br from-cyan-500 via-cyan-600 to-blue-700 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1">
+        <div class="absolute top-0 right-0 w-32 h-32 transform translate-x-8 -translate-y-8">
+            <div class="absolute inset-0 bg-white opacity-10 rounded-full"></div>
+        </div>
+        <div class="relative p-6">
+            <div class="flex items-center justify-between mb-4">
+                <div class="p-3 bg-white bg-opacity-20 rounded-xl backdrop-blur-sm">
+                    <svg class="w-10 h-10 text-white" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z"/>
+                    </svg>
+                </div>
+                <div class="text-right">
+                    <p class="text-white text-opacity-90 text-sm font-medium mb-1">Staff Members</p>
+                    <h2 class="text-5xl font-bold text-white">{{ totalStaff }}</h2>
+                </div>
+            </div>
+            <div class="mt-4 pt-4 border-t border-white border-opacity-20">
+                <p class="text-white text-opacity-80 text-sm">Active staff</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Users Table (Admin Only) -->
+{% if recentUsers|length > 0 %}
+<div class="mb-8">
+    <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+        <div class="bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-4">
+            <h2 class="text-2xl font-bold text-white flex items-center">
+                <svg class="w-6 h-6 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z"/>
+                </svg>
+                Recently Registered Users
+            </h2>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Registered</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    {% for user in recentUsers %}
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="flex items-center">
+                                <div class="flex-shrink-0 h-10 w-10 bg-gradient-to-br from-blue-400 to-indigo-500 rounded-full flex items-center justify-center">
+                                    <span class="text-white font-semibold">{{ user.email|slice(0, 1)|upper }}</span>
+                                </div>
+                                <div class="ml-4">
+                                    <div class="text-sm font-medium text-gray-900">{{ user.fullName }}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ user.email }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            {% if 'ROLE_ADMIN' in user.roles %}
+                                <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-purple-100 text-purple-800">Admin</span>
+                            {% elseif 'ROLE_STAFF' in user.roles %}
+                                <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">Staff</span>
+                            {% else %}
+                                <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">User</span>
+                            {% endif %}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            {% if user.status == 'active' %}
+                                <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Active</span>
+                            {% else %}
+                                <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">Disabled</span>
+                            {% endif %}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ user.createdAt|date('M d, Y') }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endif %}
+
+<!-- Featured Section: Pet of the Month & Best Selling Product -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+    <!-- Pet of the Month -->
+    {% if petOfTheMonth %}
+    <div class="bg-gradient-to-br from-amber-400 via-orange-400 to-yellow-500 rounded-xl shadow-2xl overflow-hidden">
+        <div class="p-6">
+            <div class="flex items-center gap-3 mb-4">
+                <span class="text-4xl">⭐</span>
+                <div>
+                    <h2 class="text-3xl font-bold text-white drop-shadow-lg">Pet of the Month</h2>
+                    <p class="text-white text-opacity-90 text-sm">Featured this month</p>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-lg p-6 shadow-lg">
+                <div class="flex flex-col md:flex-row gap-6 items-center">
+                    <!-- Pet Image -->
+                    <div class="flex-shrink-0">
+                        {% if petOfTheMonth.image %}
+                            <img src="{{ asset('uploads/pets/' ~ petOfTheMonth.image) }}" 
+                                 alt="{{ petOfTheMonth.name }}" 
+                                 class="w-48 h-48 rounded-full object-cover border-4 border-amber-400 shadow-xl">
+                        {% else %}
+                            <div class="w-48 h-48 rounded-full bg-gradient-to-br from-amber-100 to-orange-200 flex items-center justify-center border-4 border-amber-400 shadow-xl">
+                                <span class="text-7xl">🐾</span>
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Pet Details -->
+                    <div class="flex-1 text-center md:text-left">
+                        <h3 class="text-3xl font-bold text-gray-800 mb-2">{{ petOfTheMonth.name }}</h3>
+                        <div class="space-y-1 mb-4">
+                            <p class="text-base text-gray-600">
+                                <span class="font-semibold">Owner:</span> 
+                                {{ petOfTheMonth.owner ? petOfTheMonth.owner.fullName : 'No Owner' }}
+                            </p>
+                            <p class="text-base text-gray-600">
+                                <span class="font-semibold">Species:</span> {{ petOfTheMonth.species }}
+                            </p>
+                            <p class="text-base text-gray-600">
+                                <span class="font-semibold">Breed:</span> {{ petOfTheMonth.breed }}
+                            </p>
+                            <p class="text-base text-gray-600">
+                                <span class="font-semibold">Age:</span> {{ petOfTheMonth.age }} years old
+                            </p>
+                        </div>
+                        <a href="{{ path('app_pet_profile_management_show', {'id': petOfTheMonth.id}) }}" 
+                           style="display: inline-flex; align-items: center; gap: 8px; background: linear-gradient(to right, #f59e0b, #f97316); color: white; padding: 10px 20px; border-radius: 8px; font-weight: 600; text-decoration: none; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); transition: all 0.3s; font-size: 14px;">
+                            <svg style="width: 18px; height: 18px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                            </svg>
+                            View Full Profile
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Best Selling Product -->
+    {% if bestSellingProduct %}
+    <div class="bg-gradient-to-br from-blue-500 via-indigo-500 to-purple-600 rounded-xl shadow-2xl overflow-hidden">
+        <div class="p-6">
+            <div class="flex items-center gap-3 mb-4">
+                <span class="text-4xl">🏆</span>
+                <div>
+                    <h2 class="text-3xl font-bold text-white drop-shadow-lg">Best Selling Product</h2>
+                    <p class="text-white text-opacity-90 text-sm">Most popular item</p>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-lg p-6 shadow-lg">
+                <div class="flex flex-col md:flex-row gap-6 items-center">
+                    <!-- Product Image -->
+                    <div class="flex-shrink-0">
+                        {% if bestSellingProduct.imagefilename %}
+                            <img src="{{ asset('uploads/products/' ~ bestSellingProduct.imagefilename) }}" 
+                                 alt="{{ bestSellingProduct.name }}" 
+                                 class="w-48 h-48 rounded-lg object-cover border-4 border-blue-400 shadow-xl">
+                        {% else %}
+                            <div class="w-48 h-48 rounded-lg bg-gradient-to-br from-blue-100 to-indigo-200 flex items-center justify-center border-4 border-blue-400 shadow-xl">
+                                <span class="text-7xl">📦</span>
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Product Details -->
+                    <div class="flex-1 text-center md:text-left">
+                        <h3 class="text-3xl font-bold text-gray-800 mb-2">{{ bestSellingProduct.name }}</h3>
+                        <div class="space-y-1 mb-4">
+                            <p class="text-base text-gray-600">
+                                <span class="font-semibold">Category:</span> 
+                                {{ bestSellingProduct.category ? bestSellingProduct.category.name : 'Uncategorized' }}
+                            </p>
+                            <p class="text-base text-gray-600">
+                                <span class="font-semibold">Price:</span> ₱{{ bestSellingProduct.price|number_format(2) }}
+                            </p>
+                            <p class="text-base text-gray-600">
+                                <span class="font-semibold">Stock:</span> {{ bestSellingProduct.quantity }} units
+                            </p>
+                            {% if bestSellingProduct.description %}
+                                <p class="text-sm text-gray-500 mt-2 line-clamp-2">{{ bestSellingProduct.description }}</p>
+                            {% endif %}
+                        </div>
+                        <a href="{{ path('app_productss_show', {'id': bestSellingProduct.id}) }}" 
+                           style="display: inline-flex; align-items: center; gap: 8px; background: linear-gradient(to right, #3b82f6, #8b5cf6); color: white; padding: 10px 20px; border-radius: 8px; font-weight: 600; text-decoration: none; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); transition: all 0.3s; font-size: 14px;">
+                            <svg style="width: 18px; height: 18px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                            </svg>
+                            View Product
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+{% endblock %}

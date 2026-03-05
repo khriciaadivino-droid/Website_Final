@@ -1,0 +1,129 @@
+{% extends '_layouts/master.html.twig' %}
+
+{% block title %}Edit User - {{ user.fullName }}{% endblock %}
+
+{% block body %}
+<div style="padding: 20px;">
+    <div class="container mx-auto px-1 py-1" style="font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;">
+
+        <!-- Flash Messages -->
+        {% for label, messages in app.flashes %}
+            {% for message in messages %}
+                <div class="mb-4 p-4 rounded-lg {% if label == 'success' %}bg-green-100 text-green-800{% elseif label == 'error' %}bg-red-100 text-red-800{% else %}bg-blue-100 text-blue-800{% endif %}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endfor %}
+
+        <!-- Header -->
+        <div class="flex justify-between items-center mb-6">
+            <div>
+                <h1 class="text-3xl font-bold text-gray-800">Edit User</h1>
+                <p class="text-gray-600 mt-1">Update user information and permissions</p>
+            </div>
+            <a href="{{ path('app_user_management_index') }}" 
+               style="display: inline-flex; align-items: center; gap: 8px; background: #10b981; color: white; padding: 10px 20px; border-radius: 6px; text-decoration: none; font-size: 14px; font-weight: 600; transition: background 0.2s;">
+                <svg style="width: 16px; height: 16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+                </svg>
+                Back to list
+            </a>
+        </div>
+
+        <!-- Edit Form Card -->
+        <div style="display: flex; justify-content: center; margin-bottom: 40px;">
+            <div style="background: white; border-radius: 16px; box-shadow: 0 4px 10px rgba(0,0,0,0.08); width: 100%; max-width: 600px; overflow: hidden;">
+                
+                <!-- Header Section -->
+                <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 24px; color: white; text-align: center;">
+                    <div style="width: 80px; height: 80px; background: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; font-size: 32px; font-weight: bold; color: #667eea; box-shadow: 0 4px 10px rgba(0,0,0,0.2);">
+                        {{ user.fullName|slice(0, 1)|upper }}
+                    </div>
+                    <h2 style="font-size: 24px; font-weight: 700; margin: 0;">Edit User Information</h2>
+                    <p style="font-size: 14px; margin-top: 8px; opacity: 0.9;">Update account details and permissions</p>
+                </div>
+
+                <!-- Form Content -->
+                <form method="post" action="{{ path('app_user_management_edit', {'id': user.id}) }}" style="padding: 32px;">
+                    <input type="hidden" name="_token" value="{{ csrf_token('user_edit' ~ user.id) }}">
+
+                    <!-- Full Name -->
+                    <div style="margin-bottom: 20px;">
+                        <label for="fullName" style="display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 8px;">
+                            Full Name <span style="color: #ef4444;">*</span>
+                        </label>
+                        <input type="text" id="fullName" name="fullName" value="{{ user.fullName }}" required
+                               style="width: 100%; padding: 12px 16px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px; transition: border-color 0.2s;"
+                               placeholder="Enter full name">
+                    </div>
+
+                    <!-- Email -->
+                    <div style="margin-bottom: 20px;">
+                        <label for="email" style="display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 8px;">
+                            Email Address <span style="color: #ef4444;">*</span>
+                        </label>
+                        <input type="email" id="email" name="email" value="{{ user.email }}" required
+                               style="width: 100%; padding: 12px 16px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px; transition: border-color 0.2s;"
+                               placeholder="email@example.com">
+                    </div>
+
+                    <!-- Role -->
+                    <div style="margin-bottom: 20px;">
+                        <label for="role" style="display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 8px;">
+                            User Role <span style="color: #ef4444;">*</span>
+                        </label>
+                        <select id="role" name="role" required
+                                style="width: 100%; padding: 12px 16px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px; background: white; transition: border-color 0.2s;">
+                            <option value="user" {% if not user.isAdmin and not user.isStaff %}selected{% endif %}>User</option>
+                            <option value="staff" {% if user.isStaff %}selected{% endif %}>Staff</option>
+                            <option value="admin" {% if user.isAdmin %}selected{% endif %}>Admin</option>
+                        </select>
+                        <p style="font-size: 12px; color: #6b7280; margin-top: 4px;">Select the user's role and access level</p>
+                    </div>
+
+                    <!-- Status -->
+                    <div style="margin-bottom: 20px;">
+                        <label for="status" style="display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 8px;">
+                            Account Status <span style="color: #ef4444;">*</span>
+                        </label>
+                        <select id="status" name="status" required
+                                style="width: 100%; padding: 12px 16px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px; background: white; transition: border-color 0.2s;">
+                            <option value="active" {% if user.status == 'active' or not user.status %}selected{% endif %}>Active</option>
+                            <option value="inactive" {% if user.status == 'inactive' %}selected{% endif %}>Inactive</option>
+                            <option value="suspended" {% if user.status == 'suspended' %}selected{% endif %}>Suspended</option>
+                        </select>
+                        <p style="font-size: 12px; color: #6b7280; margin-top: 4px;">Current account status</p>
+                    </div>
+
+                    <!-- Password -->
+                    <div style="margin-bottom: 24px;">
+                        <label for="password" style="display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 8px;">
+                            New Password <span style="font-size: 12px; color: #6b7280; font-weight: 400;">(Optional)</span>
+                        </label>
+                        <input type="password" id="password" name="password"
+                               style="width: 100%; padding: 12px 16px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px; transition: border-color 0.2s;"
+                               placeholder="Leave blank to keep current password">
+                        <p style="font-size: 12px; color: #6b7280; margin-top: 4px;">⚠️ Leave empty if you don't want to change the password</p>
+                    </div>
+
+                    <!-- Divider -->
+                    <div style="border-top: 1px solid #e5e7eb; margin: 24px 0;"></div>
+
+                    <!-- Action Buttons -->
+                    <div style="display: flex; gap: 12px; justify-content: flex-end;">
+                        <a href="{{ path('app_user_management_index') }}"
+                           style="padding: 12px 24px; background: #f3f4f6; color: #374151; border-radius: 8px; text-decoration: none; font-size: 14px; font-weight: 600; transition: background 0.2s;">
+                            Cancel
+                        </a>
+                        <button type="submit"
+                                style="padding: 12px 24px; background: #3b82f6; color: white; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; transition: background 0.2s;">
+                            Update User
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

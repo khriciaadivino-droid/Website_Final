@@ -1,0 +1,170 @@
+{% extends '_layouts/master.html.twig' %}
+
+{% block title %}Stocks{% endblock %}
+
+{% block body %}
+<div class="container mx-auto px-6 py-6" style="font-family: 'Poppins', 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;">
+    <!-- Header Section -->
+    <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-4 mb-8">
+        <h1 class="text-3xl font-bold text-gray-800 tracking-tight">Stocks</h1>
+        <a href="{{ path('app_stocks_new') }}"
+           class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-2 rounded-xl transition duration-200 flex items-center gap-2 shadow-sm">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+            </svg>
+            Create New Stock
+        </a>
+    </div>
+
+    <!-- Table Section -->
+    <div class="bg-white rounded-2xl shadow-lg overflow-hidden p-4">
+        <div class="overflow-x-auto rounded-xl">
+            <table id="stocksTable" class="w-full text-sm text-gray-700 table-fixed">
+                <thead class="bg-gray-100 border-b border-gray-200 text-xs uppercase tracking-wider">
+                    <tr>
+                        <th class="px-4 py-2 text-left font-semibold w-16">ID</th>
+                        <th class="px-4 py-2 text-left font-semibold w-24">Product</th>
+                        <th class="px-4 py-2 text-left font-semibold w-20">Quantity Change</th>
+                        <th class="px-4 py-2 text-left font-semibold w-20">Created At</th>
+                        <th class="px-4 py-2 text-left font-semibold w-20">Updated At</th>
+                        <th class="px-4 py-2 text-left font-semibold">Stock Change Log</th>
+                        <th class="px-4 py-2 text-center font-semibold w-32">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100">
+                {% for stock in stocks %}
+                    <tr class="hover:bg-gray-50 transition duration-150">
+                        <td class="px-4 py-2 font-medium text-gray-900">{{ stock.id }}</td>
+                        <td class="px-4 py-2">{{ stock.productss ? stock.productss.name : '—' }}</td>
+                        <td class="px-4 py-2 text-gray-700">
+                            {% if stock.quantityChange is not null %}
+                                {% if stock.quantityChange > 0 %}
+                                    <span class="text-green-600 font-medium">+{{ stock.quantityChange }}</span>
+                                {% elseif stock.quantityChange < 0 %}
+                                    <span class="text-red-600 font-medium">{{ stock.quantityChange }}</span>
+                                {% else %}
+                                    <span class="text-gray-600">0</span>
+                                {% endif %}
+                            {% else %}
+                                —
+                            {% endif %}
+                        </td>
+                        <td class="px-4 py-2 text-gray-700">{{ stock.createAt ? stock.createAt|date('Y-m-d H:i:s') : '—' }}</td>
+                        <td class="px-4 py-2 text-gray-700">{{ stock.updateAt ? stock.updateAt|date('Y-m-d H:i:s') : '—' }}</td>
+                        <td class="px-4 py-2 text-gray-700">{{ stock.stockChangeLog }}</td>
+                        <td class="px-4 py-2 text-center">
+                            <div class="flex justify-center gap-2">
+                                <a href="{{ path('app_stocks_show', {'id': stock.id}) }}"
+                                   class="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded-md flex items-center gap-1 text-xs font-medium shadow-sm transition duration-200">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                              d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                              d="M2.458 12C3.732 7.943 7.523 5 12 5
+                                                 c4.478 0 8.268 2.943 9.542 7
+                                                 -1.274 4.057-5.064 7-9.542 7
+                                                 -4.477 0-8.268-2.943-9.542-7z"/>
+                                    </svg>
+
+                                </a>
+                                <a href="{{ path('app_stocks_edit', {'id': stock.id}) }}"
+                                   class="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded-md flex items-center gap-1 text-xs font-medium shadow-sm transition duration-200">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                              d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11
+                                                 a2 2 0 002-2v-5
+                                                 m-1.414-9.414a2 2 0 112.828 2.828
+                                                 L11.828 15H9v-2.828l8.586-8.586z"/>
+                                    </svg>
+
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                {% else %}
+                    <tr>
+                        <td colspan="7" class="px-4 py-12 text-center text-gray-500">
+                            <div class="flex flex-col items-center gap-2">
+                                <svg class="w-16 h-16 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                          d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7
+                                             m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5
+                                             m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414
+                                             a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293
+                                             l-2.414-2.414A1 1 0 006.586 13H4"/>
+                                </svg>
+                                <p class="text-lg font-medium">No stocks found</p>
+                                <p class="text-sm">Start by creating your first stock record</p>
+                            </div>
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- ✅ DataTables Styling & Script -->
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+
+<style>
+/* ✅ Fitted layout with clean Tailwind-style DataTable */
+.dataTables_wrapper {
+    font-size: 0.9rem;
+    color: #374151;
+    margin-top: 1rem;
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+}
+.dataTables_filter input {
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    padding: 6px 10px;
+    font-size: 0.9rem;
+    outline: none;
+    width: 200px;
+}
+.dataTables_filter input:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 2px rgba(59,130,246,0.2);
+}
+.dataTables_length select {
+    border-radius: 8px;
+    padding: 4px 6px;
+    font-size: 0.9rem;
+}
+.dataTables_paginate a {
+    border-radius: 6px !important;
+    padding: 4px 10px !important;
+}
+.dataTables_info {
+    font-size: 0.85rem;
+    color: #6b7280;
+}
+</style>
+
+<script>
+$(document).ready(function() {
+    // Only initialize DataTables if there are data rows
+    if ($('#stocksTable tbody tr').length > 0 && !$('#stocksTable tbody tr td[colspan]').length) {
+        $('#stocksTable').DataTable({
+            pageLength: 7,
+            order: [[0, "asc"]],
+            columnDefs: [
+                { orderable: false, targets: 6 }
+            ],
+            language: {
+                search: "_INPUT_",
+                searchPlaceholder: "Search stocks...",
+                lengthMenu: "Show _MENU_ entries"
+            },
+            responsive: true
+        });
+    }
+});
+</script>
+{% endblock %}

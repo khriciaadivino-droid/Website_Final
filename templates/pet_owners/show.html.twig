@@ -1,0 +1,81 @@
+{% extends '_layouts/master.html.twig' %}
+
+{% block title %}Pet Owner Details{% endblock %}
+
+{% block body %}
+<div class="container mx-auto px-6 py-8">
+    <div class="max-w-3xl mx-auto">
+        <div class="mb-6">
+            <h1 class="text-3xl font-bold text-gray-800">Pet Owner Details</h1>
+            <p class="text-gray-600 mt-2">View pet owner information</p>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-lg p-6">
+            <table class="w-full">
+                <tbody class="divide-y divide-gray-200">
+                    <tr>
+                        <th class="px-4 py-3 text-left text-gray-600 font-semibold">Full Name</th>
+                        <td class="px-4 py-3 text-gray-900">{{ pet_owner.fullName }}</td>
+                    </tr>
+                    <tr>
+                        <th class="px-4 py-3 text-left text-gray-600 font-semibold">Email</th>
+                        <td class="px-4 py-3 text-gray-900">{{ pet_owner.email }}</td>
+                    </tr>
+                    <tr>
+                        <th class="px-4 py-3 text-left text-gray-600 font-semibold">Phone Number</th>
+                        <td class="px-4 py-3 text-gray-900">{{ pet_owner.phoneNumber ?? '-' }}</td>
+                    </tr>
+                    <tr>
+                        <th class="px-4 py-3 text-left text-gray-600 font-semibold">Address</th>
+                        <td class="px-4 py-3 text-gray-900">{{ pet_owner.address ?? '-' }}</td>
+                    </tr>
+                    <tr>
+                        <th class="px-4 py-3 text-left text-gray-600 font-semibold">Registration Date</th>
+                        <td class="px-4 py-3 text-gray-900">{{ pet_owner.registrationDate|date('F d, Y H:i:s') }}</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <!-- Pet Profiles Section -->
+            <div class="mt-8 pt-6 border-t border-gray-200">
+                <h2 class="text-xl font-bold text-gray-800 mb-4">Pet Profiles ({{ pet_owner.petProfiles|length }})</h2>
+                {% if pet_owner.petProfiles is empty %}
+                    <p class="text-gray-500 text-center py-4">No pets registered for this owner.</p>
+                {% else %}
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {% for pet in pet_owner.petProfiles %}
+                            <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                                <div class="flex items-center gap-3">
+                                    {% if pet.image %}
+                                        <img src="{{ asset('uploads/pets/' ~ pet.image) }}" alt="{{ pet.name }}" class="w-16 h-16 rounded-full object-cover">
+                                    {% else %}
+                                        <div class="w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center text-2xl">🐾</div>
+                                    {% endif %}
+                                    <div class="flex-1">
+                                        <h3 class="font-semibold text-gray-800">{{ pet.name }}</h3>
+                                        <p class="text-sm text-gray-600">{{ pet.species }} - {{ pet.breed }}</p>
+                                        <p class="text-xs text-gray-500">Age: {{ pet.age }} years</p>
+                                    </div>
+                                    <a href="{{ path('app_pet_profile_management_show', {'id': pet.id}) }}" class="bg-blue-500 text-white px-3 py-1 rounded text-sm hover:bg-blue-600">
+                                        View
+                                    </a>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="flex gap-3 mt-6 pt-6 border-t border-gray-200">
+                <a href="{{ path('app_pet_owners_index') }}" class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-semibold px-6 py-2 rounded-lg transition duration-200">
+                    Back to List
+                </a>
+                <a href="{{ path('app_pet_owners_edit', {'id': pet_owner.id}) }}" class="bg-yellow-500 hover:bg-yellow-600 text-white font-semibold px-6 py-2 rounded-lg transition duration-200">
+                    Edit
+                </a>
+                {{ include('pet_owners/_delete_form.html.twig') }}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

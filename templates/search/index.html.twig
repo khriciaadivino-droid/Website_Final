@@ -1,0 +1,229 @@
+{% extends '_layouts/master.html.twig' %}
+
+{% block title %}Search Results{% endblock %}
+
+{% block body %}
+
+<div class="mb-8">
+    <h3 class="text-4xl font-bold text-gray-800 mb-2">Search Results</h3>
+    <p class="text-gray-600">
+        {% if results.query %}
+            Showing results for: <strong class="text-indigo-600">"{{ results.query }}"</strong>
+        {% else %}
+            Enter a search term to find products, orders, stocks, and more
+        {% endif %}
+    </p>
+</div>
+
+{% if results.query and results.query|length >= 2 %}
+    <!-- Products Section -->
+    {% if results.products|length > 0 %}
+    <div class="mb-8">
+        <div class="flex items-center justify-between mb-4">
+            <h4 class="text-2xl font-bold text-gray-800 flex items-center">
+                <svg class="w-6 h-6 mr-2 text-pink-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                </svg>
+                Products ({{ results.products|length }})
+            </h4>
+            <a href="{{ path('app_productss_index') }}" class="text-indigo-600 hover:text-indigo-800 text-sm font-semibold">View All →</a>
+        </div>
+        <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product Name</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Action</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    {% for product in results.products %}
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ product.productName }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">₱{{ product.price|number_format(2) }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ product.category.name|default('N/A') }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm">
+                            <a href="{{ path('app_productss_show', {'id': product.id}) }}" class="text-indigo-600 hover:text-indigo-900">View Details</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Orders Section -->
+    {% if results.orders|length > 0 %}
+    <div class="mb-8">
+        <div class="flex items-center justify-between mb-4">
+            <h4 class="text-2xl font-bold text-gray-800 flex items-center">
+                <svg class="w-6 h-6 mr-2 text-orange-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                </svg>
+                Orders ({{ results.orders|length }})
+            </h4>
+            <a href="{{ path('app_orders_index') }}" class="text-indigo-600 hover:text-indigo-800 text-sm font-semibold">View All →</a>
+        </div>
+        <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Order Code</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Customer</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Action</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    {% for order in results.orders %}
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ order.orderCode }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ order.user.fullName|default('Guest') }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">₱{{ order.totalAmount|number_format(2) }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                                {{ order.status|default('Pending') }}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm">
+                            <a href="{{ path('app_orders_show', {'id': order.id}) }}" class="text-indigo-600 hover:text-indigo-900">View Details</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Stocks Section -->
+    {% if results.stocks|length > 0 %}
+    <div class="mb-8">
+        <div class="flex items-center justify-between mb-4">
+            <h4 class="text-2xl font-bold text-gray-800 flex items-center">
+                <svg class="w-6 h-6 mr-2 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                </svg>
+                Stocks ({{ results.stocks|length }})
+            </h4>
+            <a href="{{ path('app_stocks_index') }}" class="text-indigo-600 hover:text-indigo-800 text-sm font-semibold">View All →</a>
+        </div>
+        <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Batch Number</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Quantity</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Action</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    {% for stock in results.stocks %}
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ stock.product.productName|default('N/A') }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ stock.batchNumber|default('N/A') }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ stock.quantity }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm">
+                            <a href="{{ path('app_stocks_show', {'id': stock.id}) }}" class="text-indigo-600 hover:text-indigo-900">View Details</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Categories Section -->
+    {% if results.categories|length > 0 %}
+    <div class="mb-8">
+        <div class="flex items-center justify-between mb-4">
+            <h4 class="text-2xl font-bold text-gray-800 flex items-center">
+                <svg class="w-6 h-6 mr-2 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                </svg>
+                Categories ({{ results.categories|length }})
+            </h4>
+            <a href="{{ path('app_category_index') }}" class="text-indigo-600 hover:text-indigo-800 text-sm font-semibold">View All →</a>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {% for category in results.categories %}
+            <div class="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow">
+                <div class="flex items-center mb-3">
+                    <div class="p-3 bg-blue-100 rounded-lg mr-3">
+                        <svg class="w-6 h-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                        </svg>
+                    </div>
+                    <h5 class="text-lg font-bold text-gray-800">{{ category.name }}</h5>
+                </div>
+                <p class="text-sm text-gray-600 mb-3">{{ category.description|default('No description')|slice(0, 100) }}...</p>
+                <a href="{{ path('app_category_show', {'id': category.id}) }}" class="text-indigo-600 hover:text-indigo-900 text-sm font-semibold">View Products →</a>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Users Section (Admin Only) -->
+    {% if results.users|length > 0 and is_granted('ROLE_ADMIN') %}
+    <div class="mb-8">
+        <div class="flex items-center justify-between mb-4">
+            <h4 class="text-2xl font-bold text-gray-800 flex items-center">
+                <svg class="w-6 h-6 mr-2 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                </svg>
+                Users ({{ results.users|length }})
+            </h4>
+        </div>
+        <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    {% for user in results.users %}
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ user.fullName }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ user.email }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {% if 'ROLE_ADMIN' in user.roles %}Admin{% elseif 'ROLE_STAFF' in user.roles %}Staff{% else %}User{% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- No Results Message -->
+    {% if results.products|length == 0 and results.orders|length == 0 and results.stocks|length == 0 and results.categories|length == 0 and results.payments|length == 0 and results.users|length == 0 %}
+    <div class="bg-white rounded-xl shadow-lg p-12 text-center">
+        <svg class="w-24 h-24 mx-auto text-gray-300 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+        </svg>
+        <h3 class="text-2xl font-bold text-gray-800 mb-2">No results found</h3>
+        <p class="text-gray-600">Try searching with different keywords or browse our categories</p>
+    </div>
+    {% endif %}
+{% else %}
+    <div class="bg-white rounded-xl shadow-lg p-12 text-center">
+        <svg class="w-24 h-24 mx-auto text-gray-300 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+        </svg>
+        <h3 class="text-2xl font-bold text-gray-800 mb-2">Start Searching</h3>
+        <p class="text-gray-600">Enter at least 2 characters to search across products, orders, stocks, and more</p>
+    </div>
+{% endif %}
+
+{% endblock %}

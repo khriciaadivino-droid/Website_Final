@@ -1,0 +1,118 @@
+{% extends '_layouts/master.html.twig' %}
+
+{% block title %}Product{% endblock %}
+
+{% block body %}
+<div style="padding: 20px;">
+    <div class="container mx-auto px-1 py-1" style="font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;">
+        <!-- Flash Messages -->
+        {% for label, messages in app.flashes %}
+            {% for message in messages %}
+                <div class="mb-4 p-4 rounded-lg {% if label == 'success' %}bg-green-100 text-green-800{% elseif label == 'error' %}bg-red-100 text-red-800{% else %}bg-blue-100 text-blue-800{% endif %}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endfor %}
+
+        <div class="flex justify-between items-center mb-6">
+            <h1 class="text-3xl font-bold text-gray-800">Product Details</h1>
+            <a href="{{ path('app_productss_index') }}" 
+               style="display: inline-flex; align-items: center; gap: 8px; background: #10b981; color: white; padding: 10px 20px; border-radius: 6px; text-decoration: none; font-size: 14px; font-weight: 600; transition: background 0.2s;">
+                <svg style="width: 16px; height: 16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+                </svg>
+                Back to list
+            </a>
+        </div>
+
+        <div style="display: flex; justify-content: center;">
+            <!-- Product Card -->
+            <div style="background: white; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); width: 280px; overflow: hidden;">
+                <!-- Image Section -->
+                <div style="width: 100%; height: 200px; overflow: hidden; background: #f8f9fa;">
+                    {% if productss.imagefilename %}
+                        <img src="{{ asset('uploads/products/' ~ productss.imagefilename) }}" 
+                             alt="{{ productss.name }}" 
+                             style="width: 100%; height: 100%; object-fit: cover;">
+                    {% else %}
+                        <div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: #e2e8f0;">
+                            <svg style="width: 48px; height: 48px; color: #9ca3af;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                            </svg>
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Content Section -->
+                <div style="padding: 16px;">
+                    <!-- Category Badge -->
+                    <span style="display: inline-block; background: #e0f2fe; color: #0369a1; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 500; margin-bottom: 8px;">
+                        {{ productss.category.name }}
+                    </span>
+
+                    <!-- Product Name -->
+                    <h3 style="margin: 0 0 8px 0; font-size: 18px; font-weight: 600; color: #1f2937;">
+                        {{ productss.name }}
+                    </h3>
+
+                    <!-- Description -->
+                    <p style="margin: 0 0 12px 0; font-size: 14px; color: #6b7280; line-height: 1.4;">
+                        {{ productss.description }}
+                    </p>
+
+                    <!-- Price -->
+                    <div style="font-size: 24px; font-weight: 700; color: #059669; margin-bottom: 8px;">
+                        ₱{{ productss.price|number_format(2, '.', ',') }}
+                    </div>
+
+                    <!-- Quantity -->
+                    <div style="font-size: 15px; font-weight: 600; color: #374151; margin-bottom: 16px;">
+                        Quantity: 
+                        <span style="color: #111827;">{{ productss.quantity }}</span>
+                    </div>
+
+                    <!-- ID (small text) -->
+                    <div style="font-size: 11px; color: #9ca3af; margin-bottom: 4px;">
+                        ID: {{ productss.id }}
+                    </div>
+
+                    <!-- Created By -->
+                    {% if productss.createdBy %}
+                    <div style="font-size: 12px; color: #6b7280; margin-bottom: 12px;">
+                        <strong>Created by:</strong> {{ productss.createdBy.fullName }}
+                        {% if is_granted('ROLE_ADMIN') %}
+                            <span style="color: #9ca3af;">({{ productss.createdBy.email }})</span>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+
+                    <!-- Action Buttons -->
+                    <div style="display: flex; gap: 8px;">
+                        {% if is_granted('ROLE_ADMIN') or (productss.createdBy and productss.createdBy.id == app.user.id) %}
+                        <a href="{{ path('app_productss_edit', {'id': productss.id}) }}"
+                           style="flex: 1; background: #eab308; color: white; padding: 8px 12px; border-radius: 6px; text-decoration: none; text-align: center; font-size: 14px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 4px; transition: background 0.2s;">
+                            <svg style="width: 16px; height: 16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                            </svg>
+                        </a>
+                        <form method="post" action="{{ path('app_productss_delete', {'id': productss.id}) }}" style="flex: 1; margin: 0;" onsubmit="return confirm('Are you sure you want to delete this product?');">
+                            <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ productss.id) }}">
+                            <button type="submit" style="width: 100%; background: #ef4444; color: white; padding: 8px 12px; border-radius: 6px; border: none; cursor: pointer; font-size: 14px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 4px; transition: background 0.2s;">
+                                <svg style="width: 16px; height: 16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                </svg>
+                                Delete
+                            </button>
+                        </form>
+                        {% else %}
+                        <div style="flex: 1; background: #d1d5db; color: #6b7280; padding: 8px 12px; border-radius: 6px; text-align: center; font-size: 12px; font-weight: 500;">
+                            🔒 You can only edit/delete your own products
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

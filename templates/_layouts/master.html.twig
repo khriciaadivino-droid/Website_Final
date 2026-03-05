@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta http-equiv="x-ua-compatible" content="ie=edge">
+        <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+        <meta http-equiv="Pragma" content="no-cache">
+        <meta http-equiv="Expires" content="0">
+        <meta name="referrer" content="always">
+        <link rel="canonical" href="#">
+
+        <meta name="description" content="#">
+
+        <title>{% block title %}Dashboard{% endblock %}</title>
+        
+        <!-- Alpine.js -->
+        <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+        
+       {% block stylesheets %}
+            {{ encore_entry_link_tags('app') }}
+        {% endblock %}
+
+        {% block javascripts %}
+            {{ encore_entry_script_tags('app') }}
+        {% endblock %}
+    </head>
+    <body class="antialiased">
+        <div x-data="{ sidebarOpen: false }" class="flex h-screen bg-gray-200 font-roboto">
+            {% include '_layouts/sidebar.html.twig' %}
+            
+            <div class="flex-1 flex flex-col overflow-hidden">
+                {% include '_layouts/header.html.twig' %}
+
+                <main class="flex-1 overflow-x-hidden overflow-y-auto bg-gray-200">
+                    <div class="container mx-auto px-2 py-2">
+                        {% block body %}{% endblock %}
+                    </div>
+                </main>
+            </div>
+        </div>
+    </body>
+</html>

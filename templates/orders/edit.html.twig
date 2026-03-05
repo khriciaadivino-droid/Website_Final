@@ -1,0 +1,63 @@
+{% extends '_layouts/master.html.twig' %}
+
+{% block title %}Edit Order{% endblock %}
+
+{% block body %}
+<div class="container mx-auto px-6 py-8">
+    <div class="max-w-3xl mx-auto">
+        <div class="mb-6">
+            <h1 class="text-3xl font-bold text-gray-800">Edit Order</h1>
+            <p class="text-gray-600 mt-2">Update order information</p>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-lg p-6">
+            {{ form_start(form, {'attr': {'class': 'space-y-6'}}) }}
+            
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Product</label>
+                {{ form_widget(form.product) }}
+                {{ form_errors(form.product) }}
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Quantity</label>
+                {{ form_widget(form.quantity) }}
+                {{ form_errors(form.quantity) }}
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Customer Name</label>
+                {{ form_widget(form.customerName) }}
+                {{ form_errors(form.customerName) }}
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Customer Email</label>
+                {{ form_widget(form.customerEmail) }}
+                {{ form_errors(form.customerEmail) }}
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Status</label>
+                {{ form_widget(form.status) }}
+                {{ form_errors(form.status) }}
+            </div>
+
+            <div class="flex gap-3 pt-4">
+                <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-2 rounded-lg transition duration-200">
+                    Update Order
+                </button>
+                <a href="{{ path('app_orders_index') }}" class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-semibold px-6 py-2 rounded-lg transition duration-200">
+                    Cancel
+                </a>
+            </div>
+
+            {{ form_end(form) }}
+        </div>
+
+        <div class="mt-4">
+            {{ include('orders/_delete_form.html.twig') }}
+        </div>
+    </div>
+</div>
+{% endblock %}
