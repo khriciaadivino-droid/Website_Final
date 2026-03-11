@@ -1,0 +1,158 @@
+{% extends '_layouts/master.html.twig' %}
+
+{% block title %}{{ customer.fullName }} - Details{% endblock %}
+
+{% block body %}
+<div style="padding: 20px;">
+    <div class="container mx-auto px-1 py-1" style="font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;">
+
+        <!-- Header -->
+        <div class="flex justify-between items-center mb-6">
+            <div>
+                <h1 class="text-3xl font-bold text-gray-800">Customer Details</h1>
+                <p class="text-gray-600 mt-1">View customer information and account details</p>
+            </div>
+            <a href="{{ path('app_customer_index') }}" 
+               style="display: inline-flex; align-items: center; gap: 8px; background: #10b981; color: white; padding: 10px 20px; border-radius: 6px; text-decoration: none; font-size: 14px; font-weight: 600; transition: background 0.2s;">
+                <svg style="width: 16px; height: 16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+                </svg>
+                Back to list
+            </a>
+        </div>
+
+        <!-- Customer Details Card -->
+        <div style="display: flex; justify-content: center; margin-bottom: 40px;">
+            <div style="background: white; border-radius: 16px; box-shadow: 0 4px 10px rgba(0,0,0,0.08); width: 100%; max-width: 600px; overflow: hidden;">
+                
+                <!-- Header Section -->
+                <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 20px; color: white; text-align: center;">
+                    <div style="width: 70px; height: 70px; background: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 12px; font-size: 28px; font-weight: bold; color: #667eea; box-shadow: 0 4px 10px rgba(0,0,0,0.2);">
+                        {{ customer.fullName|slice(0, 1)|upper }}
+                    </div>
+                    <h2 style="font-size: 20px; font-weight: 700; margin: 0;">{{ customer.fullName }}</h2>
+                    <p style="font-size: 13px; margin-top: 6px; opacity: 0.9;">Customer Profile</p>
+                </div>
+
+                <!-- Details Content -->
+                <div style="padding: 24px;">
+                    
+                    <!-- First Name -->
+                    <div style="margin-bottom: 16px;">
+                        <label style="display: block; font-size: 12px; font-weight: 600; color: #374151; margin-bottom: 6px;">
+                            First Name
+                        </label>
+                        <div style="width: 100%; padding: 10px 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 13px; background: #f9fafb; color: #374151;">
+                            {{ customer.firstName }}
+                        </div>
+                    </div>
+
+                    <!-- Last Name -->
+                    <div style="margin-bottom: 16px;">
+                        <label style="display: block; font-size: 12px; font-weight: 600; color: #374151; margin-bottom: 6px;">
+                            Last Name
+                        </label>
+                        <div style="width: 100%; padding: 10px 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 13px; background: #f9fafb; color: #374151;">
+                            {{ customer.lastName }}
+                        </div>
+                    </div>
+
+                    <!-- Email -->
+                    <div style="margin-bottom: 16px;">
+                        <label style="display: block; font-size: 12px; font-weight: 600; color: #374151; margin-bottom: 6px;">
+                            Email
+                        </label>
+                        <div style="width: 100%; padding: 10px 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 13px; background: #f9fafb; color: #374151;">
+                            {{ customer.email }}
+                        </div>
+                    </div>
+
+                    <!-- Phone Number -->
+                    <div style="margin-bottom: 16px;">
+                        <label style="display: block; font-size: 12px; font-weight: 600; color: #374151; margin-bottom: 6px;">
+                            Phone Number
+                        </label>
+                        <div style="width: 100%; padding: 10px 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 13px; background: #f9fafb; color: #374151;">
+                            {{ customer.phoneNumber ?? 'N/A' }}
+                        </div>
+                    </div>
+
+                    <!-- Address -->
+                    <div style="margin-bottom: 16px;">
+                        <label style="display: block; font-size: 12px; font-weight: 600; color: #374151; margin-bottom: 6px;">
+                            Address
+                        </label>
+                        <div style="width: 100%; padding: 10px 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 13px; background: #f9fafb; color: #374151;">
+                            {{ customer.address ?? 'N/A' }}
+                        </div>
+                    </div>
+
+                    <!-- City -->
+                    <div style="margin-bottom: 16px;">
+                        <label style="display: block; font-size: 12px; font-weight: 600; color: #374151; margin-bottom: 6px;">
+                            City
+                        </label>
+                        <div style="width: 100%; padding: 10px 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 13px; background: #f9fafb; color: #374151;">
+                            {{ customer.city ?? 'N/A' }}
+                        </div>
+                    </div>
+
+                    <!-- Postal Code -->
+                    <div style="margin-bottom: 16px;">
+                        <label style="display: block; font-size: 12px; font-weight: 600; color: #374151; margin-bottom: 6px;">
+                            Postal Code
+                        </label>
+                        <div style="width: 100%; padding: 10px 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 13px; background: #f9fafb; color: #374151;">
+                            {{ customer.postalCode ?? 'N/A' }}
+                        </div>
+                    </div>
+
+                    <!-- Country -->
+                    <div style="margin-bottom: 16px;">
+                        <label style="display: block; font-size: 12px; font-weight: 600; color: #374151; margin-bottom: 6px;">
+                            Country
+                        </label>
+                        <div style="width: 100%; padding: 10px 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 13px; background: #f9fafb; color: #374151;">
+                            {{ customer.country ?? 'N/A' }}
+                        </div>
+                    </div>
+
+                    <!-- Registration Date -->
+                    <div style="margin-bottom: 16px;">
+                        <label style="display: block; font-size: 12px; font-weight: 600; color: #374151; margin-bottom: 6px;">
+                            Registration Date
+                        </label>
+                        <div style="width: 100%; padding: 10px 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 13px; background: #f9fafb; color: #374151;">
+                            {{ customer.registrationDate|date('Y-m-d H:i:s') }}
+                        </div>
+                    </div>
+
+                    <!-- Last Purchase Date -->
+                    <div style="margin-bottom: 16px;">
+                        <label style="display: block; font-size: 12px; font-weight: 600; color: #374151; margin-bottom: 6px;">
+                            Last Purchase Date
+                        </label>
+                        <div style="width: 100%; padding: 10px 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 13px; background: #f9fafb; color: #374151;">
+                            {{ customer.lastPurchaseDate ? customer.lastPurchaseDate|date('Y-m-d H:i:s') : 'N/A' }}
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Action Buttons -->
+                <div style="padding: 16px 24px; background: #f9fafb; border-top: 1px solid #e5e7eb; display: flex; gap: 8px; justify-content: flex-end;">
+                    <a href="{{ path('app_customer_edit', {'id': customer.id}) }}"
+                       style="display: inline-flex; align-items: center; gap: 6px; background: #3b82f6; color: white; padding: 8px 16px; border-radius: 6px; text-decoration: none; font-size: 13px; font-weight: 600; transition: background 0.2s;">
+                        <svg style="width: 14px; height: 14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                        </svg>
+                        Edit
+                    </a>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

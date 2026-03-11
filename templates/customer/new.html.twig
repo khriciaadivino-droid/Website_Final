@@ -1,0 +1,113 @@
+{% extends '_layouts/master.html.twig' %}
+
+{% block title %}New Customer{% endblock %}
+
+{% block body %}
+<div class="container mx-auto px-6 py-6" style="font-family: 'Poppins', 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;">
+    <!-- Header Section -->
+    <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-4 mb-8">
+        <div>
+            <h1 class="text-3xl font-bold text-gray-800 tracking-tight">Add New Customer</h1>
+            <p class="text-gray-600 mt-1">Create a new customer profile</p>
+        </div>
+        <a href="{{ path('app_customer_index') }}"
+           class="bg-gray-500 hover:bg-gray-600 text-white font-semibold px-6 py-2 rounded-xl transition duration-200 flex items-center gap-2 shadow-sm">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+            </svg>
+            Back to list
+        </a>
+    </div>
+
+    <!-- Form Section -->
+    <div class="bg-white rounded-2xl shadow-lg p-8">
+        {{ form_start(form) }}
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- First Name -->
+            <div>
+                {{ form_label(form.firstName, null, {'label_attr': {'class': 'block text-sm font-semibold text-gray-700 mb-2'}}) }}
+                {{ form_widget(form.firstName) }}
+                {{ form_errors(form.firstName) }}
+            </div>
+
+            <!-- Last Name -->
+            <div>
+                {{ form_label(form.lastName, null, {'label_attr': {'class': 'block text-sm font-semibold text-gray-700 mb-2'}}) }}
+                {{ form_widget(form.lastName) }}
+                {{ form_errors(form.lastName) }}
+            </div>
+
+            <!-- Email -->
+            <div>
+                {{ form_label(form.email, null, {'label_attr': {'class': 'block text-sm font-semibold text-gray-700 mb-2'}}) }}
+                {{ form_widget(form.email) }}
+                {{ form_errors(form.email) }}
+            </div>
+
+            <!-- Phone Number -->
+            <div>
+                {{ form_label(form.phoneNumber, null, {'label_attr': {'class': 'block text-sm font-semibold text-gray-700 mb-2'}}) }}
+                {{ form_widget(form.phoneNumber) }}
+                {{ form_errors(form.phoneNumber) }}
+            </div>
+
+            <!-- Address -->
+            <div class="md:col-span-2">
+                {{ form_label(form.address, null, {'label_attr': {'class': 'block text-sm font-semibold text-gray-700 mb-2'}}) }}
+                {{ form_widget(form.address) }}
+                {{ form_errors(form.address) }}
+            </div>
+
+            <!-- City -->
+            <div>
+                {{ form_label(form.city, null, {'label_attr': {'class': 'block text-sm font-semibold text-gray-700 mb-2'}}) }}
+                {{ form_widget(form.city) }}
+                {{ form_errors(form.city) }}
+            </div>
+
+            <!-- Postal Code -->
+            <div>
+                {{ form_label(form.postalCode, null, {'label_attr': {'class': 'block text-sm font-semibold text-gray-700 mb-2'}}) }}
+                {{ form_widget(form.postalCode) }}
+                {{ form_errors(form.postalCode) }}
+            </div>
+
+            <!-- Country -->
+            <div>
+                {{ form_label(form.country, null, {'label_attr': {'class': 'block text-sm font-semibold text-gray-700 mb-2'}}) }}
+                {{ form_widget(form.country) }}
+                {{ form_errors(form.country) }}
+            </div>
+
+            <!-- Registration Date -->
+            <div>
+                {{ form_label(form.registrationDate, null, {'label_attr': {'class': 'block text-sm font-semibold text-gray-700 mb-2'}}) }}
+                {{ form_widget(form.registrationDate) }}
+                {{ form_errors(form.registrationDate) }}
+            </div>
+
+            <!-- Last Purchase Date -->
+            <div class="md:col-span-2">
+                {{ form_label(form.lastPurchaseDate, null, {'label_attr': {'class': 'block text-sm font-semibold text-gray-700 mb-2'}}) }}
+                {{ form_widget(form.lastPurchaseDate) }}
+                {{ form_errors(form.lastPurchaseDate) }}
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="flex justify-end gap-4 mt-8 pt-6 border-t border-gray-200">
+            <a href="{{ path('app_customer_index') }}"
+               class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-semibold px-6 py-2 rounded-lg transition duration-200">
+                Cancel
+            </a>
+            <button type="submit"
+                    class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-2 rounded-lg transition duration-200">
+                Save Customer
+            </button>
+        </div>
+
+        {{ form_end(form) }}
+    </div>
+</div>
+{% endblock %}
