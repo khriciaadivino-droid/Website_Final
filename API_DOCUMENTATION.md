@@ -9,7 +9,7 @@
 **Request Body:**
 ```json
 {
-    "username": "user@example.com",
+    "email": "user@example.com",
     "password": "your_password"
 }
 ```
@@ -25,7 +25,7 @@
 ```bash
 curl -X POST http://localhost:8000/api/login \
   -H "Content-Type: application/json" \
-  -d '{"username":"admin@example.com","password":"password"}'
+  -d '{"email":"admin@example.com","password":"password"}'
 ```
 
 ---
@@ -282,7 +282,7 @@ curl -X DELETE http://localhost:8000/api/customers/2 \
 
 1. **Get JWT Token:**
    - Create a POST request to `/api/login`
-   - Set body to JSON with `username` and `password`
+   - Set body to JSON with `email` and `password`
    - Save the returned `token`
 
 2. **Use Token for API Calls:**
@@ -306,7 +306,7 @@ curl -X DELETE http://localhost:8000/api/customers/2 \
 $loginResponse = Invoke-RestMethod -Uri "http://localhost:8000/api/login" `
     -Method Post `
     -ContentType "application/json" `
-    -Body '{"username":"admin@example.com","password":"password"}'
+    -Body '{"email":"admin@example.com","password":"password"}'
 
 $token = $loginResponse.token
 ```

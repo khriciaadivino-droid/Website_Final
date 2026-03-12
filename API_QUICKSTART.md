@@ -45,7 +45,7 @@ Then login via API:
 $response = Invoke-RestMethod -Uri "http://localhost:8000/api/login" `
     -Method Post `
     -ContentType "application/json" `
-    -Body '{"username":"your-email@example.com","password":"your-password"}'
+    -Body '{"email":"your-email@example.com","password":"your-password"}'
 
 $token = $response.token
 Write-Host "Token: $token"

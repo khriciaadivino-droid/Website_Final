@@ -15,7 +15,7 @@ try {
     # 1. Login and get JWT token
     Write-Host "1. Logging in..." -ForegroundColor Yellow
     $loginBody = @{
-        username = $username
+        email = $username
         password = $password
     } | ConvertTo-Json
 
