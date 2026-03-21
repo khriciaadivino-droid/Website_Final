@@ -11,6 +11,8 @@
         "doctrine/doctrine-bundle": "^2.16",
         "doctrine/doctrine-migrations-bundle": "^3.4",
         "doctrine/orm": "^3.5",
+        "knpuniversity/oauth2-client-bundle": "*",
+        "league/oauth2-google": "*",
         "lexik/jwt-authentication-bundle": "^3.2",
         "phpdocumentor/reflection-docblock": "^5.6",
         "phpstan/phpdoc-parser": "^2.3",
@@ -53,7 +55,8 @@
             "symfony/runtime": true
         },
         "bump-after-update": true,
-        "sort-packages": true
+        "sort-packages": true,
+        "disable-tls": true
     },
     "autoload": {
         "psr-4": {
@@ -92,7 +95,7 @@
     },
     "extra": {
         "symfony": {
-            "allow-contrib": false,
+            "allow-contrib": true,
             "require": "7.3.*"
         }
     },

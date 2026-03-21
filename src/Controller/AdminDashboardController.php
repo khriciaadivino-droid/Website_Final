@@ -22,19 +22,8 @@ class AdminDashboardController extends AbstractController
         PetProfileManagementRepository $petProfileRepository
     ): Response {
         $totalUsers = $userRepository->count([]);
-        
-        // Count admins and staff by checking roles
-        $allUsers = $userRepository->findAll();
-        $totalAdmins = 0;
-        $totalStaff = 0;
-        
-        foreach ($allUsers as $user) {
-            if (in_array('ROLE_ADMIN', $user->getRoles())) {
-                $totalAdmins++;
-            } elseif (in_array('ROLE_STAFF', $user->getRoles())) {
-                $totalStaff++;
-            }
-        }
+        $totalAdmins = $userRepository->countAdminUsers();
+        $totalStaff = $userRepository->countStaffUsers();
         
         $totalProducts = $productssRepository->count([]);
         $totalOrders = $ordersRepository->count([]);

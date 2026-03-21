@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About PawStuff | Meet Our Team</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700;800;900&family=Nunito:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        html {
+            scroll-behavior: smooth;
+        }
+
+        :root {
+            --page: #f4f5f9;
+            --white: #ffffff;
+            --ink: #171a21;
+            --muted: #50555f;
+            --blue: #154b7f;
+            --blue-soft: #2f679d;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100%;
+            overflow-x: hidden;
+            font-family: 'Nunito', sans-serif;
+            color: var(--ink);
+            background: var(--page);
+        }
+
+        .wrap {
+            width: 100%;
+            margin: 0;
+            padding: 0;
+        }
+
+        header {
+            background: var(--white);
+            padding: 1.2rem 1.8rem;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        }
+
+        .top-row {
+            display: flex;
+            align-items: center;
+            gap: 0.45rem;
+            justify-content: flex-start;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .logo {
+            display: inline-flex;
+            align-items: center;
+            gap: 0;
+            text-decoration: none;
+            margin-right: auto;
+        }
+
+        .logo img {
+            height: 50px;
+        }
+
+        .logo span {
+            font-size: 0.9rem;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 700;
+            color: var(--ink);
+            margin-left: -4px;
+        }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 0.2rem;
+            padding: 0.2rem;
+            margin-right: 1rem;
+        }
+
+        .nav-links a {
+            font-size: 0.9rem;
+            padding: 0.5rem 1rem;
+            text-decoration: none;
+            color: var(--muted);
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 600;
+            transition: color 0.3s;
+        }
+
+        .nav-links a:hover {
+            color: var(--blue);
+        }
+
+        .signup {
+            padding: 0.6rem 1.2rem;
+            background: var(--blue);
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 700;
+            font-size: 0.9rem;
+            transition: background 0.3s;
+        }
+
+        .signup:hover {
+            background: #0f3d68;
+        }
+
+        main {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 3rem 2rem;
+        }
+
+        section {
+            margin-bottom: 4rem;
+        }
+
+        .hero {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .hero small {
+            display: inline-block;
+            color: var(--blue);
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 700;
+            letter-spacing: 0.01em;
+            font-size: 0.9rem;
+        }
+
+        .hero h1 {
+            font-family: 'Montserrat', sans-serif;
+            font-size: clamp(2rem, 5vw, 3rem);
+            font-weight: 900;
+            margin: 0.8rem 0;
+            line-height: 1.1;
+            letter-spacing: -0.03em;
+            color: var(--ink);
+        }
+
+        .hero p {
+            font-size: 1.1rem;
+            color: var(--muted);
+            line-height: 1.6;
+            max-width: 800px;
+            margin: 1rem auto 0;
+        }
+
+        .team-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 2.5rem;
+            margin-top: 3rem;
+        }
+
+        .team-card {
+            background: var(--white);
+            border-radius: 16px;
+            padding: 2rem;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            transition: transform 0.3s, box-shadow 0.3s;
+            text-align: center;
+        }
+
+        .team-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+        }
+
+        .team-image {
+            width: 100%;
+            aspect-ratio: 1;
+            overflow: hidden;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #e8f0f8, #f0f4f9);
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .team-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: center;
+        }
+
+        .team-card h3 {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--ink);
+            margin: 0 0 0.3rem;
+            letter-spacing: -0.01em;
+        }
+
+        .team-card .role {
+            color: var(--blue);
+            font-size: 1rem;
+            font-weight: 600;
+            margin: 0 0 1rem;
+            font-family: 'Montserrat', sans-serif;
+        }
+
+        .team-card p {
+            color: var(--muted);
+            font-size: 0.95rem;
+            line-height: 1.6;
+            margin: 0;
+        }
+
+        .values-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .value-card {
+            background: linear-gradient(135deg, #e8f0f8, #f0f4f9);
+            border-left: 4px solid var(--blue);
+            padding: 2rem;
+            border-radius: 8px;
+        }
+
+        .value-card h3 {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--ink);
+            margin: 0 0 0.5rem;
+        }
+
+        .value-card p {
+            color: var(--muted);
+            font-size: 0.95rem;
+            line-height: 1.6;
+            margin: 0;
+        }
+
+        footer {
+            background: var(--white);
+            padding: 2rem;
+            text-align: center;
+            color: var(--muted);
+            font-size: 0.9rem;
+            border-top: 1px solid #e5e7eb;
+        }
+
+        @media (max-width: 900px) {
+            main {
+                padding: 2rem 1.5rem;
+            }
+
+            .hero h1 {
+                font-size: clamp(1.5rem, 4vw, 2.2rem);
+            }
+
+            .team-grid {
+                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                gap: 1.5rem;
+            }
+
+            .team-card {
+                padding: 1.5rem;
+            }
+        }
+
+        @media (max-width: 760px) {
+            header {
+                padding: 1rem;
+            }
+
+            .nav-links {
+                gap: 0.1rem;
+            }
+
+            .nav-links a {
+                font-size: 0.8rem;
+                padding: 0.4rem 0.7rem;
+            }
+
+            .signup {
+                padding: 0.5rem 1rem;
+                font-size: 0.8rem;
+            }
+
+            main {
+                padding: 1.5rem 1rem;
+            }
+
+            .hero h1 {
+                font-size: 1.6rem;
+            }
+
+            .hero p {
+                font-size: 1rem;
+            }
+
+            .team-grid {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+
+            .values-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="top-row">
+            <a href="{{ path('app_landing') }}" class="logo" aria-label="PawStuff home">
+                <img src="{{ asset('images/logo.png') }}" alt="PawStuff logo">
+                <span>PawStuff</span>
+            </a>
+
+            <nav class="nav-links" aria-label="Main links">
+                <a href="{{ path('app_landing') }}">Home</a>
+                <a href="{{ path('app_about') }}">About</a>
+                <a href="{{ path('app_landing') }}#products">Products</a>
+                <a href="{{ path('app_contact') }}">Contact</a>
+            </nav>
+
+            <a href="{{ path('app_register') }}" class="signup">Sign Up</a>
+        </div>
+    </header>
+
+    <main>
+        <section class="hero">
+            <small>About PawStuff</small>
+            <h1>Meet Our Passionate Team</h1>
+            <p>The brilliant minds behind PawStuff are dedicated to revolutionizing pet care management. With years of experience across operations, product development, and customer success, we're united by one mission: making pet care simpler, better, and more accessible.</p>
+        </section>
+
+        <section>
+            <div class="team-grid">
+                <div class="team-card">
+                    <div class="team-image">
+                        <img src="{{ asset('images/ddog2-removebg-preview.png') }}" alt="Sarah Johnson">
+                    </div>
+                    <h3>Sarah Johnson</h3>
+                    <div class="role">Founder & CEO</div>
+                    <p>Visionary entrepreneur with 15+ years in business operations. Sarah founded PawStuff to transform how pet care facilities manage their daily operations and scale their impact.</p>
+                </div>
+
+                <div class="team-card">
+                    <div class="team-image">
+                        <img src="{{ asset('images/dog4-removebg-preview.png') }}" alt="Michael Chen">
+                    </div>
+                    <h3>Michael Chen</h3>
+                    <div class="role">Product Director</div>
+                    <p>Expert product strategist with a passion for user-centered design. Michael leads our product vision, ensuring every feature serves our customers' real-world needs.</p>
+                </div>
+
+                <div class="team-card">
+                    <div class="team-image">
+                        <img src="{{ asset('images/catdog-removebg-preview.png') }}" alt="Emma Davis">
+                    </div>
+                    <h3>Emma Davis</h3>
+                    <div class="role">Customer Success Lead</div>
+                    <p>Dedicated to empowering our customers to succeed. Emma ensures every PawStuff user gets the support, guidance, and resources they need to thrive.</p>
+                </div>
+
+                <div class="team-card">
+                    <div class="team-image">
+                        <img src="{{ asset('images/cat1-removebg-preview.png') }}" alt="James Wilson">
+                    </div>
+                    <h3>James Wilson</h3>
+                    <div class="role">Operations Manager</div>
+                    <p>Systems thinker focused on efficiency and excellence. James orchestrates our internal operations, ensuring smooth delivery and continuous improvement across all teams.</p>
+                </div>
+            </div>
+        </section>
+
+        <section>
+            <h2 style="font-family: 'Montserrat', sans-serif; font-size: clamp(1.8rem, 4vw, 2.5rem); font-weight: 900; margin: 3rem 0 1rem; letter-spacing: -0.03em;">Our Values</h2>
+            <p style="color: var(--muted); line-height: 1.6; font-size: 1.05rem; max-width: 800px; margin: 0 0 2rem;">At PawStuff, we're guided by core principles that shape everything we do. These values define our culture and drive us toward our mission.</p>
+
+            <div class="values-grid">
+                <div class="value-card">
+                    <h3>Care First</h3>
+                    <p>We put the well-being of pets and their owners at the center of every decision. This is about more than business—it's about making a meaningful difference in pets' lives.</p>
+                </div>
+
+                <div class="value-card">
+                    <h3>Simplicity</h3>
+                    <p>We believe great software should be intuitive and elegant. We relentlessly simplify complexity to create tools that delight users and reduce friction.</p>
+                </div>
+
+                <div class="value-card">
+                    <h3>Trust & Transparency</h3>
+                    <p>Our customers trust us with critical operations. We honor that trust through transparent communication, honest practices, and unwavering reliability.</p>
+                </div>
+
+                <div class="value-card">
+                    <h3>Innovation</h3>
+                    <p>We embrace bold ideas and continuous improvement. Our team stays ahead of industry trends to deliver solutions that anticipate tomorrow's needs.</p>
+                </div>
+
+                <div class="value-card">
+                    <h3>Empathy</h3>
+                    <p>We listen deeply to our users and understand their challenges. Empathy guides our product development, support, and every interaction we have.</p>
+                </div>
+
+                <div class="value-card">
+                    <h3>Community</h3>
+                    <p>We're building a vibrant community of pet care professionals. Together, we share knowledge, celebrate wins, and lift each other toward success.</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2026 PawStuff. All rights reserved. Built with care for pets everywhere.</p>
+    </footer>
+</body>
+</html>

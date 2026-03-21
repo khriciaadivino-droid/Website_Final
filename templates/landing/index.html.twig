@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PawStuff | Landing</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700;800;900&family=Nunito:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        html {
+            scroll-behavior: smooth;
+        }
+
+        :root {
+            --page: #f4f5f9;
+            --white: #ffffff;
+            --ink: #171a21;
+            --muted: #50555f;
+            --blue: #154b7f;
+            --blue-soft: #2f679d;
+            --green: #2baf6f;
+            --green-dark: #1f8a56;
+            --blue-circle-x: 84%;
+            --blue-circle-rx: 45%;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100%;
+            overflow-x: hidden;
+            font-family: 'Nunito', sans-serif;
+            color: var(--ink);
+            background:
+                radial-gradient(800px 420px at 90% -10%, rgba(21, 75, 127, 0.16), transparent 70%),
+                var(--page);
+        }
+
+        .wrap {
+            width: 100%;
+            margin: 0;
+            padding: 0;
+        }
+
+        .banner {
+            position: relative;
+            height: 100vh;
+            min-height: 100vh;
+            overflow: hidden;
+            background: var(--white);
+        }
+
+        .banner::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(160deg, var(--blue), #1f5f9a 68%, #194c80);
+            clip-path: ellipse(var(--blue-circle-rx) 98% at var(--blue-circle-x) 30%);
+            z-index: 1;
+        }
+
+        .banner::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.13), transparent 35%);
+            z-index: 2;
+            pointer-events: none;
+        }
+
+        .top-row,
+        .hero-copy,
+        .pet-shot,
+        .cat-shot {
+            position: relative;
+            z-index: 3;
+        }
+
+        .top-row {
+            display: flex;
+            align-items: center;
+            gap: 0.45rem;
+            justify-content: flex-end;
+            padding: 1.2rem 1.8rem 0 1.3rem;
+            z-index: 5;
+        }
+
+        .logo {
+            display: inline-flex;
+            align-items: center;
+            gap: 0;
+            text-decoration: none;
+            margin-right: auto;
+        }
+
+        .logo img {
+            width: 88px;
+            height: 88px;
+            display: block;
+            object-fit: contain;
+            clip-path: inset(0 20px 0 0);
+            margin-right: -14px;
+        }
+
+        .logo span {
+            display: inline-flex;
+            align-items: center;
+            color: #184a79;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 800;
+            font-size: 1.18rem;
+            letter-spacing: -0.01em;
+            line-height: 1.1;
+            margin-left: -7px;
+        }
+
+        .nav-links {
+            display: inline-flex;
+            gap: 0.28rem;
+            align-items: center;
+            border-radius: 999px;
+            padding: 0.3rem;
+            background: rgba(255, 255, 255, 0.12);
+            backdrop-filter: blur(5px);
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: #f2f6ff;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 0.74rem;
+            font-weight: 700;
+            letter-spacing: 0.03em;
+            padding: 0.45rem 0.66rem;
+            border-radius: 999px;
+            text-transform: uppercase;
+            white-space: nowrap;
+        }
+
+        .nav-links a:hover {
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .signup {
+            text-decoration: none;
+            background: #ffffff;
+            color: #11395f;
+            border-radius: 999px;
+            padding: 0.48rem 1rem;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 0.72rem;
+            font-weight: 800;
+            letter-spacing: 0.03em;
+            text-transform: uppercase;
+            white-space: nowrap;
+            margin-left: 0.2rem;
+        }
+
+        .hero-copy {
+            position: absolute;
+            top: 9.6rem;
+            left: clamp(2rem, 5vw, 4rem);
+            width: min(40%, 460px);
+            margin: 0;
+            padding: 0;
+        }
+
+        .hero-copy small {
+            display: inline-block;
+            color: #1a4d80;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 700;
+            letter-spacing: 0.01em;
+        }
+
+        .hero-copy h1 {
+            margin: 0.3rem 0 0;
+            font-family: 'Montserrat', sans-serif;
+            font-size: clamp(1.85rem, 3.5vw, 2.9rem);
+            line-height: 0.96;
+            letter-spacing: -0.03em;
+            color: #171a21;
+        }
+
+        .hero-copy p {
+            margin: 0.8rem 0 0;
+            color: var(--muted);
+            line-height: 1.6;
+            max-width: 47ch;
+            font-size: 0.95rem;
+        }
+
+        .learn {
+            margin-top: 0.95rem;
+            display: inline-block;
+            text-decoration: none;
+            border-radius: 999px;
+            padding: 0.56rem 1.05rem;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 0.72rem;
+            font-weight: 800;
+            color: #fff;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+            background: linear-gradient(130deg, var(--green), var(--green-dark));
+        }
+
+        .pet-shot {
+            position: absolute;
+            right: 0;
+            bottom: 0;
+            width: min(46vw, 560px);
+            aspect-ratio: 4 / 5;
+            border-radius: 0;
+            overflow: hidden;
+            border: 0;
+            box-shadow: none;
+            background: transparent;
+            margin: 0;
+            pointer-events: none;
+            z-index: 2;
+        }
+
+        .pet-shot img {
+            width: 100%;
+            height: 100%;
+            display: block;
+            object-fit: contain;
+            object-position: right bottom;
+            filter: drop-shadow(0 16px 24px rgba(8, 20, 36, 0.35));
+            margin: 0;
+        }
+
+        .cat-shot {
+            position: absolute;
+            left: clamp(2rem, 5vw, 4rem);
+            bottom: 0;
+            width: min(42vw, 400px);
+            aspect-ratio: 3 / 4;
+            border-radius: 0;
+            overflow: hidden;
+            border: 0;
+            box-shadow: none;
+            background: transparent;
+            margin: 0;
+            pointer-events: none;
+            z-index: 2;
+        }
+
+        .cat-shot img {
+            width: 100%;
+            height: 100%;
+            display: block;
+            object-fit: contain;
+            object-position: center bottom;
+            filter: drop-shadow(0 12px 20px rgba(8, 20, 36, 0.25));
+            margin: 0;
+        }
+
+        @media (max-width: 900px) {
+            .top-row {
+                flex-wrap: wrap;
+                justify-content: flex-start;
+                gap: 0.6rem;
+            }
+
+            .nav-links {
+                order: 3;
+                width: 100%;
+                justify-content: center;
+            }
+
+            .hero-copy {
+                width: min(52%, 420px);
+                top: 8.4rem;
+            }
+        }
+
+        @media (max-width: 760px) {
+            .banner {
+                min-height: auto;
+                height: auto;
+                padding-bottom: 1rem;
+            }
+
+            .banner::before {
+                clip-path: ellipse(130% 54% at 78% 0%);
+            }
+
+            .top-row {
+                padding: 0.8rem 0.8rem 0;
+            }
+
+            .logo img {
+                width: 70px;
+                height: 70px;
+                margin-right: -10px;
+            }
+
+            .logo span {
+                font-size: 1rem;
+                margin-left: -4px;
+            }
+
+            .nav-links {
+                gap: 0.2rem;
+                padding: 0.2rem;
+            }
+
+            .nav-links a {
+                font-size: 0.62rem;
+                padding: 0.35rem 0.5rem;
+            }
+
+            .signup {
+                padding: 0.4rem 0.75rem;
+                font-size: 0.64rem;
+            }
+
+            .hero-copy {
+                position: static;
+                width: auto;
+                margin: 1.1rem 1rem 0;
+            }
+
+            .hero-copy h1 {
+                font-size: clamp(1.8rem, 8vw, 2.4rem);
+            }
+
+            .hero-copy p {
+                font-size: 0.9rem;
+            }
+
+            .pet-shot {
+                position: static;
+                width: min(92vw, 420px);
+                margin: 0 auto;
+                aspect-ratio: 4 / 3;
+            }
+
+            .cat-shot {
+                position: static;
+                width: min(320px, calc(100% - 2rem));
+                height: auto;
+                margin: 0.7rem auto 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <main class="wrap">
+        <section class="banner" id="home" aria-label="Banner">
+            <div class="top-row">
+            <a href="{{ path('app_landing') }}" class="logo" aria-label="PawStuff home">
+                <img src="{{ asset('images/logo.png') }}" alt="PawStuff logo">
+                <span>PawStuff</span>
+            </a>
+
+                <nav class="nav-links" aria-label="Main links">
+                    <a href="#home">Home</a>
+                    <a href="#about">About Us</a>
+                    <a href="#products">Products</a>
+                    <a href="#features">Pets Features</a>
+                    <a href="{{ path('app_contact') }}">Contact Us</a>
+                </nav>
+
+                <a href="{{ path('app_register') }}" class="signup">Sign Up</a>
+            </div>
+            </div>
+
+            <article class="hero-copy">
+                <small>At PawStuff</small>
+                <h1>We make pet care simple. Quality supplies, happy pets, wagging tails.</h1>
+                <p>
+                    We believe every pet deserves the best. From premium nutrition to playful toys and cozy essentials, we carefully curate products that keep tails wagging and purrs coming.
+                </p>
+                <a class="learn" href="{{ path('app_login') }}">Learn More</a>
+            </article>
+
+            <figure class="pet-shot" aria-label="Featured dog image">
+                <img src="{{ asset('images/ddog2-removebg-preview.png') }}" alt="Dog">
+            </figure>
+
+            <figure class="cat-shot" aria-label="Featured cat image">
+                <img src="{{ asset('images/cat1-removebg-preview.png') }}" alt="Cat">
+            </figure>
+        </section>
+
+        <section id="about" style="background: linear-gradient(160deg, #154b7f, #2f679d 68%, #17547f); padding: 3.5rem 2rem; text-align: center; min-height: 100vh; display: flex; flex-direction: column; justify-content: center;">
+            <h2 style="font-family: 'Montserrat', sans-serif; font-size: clamp(2.2rem, 5vw, 3.2rem); font-weight: 900; color: #ffffff; margin: 0 0 1rem; letter-spacing: -0.02em; line-height: 1.1;">Meet Our Team</h2>
+            <p style="color: #e8f0f8; max-width: 850px; margin: 0 auto 2.5rem; font-size: 1.05rem; line-height: 1.6;">Our passionate team is dedicated to delivering the best products and service for pet owners everywhere. We believe in quality, care, and making pets happy.</p>
+
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 2rem; max-width: 1200px; margin: 0 auto;">
+                <div style="background: #ffffff; border-radius: 16px; padding: 1.5rem; overflow: hidden; transition: transform 0.3s, box-shadow 0.3s;">
+                    <div style="width: 100%; aspect-ratio: 1; overflow: hidden; border-radius: 12px; background: #f0f4f9; margin-bottom: 1.2rem; display: flex; align-items: center; justify-content: center;">
+                        <img src="{{ asset('images/ddog2-removebg-preview.png') }}" alt="Sarah Johnson" style="width: 100%; height: 100%; object-fit: cover; object-position: center;">
+                    </div>
+                    <h3 style="font-family: 'Montserrat', sans-serif; font-size: 1.15rem; font-weight: 700; color: #154b7f; margin: 0 0 0.4rem; letter-spacing: -0.01em;">Sarah Johnson</h3>
+                    <p style="color: #50555f; font-size: 0.9rem; font-weight: 500; margin: 0;">Founder & CEO</p>
+                </div>
+
+                <div style="background: #ffffff; border-radius: 16px; padding: 1.5rem; overflow: hidden; transition: transform 0.3s, box-shadow 0.3s;">
+                    <div style="width: 100%; aspect-ratio: 1; overflow: hidden; border-radius: 12px; background: #f0f4f9; margin-bottom: 1.2rem; display: flex; align-items: center; justify-content: center;">
+                        <img src="{{ asset('images/dog4-removebg-preview.png') }}" alt="Michael Chen" style="width: 100%; height: 100%; object-fit: cover; object-position: center;">
+                    </div>
+                    <h3 style="font-family: 'Montserrat', sans-serif; font-size: 1.15rem; font-weight: 700; color: #154b7f; margin: 0 0 0.4rem; letter-spacing: -0.01em;">Michael Chen</h3>
+                    <p style="color: #50555f; font-size: 0.9rem; font-weight: 500; margin: 0;">Product Director</p>
+                </div>
+
+                <div style="background: #ffffff; border-radius: 16px; padding: 1.5rem; overflow: hidden; transition: transform 0.3s, box-shadow 0.3s;">
+                    <div style="width: 100%; aspect-ratio: 1; overflow: hidden; border-radius: 12px; background: #f0f4f9; margin-bottom: 1.2rem; display: flex; align-items: center; justify-content: center;">
+                        <img src="{{ asset('images/catdog-removebg-preview.png') }}" alt="Emma Davis" style="width: 100%; height: 100%; object-fit: cover; object-position: center;">
+                    </div>
+                    <h3 style="font-family: 'Montserrat', sans-serif; font-size: 1.15rem; font-weight: 700; color: #154b7f; margin: 0 0 0.4rem; letter-spacing: -0.01em;">Emma Davis</h3>
+                    <p style="color: #50555f; font-size: 0.9rem; font-weight: 500; margin: 0;">Customer Success Lead</p>
+                </div>
+
+                <div style="background: #ffffff; border-radius: 16px; padding: 1.5rem; overflow: hidden; transition: transform 0.3s, box-shadow 0.3s;">
+                    <div style="width: 100%; aspect-ratio: 1; overflow: hidden; border-radius: 12px; background: #f0f4f9; margin-bottom: 1.2rem; display: flex; align-items: center; justify-content: center;">
+                        <img src="{{ asset('images/cat1-removebg-preview.png') }}" alt="James Wilson" style="width: 100%; height: 100%; object-fit: cover; object-position: center;">
+                    </div>
+                    <h3 style="font-family: 'Montserrat', sans-serif; font-size: 1.15rem; font-weight: 700; color: #154b7f; margin: 0 0 0.4rem; letter-spacing: -0.01em;">James Wilson</h3>
+                    <p style="color: #50555f; font-size: 0.9rem; font-weight: 500; margin: 0;">Operations Manager</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="products" style="position: relative; height: 100vh; min-height: 100vh; overflow: hidden; background: var(--white);">
+            <div style="position: absolute; inset: 0; background: linear-gradient(160deg, var(--blue), #1f5f9a 68%, #194c80); clip-path: ellipse(45% 98% at 15% 30%); z-index: 1;"></div>
+            <div style="position: absolute; inset: 0; background: radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.13), transparent 35%); z-index: 2; pointer-events: none;"></div>
+
+            <h2 style="position: absolute; top: 1.5rem; left: 2.5rem; z-index: 4; margin: 0; font-family: 'Montserrat', sans-serif; font-size: clamp(2.5rem, 5vw, 3.5rem); font-weight: 900; color: #ffffff; letter-spacing: -0.025em; line-height: 1.1;">Products</h2>
+
+            <div style="padding: 3rem 2rem; position: relative; z-index: 3; height: 100%; display: flex; align-items: center; justify-content: flex-end;">
+                <article style="max-width: 500px; margin-right: 2rem;">
+                    <h2 style="margin: 0.6rem 0 0; font-family: 'Montserrat', sans-serif; font-size: clamp(1.85rem, 3.5vw, 2.9rem); line-height: 0.96; letter-spacing: -0.03em; color: #171a21; margin-bottom: 0.8rem;">The platform that simplifies operations</h2>
+                    <p style="margin: 0.8rem 0 0; color: var(--muted); line-height: 1.6; max-width: 47ch; font-size: 0.95rem;">The platform connects inventory, customers, records and operations into one unified board so you'll never lose track of your business.</p>
+
+                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-top: 2rem; max-width: 100%;">
+                        <div>
+                            <h3 style="font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 0.85rem; color: #1f2937; margin: 0 0 0.5rem; text-transform: uppercase; letter-spacing: 0.5px;">Inventory Core</h3>
+                            <p style="color: #6b7280; font-size: 0.85rem; line-height: 1.5; margin: 0; font-weight: 500;">Track available items and movement in real time.</p>
+                        </div>
+                        
+                        <div>
+                            <h3 style="font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 0.85rem; color: #1f2937; margin: 0 0 0.5rem; text-transform: uppercase; letter-spacing: 0.5px;">Customer Records</h3>
+                            <p style="color: #6b7280; font-size: 0.85rem; line-height: 1.5; margin: 0; font-weight: 500;">Store owner and pet data in searchable profiles.</p>
+                        </div>
+                        
+                        <div>
+                            <h3 style="font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 0.85rem; color: #1f2937; margin: 0 0 0.5rem; text-transform: uppercase; letter-spacing: 0.5px;">Operations Board</h3>
+                            <p style="color: #6b7280; font-size: 0.85rem; line-height: 1.5; margin: 0; font-weight: 500;">Monitor assignments and throughput by team.</p>
+                        </div>
+                    </div>
+                </article>
+
+                <div style="position: absolute; left: 3rem; bottom: 0; width: min(40vw, 300px); aspect-ratio: 3 / 4; z-index: 3;">
+                    <img src="{{ asset('images/dog3-removebg-preview.png') }}" alt="Product Features" style="width: 100%; height: 100%; display: block; object-fit: contain; object-position: left bottom;">
+                </div>
+            </div>
+        </section>
+
+        <section id="story" style="position: relative; height: 100vh; min-height: 100vh; overflow: hidden; background: var(--white);">
+            <div style="position: absolute; inset: 0; background: linear-gradient(160deg, var(--blue), #1f5f9a 68%, #194c80); clip-path: ellipse(45% 90% at 89% 30%); z-index: 1;"></div>
+            <div style="position: absolute; inset: 0; background: radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.13), transparent 35%); z-index: 2; pointer-events: none;"></div>
+
+            <div style="padding: 3rem 2rem; position: relative; z-index: 3; height: 100%; display: flex; align-items: center;">
+                <article style="max-width: 520px; margin-left: 1rem;">
+                    <small style="display: inline-block; color: #1a4d80; font-family: 'Montserrat', sans-serif; font-weight: 700; letter-spacing: 0.01em;">Our Story</small>
+                    <h2 style="margin: 0.3rem 0 0; font-family: 'Montserrat', sans-serif; font-size: clamp(1.85rem, 3.5vw, 2.9rem); line-height: 0.96; letter-spacing: -0.03em; color: #171a21;">Built for teams who care for pets</h2>
+                    <p style="margin: 0.8rem 0 0; color: var(--muted); line-height: 1.6; max-width: 47ch; font-size: 0.95rem;">We started by helping small pet teams remove spreadsheet chaos. The goal stayed the same: faster work, cleaner records, and better service for pet owners.</p>
+                </article>
+
+                <div style="position: absolute; right: 0; bottom: 0; width: min(35vw, 420px); aspect-ratio: 4 / 5; z-index: 3;">
+                    <img src="{{ asset('images/catdog-removebg-preview.png') }}" alt="Our Story" style="width: 100%; height: 100%; display: block; object-fit: contain; object-position: right bottom; filter: drop-shadow(0 16px 24px rgba(8, 20, 36, 0.35));">
+                </div>
+            </div>
+        </section>
+
+        <section id="features" style="position: relative; min-height: 100vh; overflow: hidden; background: var(--page); padding: 4rem 2rem;">
+            <div style="position: relative; z-index: 3; max-width: 1200px; margin: 0 auto;">
+                <div style="text-align: center; margin-bottom: 3rem;">
+                    <small style="display: inline-block; color: var(--blue); font-family: 'Montserrat', sans-serif; font-weight: 700; letter-spacing: 0.01em;">Pets Features</small>
+                    <h2 style="margin: 0.5rem 0 0; font-family: 'Montserrat', sans-serif; font-size: clamp(1.85rem, 3.5vw, 2.9rem); font-weight: 900; line-height: 1.1; letter-spacing: -0.03em; color: var(--ink); margin-top: 0.8rem;">Everything your pets need</h2>
+                    <p style="margin: 1rem auto 0; color: var(--muted); line-height: 1.6; max-width: 600px; font-size: 1rem;">We offer a curated selection of premium products and services designed to keep your furry friends healthy, happy, and thriving.</p>
+                </div>
+
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 2rem; margin-top: 2.5rem;">
+                    <div style="background: var(--white); border-radius: 12px; padding: 2rem; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08); transition: transform 0.3s, box-shadow 0.3s;">
+                        <div style="width: 64px; height: 64px; background: linear-gradient(135deg, var(--blue), var(--blue-soft)); border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-bottom: 1.5rem; font-size: 1.8rem;">🍖</div>
+                        <h3 style="font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 1.2rem; color: var(--ink); margin: 0 0 0.5rem;">Premium Nutrition</h3>
+                        <p style="color: var(--muted); font-size: 0.95rem; line-height: 1.6; margin: 0;">High-quality pet food and treats formulated with the healthiest ingredients for optimal nutrition.</p>
+                    </div>
+
+                    <div style="background: var(--white); border-radius: 12px; padding: 2rem; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08); transition: transform 0.3s, box-shadow 0.3s;">
+                        <div style="width: 64px; height: 64px; background: linear-gradient(135deg, var(--green), var(--green-dark)); border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-bottom: 1.5rem; font-size: 1.8rem;">🎾</div>
+                        <h3 style="font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 1.2rem; color: var(--ink); margin: 0 0 0.5rem;">Fun & Play</h3>
+                        <p style="color: var(--muted); font-size: 0.95rem; line-height: 1.6; margin: 0;">Interactive toys and enrichment products that keep your pets entertained and mentally stimulated.</p>
+                    </div>
+
+                    <div style="background: var(--white); border-radius: 12px; padding: 2rem; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08); transition: transform 0.3s, box-shadow 0.3s;">
+                        <div style="width: 64px; height: 64px; background: linear-gradient(135deg, #ff6b9d, #ff1493); border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-bottom: 1.5rem; font-size: 1.8rem;">❤️</div>
+                        <h3 style="font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 1.2rem; color: var(--ink); margin: 0 0 0.5rem;">Health & Wellness</h3>
+                        <p style="color: var(--muted); font-size: 0.95rem; line-height: 1.6; margin: 0;">Grooming supplies, health supplements, and wellness products for comprehensive pet care.</p>
+                    </div>
+
+                    <div style="background: var(--white); border-radius: 12px; padding: 2rem; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08); transition: transform 0.3s, box-shadow 0.3s;">
+                        <div style="width: 64px; height: 64px; background: linear-gradient(135deg, #ffa500, #ff8c00); border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-bottom: 1.5rem; font-size: 1.8rem;">🏠</div>
+                        <h3 style="font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 1.2rem; color: var(--ink); margin: 0 0 0.5rem;">Comfort & Home</h3>
+                        <p style="color: var(--muted); font-size: 0.95rem; line-height: 1.6; margin: 0;">Cozy beds, carriers, and home accessories designed for your pet's comfort and style.</p>
+                    </div>
+
+                    <div style="background: var(--white); border-radius: 12px; padding: 2rem; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08); transition: transform 0.3s, box-shadow 0.3s;">
+                        <div style="width: 64px; height: 64px; background: linear-gradient(135deg, #6366f1, #8b5cf6); border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-bottom: 1.5rem; font-size: 1.8rem;">👥</div>
+                        <h3 style="font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 1.2rem; color: var(--ink); margin: 0 0 0.5rem;">Community & Advice</h3>
+                        <p style="color: var(--muted); font-size: 0.95rem; line-height: 1.6; margin: 0;">Connect with other pet lovers and get expert advice on caring for your beloved companions.</p>
+                    </div>
+                </div>
+
+                <div style="text-align: center; margin-top: 3rem;">
+                    <a href="{{ path('app_register') }}" style="display: inline-block; background: var(--blue); color: white; padding: 0.8rem 2rem; border-radius: 8px; text-decoration: none; font-family: 'Montserrat', sans-serif; font-weight: 700; transition: background 0.3s;">Explore Products</a>
+                </div>
+            </div>
+        </section>
+    </main>
+</body>
+</html>

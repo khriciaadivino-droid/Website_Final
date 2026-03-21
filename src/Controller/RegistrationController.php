@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\User;
+use App\Service\EmailVerificationService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -13,8 +14,12 @@ use Symfony\Component\Routing\Annotation\Route;
 class RegistrationController extends AbstractController
 {
     #[Route('/register', name: 'app_register')]
-    public function register(Request $request, UserPasswordHasherInterface $passwordHasher, EntityManagerInterface $entityManager): Response
-    {
+    public function register(
+        Request $request,
+        UserPasswordHasherInterface $passwordHasher,
+        EntityManagerInterface $entityManager,
+        EmailVerificationService $emailVerificationService
+    ): Response {
         // If user is already logged in, redirect to dashboard
         if ($this->getUser()) {
             return $this->redirectToRoute('app_dashboard_index');
@@ -51,6 +56,7 @@ class RegistrationController extends AbstractController
                     $user->setFullName($fullName);
                     $user->setRoles(['ROLE_USER']);
                     $user->setStatus('active');
+                    // Do NOT set verified - user must verify via email
                     
                     // Hash the password
                     $hashedPassword = $passwordHasher->hashPassword($user, $password);
@@ -60,8 +66,11 @@ class RegistrationController extends AbstractController
                     $entityManager->persist($user);
                     $entityManager->flush();
                     
+                    // Send verification email
+                    $emailVerificationService->createAndSendVerificationEmail($user);
+                    
                     $success = true;
-                    $this->addFlash('success', 'Registration successful! Please login with your credentials.');
+                    $this->addFlash('success', 'Registration successful! Please check your email to verify your account.');
                     
                     return $this->redirectToRoute('app_login');
                 }
@@ -72,5 +81,26 @@ class RegistrationController extends AbstractController
             'error' => $error,
             'success' => $success,
         ]);
+    }
+
+    #[Route('/verify-email', name: 'app_verify_email')]
+    public function verifyEmail(Request $request, EmailVerificationService $emailVerificationService): Response
+    {
+        $token = $request->query->get('token');
+
+        if (!$token) {
+            $this->addFlash('error', 'Invalid verification link.');
+            return $this->redirectToRoute('app_login');
+        }
+
+        $user = $emailVerificationService->verifyEmail($token);
+
+        if (!$user) {
+            $this->addFlash('error', 'Verification link is invalid or has expired.');
+            return $this->redirectToRoute('app_register');
+        }
+
+        $this->addFlash('success', 'Email verified successfully! You can now login.');
+        return $this->redirectToRoute('app_login');
     }
 }

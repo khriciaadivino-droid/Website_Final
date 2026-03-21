@@ -12,9 +12,11 @@ use Symfony\Component\HttpFoundation\File\Exception\FileException;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\Component\String\Slugger\SluggerInterface;
 
 #[Route('/pet/profile/management')]
+#[IsGranted('ROLE_STAFF')]
 final class PetProfileManagementController extends AbstractController
 {
     #[Route(name: 'app_pet_profile_management_index', methods: ['GET'])]

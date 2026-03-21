@@ -40,6 +40,12 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(length: 100, nullable: true)]
     private ?string $createdBy = null;
 
+    #[ORM\Column(type: 'datetime', nullable: true)]
+    private ?\DateTimeInterface $verifiedAt = null;
+
+    #[ORM\Column(length: 255, nullable: true, unique: true)]
+    private ?string $googleId = null;
+
     public function __construct()
     {
         $this->createdAt = new \DateTime();
@@ -189,5 +195,32 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function isStaff(): bool
     {
         return in_array('ROLE_STAFF', $this->roles) && !$this->isAdmin();
+    }
+
+    public function getVerifiedAt(): ?\DateTimeInterface
+    {
+        return $this->verifiedAt;
+    }
+
+    public function setVerifiedAt(?\DateTimeInterface $verifiedAt): static
+    {
+        $this->verifiedAt = $verifiedAt;
+        return $this;
+    }
+
+    public function isVerified(): bool
+    {
+        return $this->verifiedAt !== null;
+    }
+
+    public function getGoogleId(): ?string
+    {
+        return $this->googleId;
+    }
+
+    public function setGoogleId(?string $googleId): static
+    {
+        $this->googleId = $googleId;
+        return $this;
     }
 }

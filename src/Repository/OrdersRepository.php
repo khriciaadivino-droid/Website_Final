@@ -16,6 +16,26 @@ class OrdersRepository extends ServiceEntityRepository
         parent::__construct($registry, Orders::class);
     }
 
+    public function findBestSellingProduct(): ?\App\Entity\Productss
+    {
+        $row = $this->createQueryBuilder('o')
+            ->select('IDENTITY(o.product) AS productId, SUM(o.quantity) AS totalSold')
+            ->where('o.product IS NOT NULL')
+            ->groupBy('o.product')
+            ->orderBy('totalSold', 'DESC')
+            ->setMaxResults(1)
+            ->getQuery()
+            ->getOneOrNullResult();
+
+        if (!$row || empty($row['productId'])) {
+            return null;
+        }
+
+        return $this->getEntityManager()
+            ->getRepository(\App\Entity\Productss::class)
+            ->find((int) $row['productId']);
+    }
+
     //    /**
     //     * @return Orders[] Returns an array of Orders objects
     //     */

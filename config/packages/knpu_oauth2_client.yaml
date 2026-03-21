@@ -1,0 +1,10 @@
+knpu_oauth2_client:
+    clients:
+        google:
+            type: google
+            client_id: '%env(GOOGLE_OAUTH_CLIENT_ID)%'
+            client_secret: '%env(GOOGLE_OAUTH_CLIENT_SECRET)%'
+            redirect_route: 'app_oauth2_callback'
+            redirect_params:
+                service: 'google'
+                use_state: true

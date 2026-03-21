@@ -11,8 +11,10 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[Route('/stocks')]
+#[IsGranted('ROLE_STAFF')]
 final class StocksController extends AbstractController
 {
     #[Route(name: 'app_stocks_index', methods: ['GET'])]
