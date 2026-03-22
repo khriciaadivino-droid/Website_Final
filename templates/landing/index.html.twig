@@ -381,7 +381,7 @@
                 <a class="learn" href="{{ path('app_login') }}">Learn More</a>
             </article>
 
-            <figure class="pet-shot" aria-label="Featured dog image">
+           <figure class="pet-shot" aria-label="Featured dog image">
                 <img src="{{ asset('images/ddog2-removebg-preview.png') }}" alt="Dog">
             </figure>
 
@@ -389,6 +389,7 @@
                 <img src="{{ asset('images/cat1-removebg-preview.png') }}" alt="Cat">
             </figure>
         </section>
+                    
 
         <section id="about" style="background: linear-gradient(160deg, #154b7f, #2f679d 68%, #17547f); padding: 3.5rem 2rem; text-align: center; min-height: 100vh; display: flex; flex-direction: column; justify-content: center;">
             <h2 style="font-family: 'Montserrat', sans-serif; font-size: clamp(2.2rem, 5vw, 3.2rem); font-weight: 900; color: #ffffff; margin: 0 0 1rem; letter-spacing: -0.02em; line-height: 1.1;">Meet Our Team</h2>
@@ -435,31 +436,69 @@
 
             <h2 style="position: absolute; top: 1.5rem; left: 2.5rem; z-index: 4; margin: 0; font-family: 'Montserrat', sans-serif; font-size: clamp(2.5rem, 5vw, 3.5rem); font-weight: 900; color: #ffffff; letter-spacing: -0.025em; line-height: 1.1;">Products</h2>
 
-            <div style="padding: 3rem 2rem; position: relative; z-index: 3; height: 100%; display: flex; align-items: center; justify-content: flex-end;">
-                <article style="max-width: 500px; margin-right: 2rem;">
-                    <h2 style="margin: 0.6rem 0 0; font-family: 'Montserrat', sans-serif; font-size: clamp(1.85rem, 3.5vw, 2.9rem); line-height: 0.96; letter-spacing: -0.03em; color: #171a21; margin-bottom: 0.8rem;">The platform that simplifies operations</h2>
-                    <p style="margin: 0.8rem 0 0; color: var(--muted); line-height: 1.6; max-width: 47ch; font-size: 0.95rem;">The platform connects inventory, customers, records and operations into one unified board so you'll never lose track of your business.</p>
-
-                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-top: 2rem; max-width: 100%;">
-                        <div>
-                            <h3 style="font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 0.85rem; color: #1f2937; margin: 0 0 0.5rem; text-transform: uppercase; letter-spacing: 0.5px;">Inventory Core</h3>
-                            <p style="color: #6b7280; font-size: 0.85rem; line-height: 1.5; margin: 0; font-weight: 500;">Track available items and movement in real time.</p>
-                        </div>
-                        
-                        <div>
-                            <h3 style="font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 0.85rem; color: #1f2937; margin: 0 0 0.5rem; text-transform: uppercase; letter-spacing: 0.5px;">Customer Records</h3>
-                            <p style="color: #6b7280; font-size: 0.85rem; line-height: 1.5; margin: 0; font-weight: 500;">Store owner and pet data in searchable profiles.</p>
-                        </div>
-                        
-                        <div>
-                            <h3 style="font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 0.85rem; color: #1f2937; margin: 0 0 0.5rem; text-transform: uppercase; letter-spacing: 0.5px;">Operations Board</h3>
-                            <p style="color: #6b7280; font-size: 0.85rem; line-height: 1.5; margin: 0; font-weight: 500;">Monitor assignments and throughput by team.</p>
-                        </div>
+            <div style="padding: 3rem 2rem 2rem 2rem; position: relative; z-index: 3; height: 100%; display: flex; align-items: flex-start; justify-content: center;">
+                <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 2rem; width: 100%; max-width: 1400px; margin-top: 4.5rem;">
+                    <!-- Card 1 -->
+                    <div style="background: #fff; border-radius: 16px; box-shadow: 0 2px 12px rgba(21,75,127,0.08); padding: 1.5rem; display: flex; flex-direction: column; align-items: center;">
+                        <img src='{{ asset("images/Charlie-s-Choice-69c01614331a4.jpg") }}' alt='Product 1' style='width: 120px; height: 120px; object-fit: contain; margin-bottom: 1rem;'>
+                        <h3 style='font-family: Montserrat, sans-serif; font-size: 1.1rem; font-weight: 700; color: #154b7f; margin: 0 0 0.4rem;'>Charlie's Choice</h3>
+                        <div style='color: #50555f; font-size: 0.97rem; margin-bottom: 0.5rem;'>High protein content: 72% salmon</div>
+                        <div style='font-weight: 700; color: #2baf6f; margin-bottom: 0.3rem;'>₱150.00</div>
                     </div>
-                </article>
-
-                <div style="position: absolute; left: 3rem; bottom: 0; width: min(40vw, 300px); aspect-ratio: 3 / 4; z-index: 3;">
-                    <img src="{{ asset('images/dog3-removebg-preview.png') }}" alt="Product Features" style="width: 100%; height: 100%; display: block; object-fit: contain; object-position: left bottom;">
+                    <!-- Card 2 -->
+                    <div style="background: #fff; border-radius: 16px; box-shadow: 0 2px 12px rgba(21,75,127,0.08); padding: 1.5rem; display: flex; flex-direction: column; align-items: center;">
+                        <img src='{{ asset("images/aesthetic-cage-69c0211ba9536.jpg") }}' alt='Product 2' style='width: 120px; height: 120px; object-fit: contain; margin-bottom: 1rem;'>
+                        <h3 style='font-family: Montserrat, sans-serif; font-size: 1.1rem; font-weight: 700; color: #154b7f; margin: 0 0 0.4rem;'>Aesthetic & Standard Carriers</h3>
+                        <div style='color: #50555f; font-size: 0.97rem; margin-bottom: 0.5rem;'>Secure, hard-sided travel crates</div>
+                        <div style='font-weight: 700; color: #2baf6f; margin-bottom: 0.3rem;'>₱699.00</div>
+                    </div>
+                    <!-- Card 3 -->
+                    <div style="background: #fff; border-radius: 16px; box-shadow: 0 2px 12px rgba(21,75,127,0.08); padding: 1.5rem; display: flex; flex-direction: column; align-items: center;">
+                        <img src='{{ asset("images/AllPetSolutions-4-Piece-Dog-Grooming-Set-69c0202724f1d.jpg") }}' alt='Product 3' style='width: 120px; height: 120px; object-fit: contain; margin-bottom: 1rem;'>
+                        <h3 style='font-family: Montserrat, sans-serif; font-size: 1.1rem; font-weight: 700; color: #154b7f; margin: 0 0 0.4rem;'>4-Piece Dog Grooming Set</h3>
+                        <div style='color: #50555f; font-size: 0.97rem; margin-bottom: 0.5rem;'>A complete maintenance kit</div>
+                        <div style='font-weight: 700; color: #2baf6f; margin-bottom: 0.3rem;'>₱200.00</div>
+                    </div>
+                    <!-- Card 4 -->
+                    <div style="background: #fff; border-radius: 16px; box-shadow: 0 2px 12px rgba(21,75,127,0.08); padding: 1.5rem; display: flex; flex-direction: column; align-items: center;">
+                        <img src='{{ asset("images/Bark-Bright-69c01f8975e9c.jpg") }}' alt='Product 4' style='width: 120px; height: 120px; object-fit: contain; margin-bottom: 1rem;'>
+                        <h3 style='font-family: Montserrat, sans-serif; font-size: 1.1rem; font-weight: 700; color: #154b7f; margin: 0 0 0.4rem;'>Bark Bright Dental Chews</h3>
+                        <div style='color: #50555f; font-size: 0.97rem; margin-bottom: 0.5rem;'>Tasty, chicken-based dental sticks</div>
+                        <div style='font-weight: 700; color: #2baf6f; margin-bottom: 0.3rem;'>₱199.00</div>
+                    </div>
+                    <!-- Card 5 -->
+                    <div style="background: #fff; border-radius: 16px; box-shadow: 0 2px 12px rgba(21,75,127,0.08); padding: 1.5rem; display: flex; flex-direction: column; align-items: center;">
+                        <img src='{{ asset("images/Blue-dog-harness-69c0208b5c230.jpg") }}' alt='Product 5' style='width: 120px; height: 120px; object-fit: contain; margin-bottom: 1rem;'>
+                        <h3 style='font-family: Montserrat, sans-serif; font-size: 1.1rem; font-weight: 700; color: #154b7f; margin: 0 0 0.4rem;'>Blue Dog Harness & Leash Set</h3>
+                        <div style='color: #50555f; font-size: 0.97rem; margin-bottom: 0.5rem;'>A coordinated walking kit</div>
+                        <div style='font-weight: 700; color: #2baf6f; margin-bottom: 0.3rem;'>₱500.00</div>
+                    </div>
+                    <!-- Card 6 -->
+                    <div style="background: #fff; border-radius: 16px; box-shadow: 0 2px 12px rgba(21,75,127,0.08); padding: 1.5rem; display: flex; flex-direction: column; align-items: center;">
+                        <img src='{{ asset("images/pet-wipes-69c03c6755705.jpg") }}' alt='Product 6' style='width: 120px; height: 120px; object-fit: contain; margin-bottom: 1rem;'>
+                        <h3 style='font-family: Montserrat, sans-serif; font-size: 1.1rem; font-weight: 700; color: #154b7f; margin: 0 0 0.4rem;'>Pet Wipes</h3>
+                        <div style='color: #50555f; font-size: 0.97rem; margin-bottom: 0.5rem;'>Gentle, large-sized cleaning wipes</div>
+                        <div style='font-weight: 700; color: #2baf6f; margin-bottom: 0.3rem;'>₱50.00</div>
+                    </div>
+                    <!-- Card 7 -->
+                    <div style="background: #fff; border-radius: 16px; box-shadow: 0 2px 12px rgba(21,75,127,0.08); padding: 1.5rem; display: flex; flex-direction: column; align-items: center;">
+                        <img src='{{ asset("images/Loveabowl-Salmon-Dry-Cat-Food-69c03c1984b88.jpg") }}' alt='Product 7' style='width: 120px; height: 120px; object-fit: contain; margin-bottom: 1rem;'>
+                        <h3 style='font-family: Montserrat, sans-serif; font-size: 1.1rem; font-weight: 700; color: #154b7f; margin: 0 0 0.4rem;'>Loveabowl Salmon Dry Cat Food</h3>
+                        <div style='color: #50555f; font-size: 0.97rem; margin-bottom: 0.5rem;'>Grain-free kibble featuring Atlantic salmon</div>
+                        <div style='font-weight: 700; color: #2baf6f; margin-bottom: 0.3rem;'>₱99.00</div>
+                    </div>
+                    <!-- Card 8 -->
+                    <div style="background: #fff; border-radius: 16px; box-shadow: 0 2px 12px rgba(21,75,127,0.08); padding: 1.5rem; display: flex; flex-direction: column; align-items: center;">
+                        <img src='{{ asset("images/Pet-Feet-Shower-Cup-69c03cdff0f0a.jpg") }}' alt='Product 8' style='width: 120px; height: 120px; object-fit: contain; margin-bottom: 1rem;'>
+                        <h3 style='font-family: Montserrat, sans-serif; font-size: 1.1rem; font-weight: 700; color: #154b7f; margin: 0 0 0.4rem;'>Pet Feet Shower Cup</h3>
+                        <div style='color: #50555f; font-size: 0.97rem; margin-bottom: 0. 5rem;'>Pet Feet Shower Cup</div>
+                        <div style='font-weight: 700; color: #2baf6f; margin-bottom: 0.3rem;'>₱144.00</div>
+                    </div>
+<figure class="pet-shot" aria-label="Featured dog image" style="margin: 0; display: flex; justify-content: flex-end;">
+    <img src="{{ asset('images/dog2-removebg-preview.png') }}" 
+         alt="Dog" 
+         style="width: 280px; height: auto; display: block; margin-right: -20px; transform: translateY(-10px);"> 
+</figure>
                 </div>
             </div>
         </section>
