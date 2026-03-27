@@ -19,7 +19,7 @@ final class Version20260322100001 extends AbstractMigration
 
     public function up(Schema $schema): void
     {
-        $this->addSql('CREATE TABLE verification_token (
+        $this->addSql('CREATE TABLE IF NOT EXISTS verification_token (
             id INT AUTO_INCREMENT NOT NULL,
             user_id INT NOT NULL,
             token VARCHAR(255) NOT NULL UNIQUE,
@@ -33,6 +33,6 @@ final class Version20260322100001 extends AbstractMigration
 
     public function down(Schema $schema): void
     {
-        $this->addSql('DROP TABLE verification_token');
+        $this->addSql('DROP TABLE IF EXISTS verification_token');
     }
 }
