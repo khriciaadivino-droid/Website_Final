@@ -1,0 +1,66 @@
+{% extends '_layouts/master.html.twig' %}
+
+{% block title %}Contact Messages
+{% endblock %}
+
+{% block body %}
+	<div class="mb-8">
+		<h1 class="text-4xl font-bold text-gray-800 mb-2">Contact Messages</h1>
+		<p class="text-gray-600">All Contact Us submissions are stored here even if email delivery fails.</p>
+	</div>
+
+	<div class="bg-white rounded-xl shadow-lg overflow-hidden">
+		<div class="overflow-x-auto">
+			<table class="w-full min-w-[980px]">
+				<thead class="bg-gray-50 border-b border-gray-200">
+					<tr>
+						<th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Submitted</th>
+						<th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Name</th>
+						<th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Email</th>
+						<th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Phone</th>
+						<th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Subject</th>
+						<th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Message</th>
+						<th class="px-6 py-4 w-72 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Delivery</th>
+					</tr>
+				</thead>
+				<tbody class="divide-y divide-gray-200">
+					{% for item in messages %}
+						<tr class="hover:bg-gray-50 transition-colors align-top">
+							<td class="px-6 py-4 text-sm text-gray-600 whitespace-nowrap">{{ item.createdAt ? item.createdAt|date('M d, Y h:i A') : '-' }}</td>
+							<td class="px-6 py-4 text-sm font-medium text-gray-900 whitespace-nowrap">{{ item.name }}</td>
+							<td class="px-6 py-4 text-sm text-gray-700 whitespace-nowrap">{{ item.email }}</td>
+							<td class="px-6 py-4 text-sm text-gray-700 whitespace-nowrap">{{ item.phone ?: 'N/A' }}</td>
+							<td class="px-6 py-4 text-sm text-gray-700 max-w-[180px] break-words">{{ item.subject }}</td>
+							<td class="px-6 py-4 text-sm text-gray-700 max-w-xs whitespace-pre-line break-words">{{ item.message }}</td>
+							<td class="px-6 py-4 w-72 text-sm">
+								{% if item.emailSent %}
+									<span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Email sent</span>
+								{% else %}
+									<span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-amber-100 text-amber-800">Saved only</span>
+									{% if item.deliveryError %}
+										<p class="mt-2 text-xs text-red-600 break-words">{{ item.deliveryError|slice(0, 160) }}
+											{% if item.deliveryError|length > 160 %}...
+											{% endif %}
+										</p>
+										{% if item.deliveryError|length > 160 %}
+											<details class="mt-2">
+												<summary class="text-xs text-blue-700 cursor-pointer">Show full error</summary>
+												<pre class="mt-2 p-2 text-[11px] text-red-700 bg-red-50 rounded whitespace-pre-wrap break-words">{{ item.deliveryError }}</pre>
+											</details>
+										{% endif %}
+									{% endif %}
+								{% endif %}
+							</td>
+						</tr>
+					{% else %}
+						<tr>
+							<td colspan="7" class="px-6 py-10 text-center text-gray-500">
+								No contact submissions yet.
+							</td>
+						</tr>
+					{% endfor %}
+				</tbody>
+			</table>
+		</div>
+	</div>
+{% endblock %}

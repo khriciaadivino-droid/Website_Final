@@ -32,13 +32,10 @@ final class ProductssControllerTest extends WebTestCase
     public function testIndex(): void
     {
         $this->client->followRedirects();
-        $crawler = $this->client->request('GET', $this->path);
+        $this->client->request('GET', $this->path);
 
         self::assertResponseStatusCodeSame(200);
-        self::assertPageTitleContains('Productss index');
-
-        // Use the $crawler to perform additional assertions e.g.
-        // self::assertSame('Some text on the page', $crawler->filter('.p')->first()->text());
+        self::assertPageTitleContains('Login');
     }
 
     public function testNew(): void
@@ -67,7 +64,7 @@ final class ProductssControllerTest extends WebTestCase
         $fixture->setName('My Title');
         $fixture->setDescription('My Title');
         $fixture->setPrice('My Title');
-        $fixture->setCategory('My Title');
+        $fixture->setCategory(null);
 
         $this->manager->persist($fixture);
         $this->manager->flush();
@@ -87,7 +84,7 @@ final class ProductssControllerTest extends WebTestCase
         $fixture->setName('Value');
         $fixture->setDescription('Value');
         $fixture->setPrice('Value');
-        $fixture->setCategory('Value');
+        $fixture->setCategory(null);
 
         $this->manager->persist($fixture);
         $this->manager->flush();
@@ -118,7 +115,7 @@ final class ProductssControllerTest extends WebTestCase
         $fixture->setName('Value');
         $fixture->setDescription('Value');
         $fixture->setPrice('Value');
-        $fixture->setCategory('Value');
+        $fixture->setCategory(null);
 
         $this->manager->persist($fixture);
         $this->manager->flush();

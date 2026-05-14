@@ -15,7 +15,6 @@ use Symfony\Component\String\Slugger\SluggerInterface;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[Route('/productss')]
-#[IsGranted('ROLE_STAFF')]
 final class ProductssController extends AbstractController
 {
     #[Route(name: 'app_productss_index', methods: ['GET'])]
@@ -27,47 +26,48 @@ final class ProductssController extends AbstractController
     }
 
 
-#[Route('/new', name: 'app_productss_new', methods: ['GET', 'POST'])]
-public function new(Request $request, EntityManagerInterface $entityManager, SluggerInterface $slugger, ActivityLogService $activityLogService): Response
-{
-    $productss = new Productss();
-    $form = $this->createForm(ProductssType::class, $productss);
-    $form->handleRequest($request);
+    #[Route('/new', name: 'app_productss_new', methods: ['GET', 'POST'])]
+    #[IsGranted('ROLE_STAFF')]
+    public function new(Request $request, EntityManagerInterface $entityManager, SluggerInterface $slugger, ActivityLogService $activityLogService): Response
+    {
+        $productss = new Productss();
+        $form = $this->createForm(ProductssType::class, $productss);
+        $form->handleRequest($request);
 
-    if ($form->isSubmitted() && $form->isValid()) {
-        $imageFile = $form->get('imagefilename')->getData();
-        if ($imageFile) {
-            $originalFilename = pathinfo($imageFile->getClientOriginalName(), PATHINFO_FILENAME);
-            $safeFilename = $slugger->slug($originalFilename);
-            $newFilename = $safeFilename . '-' . uniqid() . '.' . $imageFile->guessExtension();
+        if ($form->isSubmitted() && $form->isValid()) {
+            $imageFile = $form->get('imagefilename')->getData();
+            if ($imageFile) {
+                $originalFilename = pathinfo($imageFile->getClientOriginalName(), PATHINFO_FILENAME);
+                $safeFilename = $slugger->slug($originalFilename);
+                $newFilename = $safeFilename . '-' . uniqid() . '.' . $imageFile->guessExtension();
 
-            $imageFile->move($this->getParameter('images_directory'), $newFilename);
-            $productss->setImageFilename($newFilename);
-        }
+                $imageFile->move($this->getParameter('images_directory'), $newFilename);
+                $productss->setImageFilename($newFilename);
+            }
         
         // Set the creator (for staff ownership tracking)
-        /** @var \App\Entity\User $user */
-        $user = $this->getUser();
-        $productss->setCreatedBy($user);
-        
-        $entityManager->persist($productss);
-        $entityManager->flush();
+            /** @var \App\Entity\User $user */
+            $user = $this->getUser();
+            $productss->setCreatedBy($user);
+
+            $entityManager->persist($productss);
+            $entityManager->flush();
 
         // Log the product creation
-        /** @var \App\Entity\User $user */
-        $user = $this->getUser();
-        if ($user) {
-            $activityLogService->logCreate($user, 'Product', $productss->getName(), $productss->getId());
+            /** @var \App\Entity\User $user */
+            $user = $this->getUser();
+            if ($user) {
+                $activityLogService->logCreate($user, 'Product', $productss->getName(), $productss->getId());
+            }
+
+            return $this->redirectToRoute('app_productss_index', [], Response::HTTP_SEE_OTHER);
         }
 
-        return $this->redirectToRoute('app_productss_index', [], Response::HTTP_SEE_OTHER);
+        return $this->render('productss/new.html.twig', [
+            'productss' => $productss,
+            'form' => $form,
+        ]);
     }
-
-    return $this->render('productss/new.html.twig', [
-        'productss' => $productss,
-        'form' => $form,
-    ]);
-}
 
     #[Route('/{id}', name: 'app_productss_show', methods: ['GET'])]
     public function show(Productss $productss): Response
@@ -78,6 +78,7 @@ public function new(Request $request, EntityManagerInterface $entityManager, Slu
     }
 
     #[Route('/{id}/edit', name: 'app_productss_edit', methods: ['GET', 'POST'])]
+    #[IsGranted('ROLE_STAFF')]
     public function edit(Request $request, Productss $productss, EntityManagerInterface $entityManager, ActivityLogService $activityLogService): Response
     {
         $form = $this->createForm(ProductssType::class, $productss);
@@ -103,19 +104,20 @@ public function new(Request $request, EntityManagerInterface $entityManager, Slu
     }
 
     #[Route('/{id}', name: 'app_productss_delete', methods: ['POST'])]
+    #[IsGranted('ROLE_STAFF')]
     public function delete(Request $request, Productss $productss, EntityManagerInterface $entityManager, ActivityLogService $activityLogService): Response
     {
-        if ($this->isCsrfTokenValid('delete'.$productss->getId(), $request->getPayload()->getString('_token'))) {
+        if ($this->isCsrfTokenValid('delete' . $productss->getId(), $request->getPayload()->getString('_token'))) {
             // Check if product has related stocks
             if ($productss->getStocks()->count() > 0) {
                 $this->addFlash('error', 'Cannot delete this product because it has related stock records. Please delete the stock records first.');
                 return $this->redirectToRoute('app_productss_show', ['id' => $productss->getId()], Response::HTTP_SEE_OTHER);
             }
-            
+
             // Store product info before deletion
             $productName = $productss->getName();
             $productId = $productss->getId();
-            
+
             $entityManager->remove($productss);
             $entityManager->flush();
 

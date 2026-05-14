@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<title>Our Story | PawStuff</title>
+		<link rel="preconnect" href="https://fonts.googleapis.com">
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+		<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700;800;900&family=Nunito:wght@400;500;600;700&display=swap" rel="stylesheet">
+	</head>
+	<body style="margin: 0; font-family: 'Nunito', sans-serif; background: #f4f5f9; color: #171a21;">
+		<section id="story-modern" style="padding: 100px 20px; background: #ffffff; font-family: 'Montserrat', sans-serif; position: relative; overflow: hidden;">
+			<div style="position: absolute; top: 10%; right: -5%; width: 300px; height: 300px; background: rgba(31, 95, 154, 0.03); border-radius: 50%; z-index: 1;"></div>
+
+			<div style="max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: center;">
+				<div style="position: relative; z-index: 2;">
+					<div style="background: #f0f4f8; border-radius: 24px; padding: 20px; position: relative; overflow: hidden; box-shadow: 0 20px 40px rgba(0,0,0,0.05);">
+						<img src="{{ asset('images/catdog-removebg-preview.png') }}" alt="Pets" style="width: 100%; height: auto; display: block; filter: drop-shadow(0 10px 15px rgba(0,0,0,0.1));">
+					</div>
+
+					<div style="position: absolute; bottom: -20px; right: -20px; background: #ffffff; padding: 20px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); border-left: 5px solid #1f5f9a; width: 180px;">
+						<p style="margin: 0; font-size: 0.75rem; color: #718096; font-weight: 600; text-transform: uppercase;">Est. 2024</p>
+						<p style="margin: 5px 0 0; font-size: 1rem; color: #171a21; font-weight: 700; line-height: 1.3;">Born from a love for pets.</p>
+					</div>
+				</div>
+
+				<div style="z-index: 2;">
+					<div style="display: inline-flex; align-items: center; gap: 10px; margin-bottom: 20px;">
+						<span style="width: 40px; height: 2px; background: #1f5f9a;"></span>
+						<span style="color: #1f5f9a; font-weight: 700; font-size: 0.85rem; letter-spacing: 0.15em; text-transform: uppercase;">The PawStuff Journey</span>
+					</div>
+
+					<h2 style="font-size: clamp(2rem, 4vw, 3rem); color: #171a21; line-height: 1.1; margin-bottom: 24px; letter-spacing: -0.02em;">Efficiency meets
+						<span style="color: #1f5f9a;">empathy.</span>
+					</h2>
+
+					<p style="font-family: 'Nunito', sans-serif; font-size: 1.1rem; color: #4a5568; line-height: 1.8; margin-bottom: 30px;">
+						Managing a pet supply shop shouldn't be a hurdle. At PawStuff, we believe technology should be the backbone that lets you focus on what really matters: the health and happiness of every pet that walks through your door.
+					</p>
+
+					<div style="display: grid; gap: 15px; font-family: 'Nunito', sans-serif;">
+						<div style="display: flex; align-items: center; gap: 12px;">
+							<div style="width: 24px; height: 24px; background: rgba(31, 95, 154, 0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #1f5f9a; font-size: 0.8rem;">✓</div>
+							<span style="font-weight: 600; color: #2d3748;">Automated Inventory Tracking</span>
+						</div>
+						<div style="display: flex; align-items: center; gap: 12px;">
+							<div style="width: 24px; height: 24px; background: rgba(31, 95, 154, 0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #1f5f9a; font-size: 0.8rem;">✓</div>
+							<span style="font-weight: 600; color: #2d3748;">Owner-Centric CRM</span>
+						</div>
+						<div style="display: flex; align-items: center; gap: 12px;">
+							<div style="width: 24px; height: 24px; background: rgba(31, 95, 154, 0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #1f5f9a; font-size: 0.8rem;">✓</div>
+							<span style="font-weight: 600; color: #2d3748;">Tailored Supply Management</span>
+						</div>
+					</div>
+
+					<a href="{{ path('app_landing') }}" style="margin-top: 40px; padding: 16px 32px; background: #1f5f9a; color: white; border-radius: 8px; font-weight: 700; text-decoration: none; display: inline-block; font-family: 'Montserrat', sans-serif;">Back to Landing</a>
+				</div>
+			</div>
+		</section>
+	</body>
+</html>

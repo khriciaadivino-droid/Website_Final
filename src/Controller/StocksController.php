@@ -36,7 +36,7 @@ final class StocksController extends AbstractController
             $stock->setCreateAt(new \DateTimeImmutable());
             $stock->setUpdateAt(new \DateTimeImmutable());
             $quantityChange = $stock->getQuantityChange() ?? 0;
-            $logMessage = sprintf('Stock created with quantity change: %s on %s', $quantityChange, $stock->getCreateAt()->format('Y-m-d H:i:s'));
+            $logMessage = sprintf('Stock created with quantity change: %s on %s. By: %s.', $quantityChange, $stock->getCreateAt()->format('Y-m-d H:i:s'), $this->getStockActorLabel());
             $stock->setStockChangeLog($logMessage);
             $entityManager->persist($stock);
             $entityManager->flush();
@@ -81,7 +81,7 @@ final class StocksController extends AbstractController
         if ($form->isSubmitted() && $form->isValid()) {
             $stock->setUpdateAt(new \DateTimeImmutable());
             $newQuantityChange = $stock->getQuantityChange();
-            $logMessage = sprintf('Stock updated with quantity change: %s on %s', $newQuantityChange, $stock->getUpdateAt()->format('Y-m-d H:i:s'));
+            $logMessage = sprintf('Stock updated with quantity change: %s on %s. By: %s.', $newQuantityChange, $stock->getUpdateAt()->format('Y-m-d H:i:s'), $this->getStockActorLabel());
             $stock->setStockChangeLog($logMessage);
             $entityManager->flush();
 
@@ -110,7 +110,7 @@ final class StocksController extends AbstractController
     #[Route('/{id}', name: 'app_stocks_delete', methods: ['POST'])]
     public function delete(Request $request, Stocks $stock, EntityManagerInterface $entityManager, ActivityLogService $activityLogService): Response
     {
-        if ($this->isCsrfTokenValid('delete'.$stock->getId(), $request->getPayload()->getString('_token'))) {
+        if ($this->isCsrfTokenValid('delete' . $stock->getId(), $request->getPayload()->getString('_token'))) {
             // Update the product's quantity before deleting the stock
             $product = $stock->getProductss();
             $currentQuantity = $product->getQuantity() ?? 0;
@@ -133,5 +133,20 @@ final class StocksController extends AbstractController
         }
 
         return $this->redirectToRoute('app_stocks_index', [], Response::HTTP_SEE_OTHER);
+    }
+
+    private function getStockActorLabel(): string
+    {
+        $user = $this->getUser();
+        if (!$user instanceof \App\Entity\User) {
+            return 'System';
+        }
+
+        $roles = $user->getRoles();
+        $roleLabel = in_array('ROLE_ADMIN', $roles, true)
+            ? 'Admin'
+            : (in_array('ROLE_STAFF', $roles, true) ? 'Staff' : 'User');
+
+        return sprintf('%s (%s)', $roleLabel, $user->getEmail() ?? 'unknown');
     }
 }

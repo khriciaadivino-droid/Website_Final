@@ -25,7 +25,7 @@ security:
                 check_path: /api/login
                 username_path: email
                 password_path: password
-                success_handler: lexik_jwt_authentication.handler.authentication_success
+                success_handler: App\Security\JWTAuthenticationSuccessHandler
                 failure_handler: lexik_jwt_authentication.handler.authentication_failure
         api:
             pattern: ^/api
@@ -36,6 +36,8 @@ security:
             provider: app_user_provider
             user_checker: App\Security\UserChecker
             entry_point: form_login
+            custom_authenticators:
+                - App\Security\GoogleAuthenticator
             form_login:
                 login_path: app_login
                 check_path: app_login
@@ -61,12 +63,17 @@ security:
     # Note: Only the *first* access control that matches will be used
     access_control:
         - { path: ^/api/login, roles: PUBLIC_ACCESS }
+        - { path: ^/api/register, roles: PUBLIC_ACCESS }
+        - { path: ^/api/verify-email, roles: PUBLIC_ACCESS }
         - { path: ^/api$, roles: PUBLIC_ACCESS }
         - { path: ^/api, roles: IS_AUTHENTICATED_FULLY }
+        - { path: ^/connect/google, roles: PUBLIC_ACCESS }
+        - { path: ^/verify-email, roles: PUBLIC_ACCESS }
         - { path: ^/login, roles: PUBLIC_ACCESS }
         - { path: ^/register, roles: PUBLIC_ACCESS }
         - { path: ^/dashboard, roles: PUBLIC_ACCESS }
         - { path: ^/admin/dashboard, roles: ROLE_ADMIN }
+        - { path: ^/admin/contact-messages, roles: ROLE_ADMIN }
         - { path: ^/user-management, roles: ROLE_ADMIN }
         - { path: ^/activity-log, roles: ROLE_ADMIN }
         - { path: ^/productss, roles: PUBLIC_ACCESS }

@@ -35,20 +35,22 @@ class CreateAdminCommand extends Command
         if ($admin) {
             $hashedPassword = $this->passwordHasher->hashPassword($admin, 'admin123');
             $admin->setPassword($hashedPassword);
-            $admin->setRoles(['ROLE_ADMIN', 'ROLE_USER']);
+            $admin->setRoles(['ROLE_ADMIN']);
             $admin->setStatus('active');
+            $admin->setVerifiedAt(new \DateTime());
             $this->entityManager->flush();
             $io->success('Admin user updated successfully!');
         } else {
             $admin = new User();
             $admin->setEmail('admin@pawstuff.com');
             $admin->setFullName('Admin User');
-            $admin->setRoles(['ROLE_ADMIN', 'ROLE_USER']);
+            $admin->setRoles(['ROLE_ADMIN']);
             $admin->setStatus('active');
-            
+            $admin->setVerifiedAt(new \DateTime());
+
             $hashedPassword = $this->passwordHasher->hashPassword($admin, 'admin123');
             $admin->setPassword($hashedPassword);
-            
+
             $this->entityManager->persist($admin);
             $this->entityManager->flush();
             $io->success('Admin user created successfully!');
@@ -61,21 +63,23 @@ class CreateAdminCommand extends Command
         if ($staff) {
             $hashedPassword = $this->passwordHasher->hashPassword($staff, 'staff123');
             $staff->setPassword($hashedPassword);
-            $staff->setRoles(['ROLE_STAFF', 'ROLE_USER']);
+            $staff->setRoles(['ROLE_STAFF']);
             $staff->setStatus('active');
+            $staff->setVerifiedAt(new \DateTime());
             $this->entityManager->flush();
             $io->success('Staff user updated successfully!');
         } else {
             $staff = new User();
             $staff->setEmail('staff@pawstuff.com');
             $staff->setFullName('Staff User');
-            $staff->setRoles(['ROLE_STAFF', 'ROLE_USER']);
+            $staff->setRoles(['ROLE_STAFF']);
             $staff->setStatus('active');
             $staff->setCreatedBy('admin@pawstuff.com');
-            
+            $staff->setVerifiedAt(new \DateTime());
+
             $hashedPassword = $this->passwordHasher->hashPassword($staff, 'staff123');
             $staff->setPassword($hashedPassword);
-            
+
             $this->entityManager->persist($staff);
             $this->entityManager->flush();
             $io->success('Staff user created successfully!');

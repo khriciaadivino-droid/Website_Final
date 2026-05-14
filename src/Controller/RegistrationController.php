@@ -13,18 +13,13 @@ use Symfony\Component\Routing\Annotation\Route;
 
 class RegistrationController extends AbstractController
 {
-    #[Route('/register', name: 'app_register')]
+    #[Route('/register', name: 'app_register', methods: ['GET', 'POST'])]
     public function register(
         Request $request,
         UserPasswordHasherInterface $passwordHasher,
         EntityManagerInterface $entityManager,
         EmailVerificationService $emailVerificationService
     ): Response {
-        // If user is already logged in, redirect to dashboard
-        if ($this->getUser()) {
-            return $this->redirectToRoute('app_dashboard_index');
-        }
-
         $error = null;
         $success = false;
 
@@ -46,7 +41,7 @@ class RegistrationController extends AbstractController
             } else {
                 // Check if user already exists
                 $existingUser = $entityManager->getRepository(User::class)->findOneBy(['email' => $email]);
-                
+
                 if ($existingUser) {
                     $error = 'An account with this email already exists.';
                 } else {
@@ -57,21 +52,21 @@ class RegistrationController extends AbstractController
                     $user->setRoles(['ROLE_USER']);
                     $user->setStatus('active');
                     // Do NOT set verified - user must verify via email
-                    
+
                     // Hash the password
                     $hashedPassword = $passwordHasher->hashPassword($user, $password);
                     $user->setPassword($hashedPassword);
-                    
+
                     // Save to database
                     $entityManager->persist($user);
                     $entityManager->flush();
-                    
+
                     // Send verification email
                     $emailVerificationService->createAndSendVerificationEmail($user);
-                    
+
                     $success = true;
                     $this->addFlash('success', 'Registration successful! Please check your email to verify your account.');
-                    
+
                     return $this->redirectToRoute('app_login');
                 }
             }

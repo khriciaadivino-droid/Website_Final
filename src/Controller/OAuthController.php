@@ -19,12 +19,20 @@ class OAuthController extends AbstractController
         private ClientRegistry $clientRegistry,
         private UserRepository $userRepository,
         private EntityManagerInterface $entityManager,
-    ) {
-    }
+    ) {}
 
     #[Route('/connect/check-google', name: 'app_oauth2_google_check')]
     public function connectCheckGoogle(): Response
     {
+        $googleClientId = (string) ($_ENV['GOOGLE_OAUTH_CLIENT_ID'] ?? $_SERVER['GOOGLE_OAUTH_CLIENT_ID'] ?? '');
+        $googleClientSecret = (string) ($_ENV['GOOGLE_OAUTH_CLIENT_SECRET'] ?? $_SERVER['GOOGLE_OAUTH_CLIENT_SECRET'] ?? '');
+
+        if ($googleClientId === '' || $googleClientSecret === '') {
+            $this->addFlash('error', 'Google sign-in is not configured yet. Please contact the administrator.');
+
+            return $this->redirectToRoute('app_login');
+        }
+
         return $this->clientRegistry
             ->getClient('google')
             ->redirect(['email', 'profile'], []);
@@ -60,7 +68,7 @@ class OAuthController extends AbstractController
             $user->setVerifiedAt(new \DateTime());
             // Generate random password since Google auth is passwordless
             $user->setPassword(hash('sha256', random_bytes(16)));
-            
+
             $this->entityManager->persist($user);
             $this->entityManager->flush();
         } else {

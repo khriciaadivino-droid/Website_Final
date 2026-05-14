@@ -18,8 +18,7 @@ class EmailVerificationService
         private MailerInterface $mailer,
         private string $emailFromAddress = 'noreply@khriciadivino.com',
         private string $appBaseUrl = 'http://localhost:8000',
-    ) {
-    }
+    ) {}
 
     public function createAndSendVerificationEmail(User $user): void
     {
@@ -27,7 +26,7 @@ class EmailVerificationService
         $token = new VerificationToken();
         $token->setToken(VerificationToken::generateToken());
         $token->setUser($user);
-        
+
         $this->entityManager->persist($token);
         $this->entityManager->flush();
 
@@ -52,6 +51,26 @@ class EmailVerificationService
         $this->mailer->send($email);
     }
 
+    public function generateVerificationToken(): string
+    {
+        return VerificationToken::generateToken();
+    }
+
+    public function sendVerificationEmail(User $user, string $verificationUrl): void
+    {
+        $email = (new TemplatedEmail())
+            ->from(new Address($this->emailFromAddress, 'Khriciadivino'))
+            ->to(new Address($user->getEmail(), $user->getFullName()))
+            ->subject('Please verify your email address')
+            ->htmlTemplate('emails/verification.html.twig')
+            ->context([
+                'user' => $user,
+                'verification_url' => $verificationUrl,
+            ]);
+
+        $this->mailer->send($email);
+    }
+
     public function verifyEmail(string $token): ?User
     {
         $verificationToken = $this->verificationTokenRepository->findByToken($token);
@@ -61,16 +80,21 @@ class EmailVerificationService
         }
 
         $user = $verificationToken->getUser();
-        
+
         // Mark user as verified
         $user->setVerifiedAt(new \DateTime());
-        
+
         // Mark token as used
         $verificationToken->setUsedAt(new \DateTime());
 
         $this->entityManager->flush();
 
         return $user;
+    }
+
+    public function verifyToken(string $token): ?User
+    {
+        return $this->verifyEmail($token);
     }
 
     public function isEmailVerified(User $user): bool
@@ -82,7 +106,7 @@ class EmailVerificationService
     {
         // Check if user has a valid token already
         $existingToken = $this->verificationTokenRepository->findValidTokenByUser($user);
-        
+
         if (!$existingToken) {
             $token = new VerificationToken();
             $token->setToken(VerificationToken::generateToken());

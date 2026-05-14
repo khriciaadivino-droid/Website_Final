@@ -1,570 +1,823 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PawStuff | Landing</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700;800;900&family=Nunito:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        html {
-            scroll-behavior: smooth;
-        }
-
-        :root {
-            --page: #f4f5f9;
-            --white: #ffffff;
-            --ink: #171a21;
-            --muted: #50555f;
-            --blue: #154b7f;
-            --blue-soft: #2f679d;
-            --green: #2baf6f;
-            --green-dark: #1f8a56;
-            --blue-circle-x: 84%;
-            --blue-circle-rx: 45%;
-        }
-
-        * {
-            box-sizing: border-box;
-        }
-
-        body {
-            margin: 0;
-            min-height: 100%;
-            overflow-x: hidden;
-            font-family: 'Nunito', sans-serif;
-            color: var(--ink);
-            background:
-                radial-gradient(800px 420px at 90% -10%, rgba(21, 75, 127, 0.16), transparent 70%),
-                var(--page);
-        }
-
-        .wrap {
-            width: 100%;
-            margin: 0;
-            padding: 0;
-        }
-
-        .banner {
-            position: relative;
-            height: 100vh;
-            min-height: 100vh;
-            overflow: hidden;
-            background: var(--white);
-        }
-
-        .banner::before {
-            content: "";
-            position: absolute;
-            inset: 0;
-            background: linear-gradient(160deg, var(--blue), #1f5f9a 68%, #194c80);
-            clip-path: ellipse(var(--blue-circle-rx) 98% at var(--blue-circle-x) 30%);
-            z-index: 1;
-        }
-
-        .banner::after {
-            content: "";
-            position: absolute;
-            inset: 0;
-            background: radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.13), transparent 35%);
-            z-index: 2;
-            pointer-events: none;
-        }
-
-        .top-row,
-        .hero-copy,
-        .pet-shot,
-        .cat-shot {
-            position: relative;
-            z-index: 3;
-        }
-
-        .top-row {
-            display: flex;
-            align-items: center;
-            gap: 0.45rem;
-            justify-content: flex-end;
-            padding: 1.2rem 1.8rem 0 1.3rem;
-            z-index: 5;
-        }
-
-        .logo {
-            display: inline-flex;
-            align-items: center;
-            gap: 0;
-            text-decoration: none;
-            margin-right: auto;
-        }
-
-        .logo img {
-            width: 88px;
-            height: 88px;
-            display: block;
-            object-fit: contain;
-            clip-path: inset(0 20px 0 0);
-            margin-right: -14px;
-        }
-
-        .logo span {
-            display: inline-flex;
-            align-items: center;
-            color: #184a79;
-            font-family: 'Montserrat', sans-serif;
-            font-weight: 800;
-            font-size: 1.18rem;
-            letter-spacing: -0.01em;
-            line-height: 1.1;
-            margin-left: -7px;
-        }
-
-        .nav-links {
-            display: inline-flex;
-            gap: 0.28rem;
-            align-items: center;
-            border-radius: 999px;
-            padding: 0.3rem;
-            background: rgba(255, 255, 255, 0.12);
-            backdrop-filter: blur(5px);
-        }
-
-        .nav-links a {
-            text-decoration: none;
-            color: #f2f6ff;
-            font-family: 'Montserrat', sans-serif;
-            font-size: 0.74rem;
-            font-weight: 700;
-            letter-spacing: 0.03em;
-            padding: 0.45rem 0.66rem;
-            border-radius: 999px;
-            text-transform: uppercase;
-            white-space: nowrap;
-        }
-
-        .nav-links a:hover {
-            background: rgba(255, 255, 255, 0.15);
-        }
-
-        .signup {
-            text-decoration: none;
-            background: #ffffff;
-            color: #11395f;
-            border-radius: 999px;
-            padding: 0.48rem 1rem;
-            font-family: 'Montserrat', sans-serif;
-            font-size: 0.72rem;
-            font-weight: 800;
-            letter-spacing: 0.03em;
-            text-transform: uppercase;
-            white-space: nowrap;
-            margin-left: 0.2rem;
-        }
-
-        .hero-copy {
-            position: absolute;
-            top: 9.6rem;
-            left: clamp(2rem, 5vw, 4rem);
-            width: min(40%, 460px);
-            margin: 0;
-            padding: 0;
-        }
-
-        .hero-copy small {
-            display: inline-block;
-            color: #1a4d80;
-            font-family: 'Montserrat', sans-serif;
-            font-weight: 700;
-            letter-spacing: 0.01em;
-        }
-
-        .hero-copy h1 {
-            margin: 0.3rem 0 0;
-            font-family: 'Montserrat', sans-serif;
-            font-size: clamp(1.85rem, 3.5vw, 2.9rem);
-            line-height: 0.96;
-            letter-spacing: -0.03em;
-            color: #171a21;
-        }
-
-        .hero-copy p {
-            margin: 0.8rem 0 0;
-            color: var(--muted);
-            line-height: 1.6;
-            max-width: 47ch;
-            font-size: 0.95rem;
-        }
-
-        .learn {
-            margin-top: 0.95rem;
-            display: inline-block;
-            text-decoration: none;
-            border-radius: 999px;
-            padding: 0.56rem 1.05rem;
-            font-family: 'Montserrat', sans-serif;
-            font-size: 0.72rem;
-            font-weight: 800;
-            color: #fff;
-            text-transform: uppercase;
-            letter-spacing: 0.03em;
-            background: linear-gradient(130deg, var(--green), var(--green-dark));
-        }
-
-        .pet-shot {
-            position: absolute;
-            right: 0;
-            bottom: 0;
-            width: min(46vw, 560px);
-            aspect-ratio: 4 / 5;
-            border-radius: 0;
-            overflow: hidden;
-            border: 0;
-            box-shadow: none;
-            background: transparent;
-            margin: 0;
-            pointer-events: none;
-            z-index: 2;
-        }
-
-        .pet-shot img {
-            width: 100%;
-            height: 100%;
-            display: block;
-            object-fit: contain;
-            object-position: right bottom;
-            filter: drop-shadow(0 16px 24px rgba(8, 20, 36, 0.35));
-            margin: 0;
-        }
-
-        .cat-shot {
-            position: absolute;
-            left: clamp(2rem, 5vw, 4rem);
-            bottom: 0;
-            width: min(42vw, 400px);
-            aspect-ratio: 3 / 4;
-            border-radius: 0;
-            overflow: hidden;
-            border: 0;
-            box-shadow: none;
-            background: transparent;
-            margin: 0;
-            pointer-events: none;
-            z-index: 2;
-        }
-
-        .cat-shot img {
-            width: 100%;
-            height: 100%;
-            display: block;
-            object-fit: contain;
-            object-position: center bottom;
-            filter: drop-shadow(0 12px 20px rgba(8, 20, 36, 0.25));
-            margin: 0;
-        }
-
-        @media (max-width: 900px) {
-            .top-row {
-                flex-wrap: wrap;
-                justify-content: flex-start;
-                gap: 0.6rem;
-            }
-
-            .nav-links {
-                order: 3;
-                width: 100%;
-                justify-content: center;
-            }
-
-            .hero-copy {
-                width: min(52%, 420px);
-                top: 8.4rem;
-            }
-        }
-
-        @media (max-width: 760px) {
-            .banner {
-                min-height: auto;
-                height: auto;
-                padding-bottom: 1rem;
-            }
-
-            .banner::before {
-                clip-path: ellipse(130% 54% at 78% 0%);
-            }
-
-            .top-row {
-                padding: 0.8rem 0.8rem 0;
-            }
-
-            .logo img {
-                width: 70px;
-                height: 70px;
-                margin-right: -10px;
-            }
-
-            .logo span {
-                font-size: 1rem;
-                margin-left: -4px;
-            }
-
-            .nav-links {
-                gap: 0.2rem;
-                padding: 0.2rem;
-            }
-
-            .nav-links a {
-                font-size: 0.62rem;
-                padding: 0.35rem 0.5rem;
-            }
-
-            .signup {
-                padding: 0.4rem 0.75rem;
-                font-size: 0.64rem;
-            }
-
-            .hero-copy {
-                position: static;
-                width: auto;
-                margin: 1.1rem 1rem 0;
-            }
-
-            .hero-copy h1 {
-                font-size: clamp(1.8rem, 8vw, 2.4rem);
-            }
-
-            .hero-copy p {
-                font-size: 0.9rem;
-            }
-
-            .pet-shot {
-                position: static;
-                width: min(92vw, 420px);
-                margin: 0 auto;
-                aspect-ratio: 4 / 3;
-            }
-
-            .cat-shot {
-                position: static;
-                width: min(320px, calc(100% - 2rem));
-                height: auto;
-                margin: 0.7rem auto 0;
-            }
-        }
-    </style>
-</head>
-<body>
-    <main class="wrap">
-        <section class="banner" id="home" aria-label="Banner">
-            <div class="top-row">
-            <a href="{{ path('app_landing') }}" class="logo" aria-label="PawStuff home">
-                <img src="{{ asset('images/logo.png') }}" alt="PawStuff logo">
-                <span>PawStuff</span>
-            </a>
-
-                <nav class="nav-links" aria-label="Main links">
-                    <a href="#home">Home</a>
-                    <a href="#about">About Us</a>
-                    <a href="#products">Products</a>
-                    <a href="#features">Pets Features</a>
-                    <a href="{{ path('app_contact') }}">Contact Us</a>
-                </nav>
-
-                <a href="{{ path('app_register') }}" class="signup">Sign Up</a>
-            </div>
-            </div>
-
-            <article class="hero-copy">
-                <small>At PawStuff</small>
-                <h1>We make pet care simple. Quality supplies, happy pets, wagging tails.</h1>
-                <p>
-                    We believe every pet deserves the best. From premium nutrition to playful toys and cozy essentials, we carefully curate products that keep tails wagging and purrs coming.
-                </p>
-                <a class="learn" href="{{ path('app_login') }}">Learn More</a>
-            </article>
-
-           <figure class="pet-shot" aria-label="Featured dog image">
-                <img src="{{ asset('images/ddog2-removebg-preview.png') }}" alt="Dog">
-            </figure>
-
-            <figure class="cat-shot" aria-label="Featured cat image">
-                <img src="{{ asset('images/cat1-removebg-preview.png') }}" alt="Cat">
-            </figure>
-        </section>
-                    
-
-        <section id="about" style="background: linear-gradient(160deg, #154b7f, #2f679d 68%, #17547f); padding: 3.5rem 2rem; text-align: center; min-height: 100vh; display: flex; flex-direction: column; justify-content: center;">
-            <h2 style="font-family: 'Montserrat', sans-serif; font-size: clamp(2.2rem, 5vw, 3.2rem); font-weight: 900; color: #ffffff; margin: 0 0 1rem; letter-spacing: -0.02em; line-height: 1.1;">Meet Our Team</h2>
-            <p style="color: #e8f0f8; max-width: 850px; margin: 0 auto 2.5rem; font-size: 1.05rem; line-height: 1.6;">Our passionate team is dedicated to delivering the best products and service for pet owners everywhere. We believe in quality, care, and making pets happy.</p>
-
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 2rem; max-width: 1200px; margin: 0 auto;">
-                <div style="background: #ffffff; border-radius: 16px; padding: 1.5rem; overflow: hidden; transition: transform 0.3s, box-shadow 0.3s;">
-                    <div style="width: 100%; aspect-ratio: 1; overflow: hidden; border-radius: 12px; background: #f0f4f9; margin-bottom: 1.2rem; display: flex; align-items: center; justify-content: center;">
-                        <img src="{{ asset('images/ddog2-removebg-preview.png') }}" alt="Sarah Johnson" style="width: 100%; height: 100%; object-fit: cover; object-position: center;">
-                    </div>
-                    <h3 style="font-family: 'Montserrat', sans-serif; font-size: 1.15rem; font-weight: 700; color: #154b7f; margin: 0 0 0.4rem; letter-spacing: -0.01em;">Sarah Johnson</h3>
-                    <p style="color: #50555f; font-size: 0.9rem; font-weight: 500; margin: 0;">Founder & CEO</p>
-                </div>
-
-                <div style="background: #ffffff; border-radius: 16px; padding: 1.5rem; overflow: hidden; transition: transform 0.3s, box-shadow 0.3s;">
-                    <div style="width: 100%; aspect-ratio: 1; overflow: hidden; border-radius: 12px; background: #f0f4f9; margin-bottom: 1.2rem; display: flex; align-items: center; justify-content: center;">
-                        <img src="{{ asset('images/dog4-removebg-preview.png') }}" alt="Michael Chen" style="width: 100%; height: 100%; object-fit: cover; object-position: center;">
-                    </div>
-                    <h3 style="font-family: 'Montserrat', sans-serif; font-size: 1.15rem; font-weight: 700; color: #154b7f; margin: 0 0 0.4rem; letter-spacing: -0.01em;">Michael Chen</h3>
-                    <p style="color: #50555f; font-size: 0.9rem; font-weight: 500; margin: 0;">Product Director</p>
-                </div>
-
-                <div style="background: #ffffff; border-radius: 16px; padding: 1.5rem; overflow: hidden; transition: transform 0.3s, box-shadow 0.3s;">
-                    <div style="width: 100%; aspect-ratio: 1; overflow: hidden; border-radius: 12px; background: #f0f4f9; margin-bottom: 1.2rem; display: flex; align-items: center; justify-content: center;">
-                        <img src="{{ asset('images/catdog-removebg-preview.png') }}" alt="Emma Davis" style="width: 100%; height: 100%; object-fit: cover; object-position: center;">
-                    </div>
-                    <h3 style="font-family: 'Montserrat', sans-serif; font-size: 1.15rem; font-weight: 700; color: #154b7f; margin: 0 0 0.4rem; letter-spacing: -0.01em;">Emma Davis</h3>
-                    <p style="color: #50555f; font-size: 0.9rem; font-weight: 500; margin: 0;">Customer Success Lead</p>
-                </div>
-
-                <div style="background: #ffffff; border-radius: 16px; padding: 1.5rem; overflow: hidden; transition: transform 0.3s, box-shadow 0.3s;">
-                    <div style="width: 100%; aspect-ratio: 1; overflow: hidden; border-radius: 12px; background: #f0f4f9; margin-bottom: 1.2rem; display: flex; align-items: center; justify-content: center;">
-                        <img src="{{ asset('images/cat1-removebg-preview.png') }}" alt="James Wilson" style="width: 100%; height: 100%; object-fit: cover; object-position: center;">
-                    </div>
-                    <h3 style="font-family: 'Montserrat', sans-serif; font-size: 1.15rem; font-weight: 700; color: #154b7f; margin: 0 0 0.4rem; letter-spacing: -0.01em;">James Wilson</h3>
-                    <p style="color: #50555f; font-size: 0.9rem; font-weight: 500; margin: 0;">Operations Manager</p>
-                </div>
-            </div>
-        </section>
-
-        <section id="products" style="position: relative; height: 100vh; min-height: 100vh; overflow: hidden; background: var(--white);">
-            <div style="position: absolute; inset: 0; background: linear-gradient(160deg, var(--blue), #1f5f9a 68%, #194c80); clip-path: ellipse(45% 98% at 15% 30%); z-index: 1;"></div>
-            <div style="position: absolute; inset: 0; background: radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.13), transparent 35%); z-index: 2; pointer-events: none;"></div>
-
-            <h2 style="position: absolute; top: 1.5rem; left: 2.5rem; z-index: 4; margin: 0; font-family: 'Montserrat', sans-serif; font-size: clamp(2.5rem, 5vw, 3.5rem); font-weight: 900; color: #ffffff; letter-spacing: -0.025em; line-height: 1.1;">Products</h2>
-
-            <div style="padding: 3rem 2rem 2rem 2rem; position: relative; z-index: 3; height: 100%; display: flex; align-items: flex-start; justify-content: center;">
-                <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 2rem; width: 100%; max-width: 1400px; margin-top: 4.5rem;">
-                    <!-- Card 1 -->
-                    <div style="background: #fff; border-radius: 16px; box-shadow: 0 2px 12px rgba(21,75,127,0.08); padding: 1.5rem; display: flex; flex-direction: column; align-items: center;">
-                        <img src='{{ asset("images/Charlie-s-Choice-69c01614331a4.jpg") }}' alt='Product 1' style='width: 120px; height: 120px; object-fit: contain; margin-bottom: 1rem;'>
-                        <h3 style='font-family: Montserrat, sans-serif; font-size: 1.1rem; font-weight: 700; color: #154b7f; margin: 0 0 0.4rem;'>Charlie's Choice</h3>
-                        <div style='color: #50555f; font-size: 0.97rem; margin-bottom: 0.5rem;'>High protein content: 72% salmon</div>
-                        <div style='font-weight: 700; color: #2baf6f; margin-bottom: 0.3rem;'>₱150.00</div>
-                    </div>
-                    <!-- Card 2 -->
-                    <div style="background: #fff; border-radius: 16px; box-shadow: 0 2px 12px rgba(21,75,127,0.08); padding: 1.5rem; display: flex; flex-direction: column; align-items: center;">
-                        <img src='{{ asset("images/aesthetic-cage-69c0211ba9536.jpg") }}' alt='Product 2' style='width: 120px; height: 120px; object-fit: contain; margin-bottom: 1rem;'>
-                        <h3 style='font-family: Montserrat, sans-serif; font-size: 1.1rem; font-weight: 700; color: #154b7f; margin: 0 0 0.4rem;'>Aesthetic & Standard Carriers</h3>
-                        <div style='color: #50555f; font-size: 0.97rem; margin-bottom: 0.5rem;'>Secure, hard-sided travel crates</div>
-                        <div style='font-weight: 700; color: #2baf6f; margin-bottom: 0.3rem;'>₱699.00</div>
-                    </div>
-                    <!-- Card 3 -->
-                    <div style="background: #fff; border-radius: 16px; box-shadow: 0 2px 12px rgba(21,75,127,0.08); padding: 1.5rem; display: flex; flex-direction: column; align-items: center;">
-                        <img src='{{ asset("images/AllPetSolutions-4-Piece-Dog-Grooming-Set-69c0202724f1d.jpg") }}' alt='Product 3' style='width: 120px; height: 120px; object-fit: contain; margin-bottom: 1rem;'>
-                        <h3 style='font-family: Montserrat, sans-serif; font-size: 1.1rem; font-weight: 700; color: #154b7f; margin: 0 0 0.4rem;'>4-Piece Dog Grooming Set</h3>
-                        <div style='color: #50555f; font-size: 0.97rem; margin-bottom: 0.5rem;'>A complete maintenance kit</div>
-                        <div style='font-weight: 700; color: #2baf6f; margin-bottom: 0.3rem;'>₱200.00</div>
-                    </div>
-                    <!-- Card 4 -->
-                    <div style="background: #fff; border-radius: 16px; box-shadow: 0 2px 12px rgba(21,75,127,0.08); padding: 1.5rem; display: flex; flex-direction: column; align-items: center;">
-                        <img src='{{ asset("images/Bark-Bright-69c01f8975e9c.jpg") }}' alt='Product 4' style='width: 120px; height: 120px; object-fit: contain; margin-bottom: 1rem;'>
-                        <h3 style='font-family: Montserrat, sans-serif; font-size: 1.1rem; font-weight: 700; color: #154b7f; margin: 0 0 0.4rem;'>Bark Bright Dental Chews</h3>
-                        <div style='color: #50555f; font-size: 0.97rem; margin-bottom: 0.5rem;'>Tasty, chicken-based dental sticks</div>
-                        <div style='font-weight: 700; color: #2baf6f; margin-bottom: 0.3rem;'>₱199.00</div>
-                    </div>
-                    <!-- Card 5 -->
-                    <div style="background: #fff; border-radius: 16px; box-shadow: 0 2px 12px rgba(21,75,127,0.08); padding: 1.5rem; display: flex; flex-direction: column; align-items: center;">
-                        <img src='{{ asset("images/Blue-dog-harness-69c0208b5c230.jpg") }}' alt='Product 5' style='width: 120px; height: 120px; object-fit: contain; margin-bottom: 1rem;'>
-                        <h3 style='font-family: Montserrat, sans-serif; font-size: 1.1rem; font-weight: 700; color: #154b7f; margin: 0 0 0.4rem;'>Blue Dog Harness & Leash Set</h3>
-                        <div style='color: #50555f; font-size: 0.97rem; margin-bottom: 0.5rem;'>A coordinated walking kit</div>
-                        <div style='font-weight: 700; color: #2baf6f; margin-bottom: 0.3rem;'>₱500.00</div>
-                    </div>
-                    <!-- Card 6 -->
-                    <div style="background: #fff; border-radius: 16px; box-shadow: 0 2px 12px rgba(21,75,127,0.08); padding: 1.5rem; display: flex; flex-direction: column; align-items: center;">
-                        <img src='{{ asset("images/pet-wipes-69c03c6755705.jpg") }}' alt='Product 6' style='width: 120px; height: 120px; object-fit: contain; margin-bottom: 1rem;'>
-                        <h3 style='font-family: Montserrat, sans-serif; font-size: 1.1rem; font-weight: 700; color: #154b7f; margin: 0 0 0.4rem;'>Pet Wipes</h3>
-                        <div style='color: #50555f; font-size: 0.97rem; margin-bottom: 0.5rem;'>Gentle, large-sized cleaning wipes</div>
-                        <div style='font-weight: 700; color: #2baf6f; margin-bottom: 0.3rem;'>₱50.00</div>
-                    </div>
-                    <!-- Card 7 -->
-                    <div style="background: #fff; border-radius: 16px; box-shadow: 0 2px 12px rgba(21,75,127,0.08); padding: 1.5rem; display: flex; flex-direction: column; align-items: center;">
-                        <img src='{{ asset("images/Loveabowl-Salmon-Dry-Cat-Food-69c03c1984b88.jpg") }}' alt='Product 7' style='width: 120px; height: 120px; object-fit: contain; margin-bottom: 1rem;'>
-                        <h3 style='font-family: Montserrat, sans-serif; font-size: 1.1rem; font-weight: 700; color: #154b7f; margin: 0 0 0.4rem;'>Loveabowl Salmon Dry Cat Food</h3>
-                        <div style='color: #50555f; font-size: 0.97rem; margin-bottom: 0.5rem;'>Grain-free kibble featuring Atlantic salmon</div>
-                        <div style='font-weight: 700; color: #2baf6f; margin-bottom: 0.3rem;'>₱99.00</div>
-                    </div>
-                    <!-- Card 8 -->
-                    <div style="background: #fff; border-radius: 16px; box-shadow: 0 2px 12px rgba(21,75,127,0.08); padding: 1.5rem; display: flex; flex-direction: column; align-items: center;">
-                        <img src='{{ asset("images/Pet-Feet-Shower-Cup-69c03cdff0f0a.jpg") }}' alt='Product 8' style='width: 120px; height: 120px; object-fit: contain; margin-bottom: 1rem;'>
-                        <h3 style='font-family: Montserrat, sans-serif; font-size: 1.1rem; font-weight: 700; color: #154b7f; margin: 0 0 0.4rem;'>Pet Feet Shower Cup</h3>
-                        <div style='color: #50555f; font-size: 0.97rem; margin-bottom: 0. 5rem;'>Pet Feet Shower Cup</div>
-                        <div style='font-weight: 700; color: #2baf6f; margin-bottom: 0.3rem;'>₱144.00</div>
-                    </div>
-<figure class="pet-shot" aria-label="Featured dog image" style="margin: 0; display: flex; justify-content: flex-end;">
-    <img src="{{ asset('images/dog2-removebg-preview.png') }}" 
-         alt="Dog" 
-         style="width: 280px; height: auto; display: block; margin-right: -20px; transform: translateY(-10px);"> 
-</figure>
-                </div>
-            </div>
-        </section>
-
-        <section id="story" style="position: relative; height: 100vh; min-height: 100vh; overflow: hidden; background: var(--white);">
-            <div style="position: absolute; inset: 0; background: linear-gradient(160deg, var(--blue), #1f5f9a 68%, #194c80); clip-path: ellipse(45% 90% at 89% 30%); z-index: 1;"></div>
-            <div style="position: absolute; inset: 0; background: radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.13), transparent 35%); z-index: 2; pointer-events: none;"></div>
-
-            <div style="padding: 3rem 2rem; position: relative; z-index: 3; height: 100%; display: flex; align-items: center;">
-                <article style="max-width: 520px; margin-left: 1rem;">
-                    <small style="display: inline-block; color: #1a4d80; font-family: 'Montserrat', sans-serif; font-weight: 700; letter-spacing: 0.01em;">Our Story</small>
-                    <h2 style="margin: 0.3rem 0 0; font-family: 'Montserrat', sans-serif; font-size: clamp(1.85rem, 3.5vw, 2.9rem); line-height: 0.96; letter-spacing: -0.03em; color: #171a21;">Built for teams who care for pets</h2>
-                    <p style="margin: 0.8rem 0 0; color: var(--muted); line-height: 1.6; max-width: 47ch; font-size: 0.95rem;">We started by helping small pet teams remove spreadsheet chaos. The goal stayed the same: faster work, cleaner records, and better service for pet owners.</p>
-                </article>
-
-                <div style="position: absolute; right: 0; bottom: 0; width: min(35vw, 420px); aspect-ratio: 4 / 5; z-index: 3;">
-                    <img src="{{ asset('images/catdog-removebg-preview.png') }}" alt="Our Story" style="width: 100%; height: 100%; display: block; object-fit: contain; object-position: right bottom; filter: drop-shadow(0 16px 24px rgba(8, 20, 36, 0.35));">
-                </div>
-            </div>
-        </section>
-
-        <section id="features" style="position: relative; min-height: 100vh; overflow: hidden; background: var(--page); padding: 4rem 2rem;">
-            <div style="position: relative; z-index: 3; max-width: 1200px; margin: 0 auto;">
-                <div style="text-align: center; margin-bottom: 3rem;">
-                    <small style="display: inline-block; color: var(--blue); font-family: 'Montserrat', sans-serif; font-weight: 700; letter-spacing: 0.01em;">Pets Features</small>
-                    <h2 style="margin: 0.5rem 0 0; font-family: 'Montserrat', sans-serif; font-size: clamp(1.85rem, 3.5vw, 2.9rem); font-weight: 900; line-height: 1.1; letter-spacing: -0.03em; color: var(--ink); margin-top: 0.8rem;">Everything your pets need</h2>
-                    <p style="margin: 1rem auto 0; color: var(--muted); line-height: 1.6; max-width: 600px; font-size: 1rem;">We offer a curated selection of premium products and services designed to keep your furry friends healthy, happy, and thriving.</p>
-                </div>
-
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 2rem; margin-top: 2.5rem;">
-                    <div style="background: var(--white); border-radius: 12px; padding: 2rem; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08); transition: transform 0.3s, box-shadow 0.3s;">
-                        <div style="width: 64px; height: 64px; background: linear-gradient(135deg, var(--blue), var(--blue-soft)); border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-bottom: 1.5rem; font-size: 1.8rem;">🍖</div>
-                        <h3 style="font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 1.2rem; color: var(--ink); margin: 0 0 0.5rem;">Premium Nutrition</h3>
-                        <p style="color: var(--muted); font-size: 0.95rem; line-height: 1.6; margin: 0;">High-quality pet food and treats formulated with the healthiest ingredients for optimal nutrition.</p>
-                    </div>
-
-                    <div style="background: var(--white); border-radius: 12px; padding: 2rem; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08); transition: transform 0.3s, box-shadow 0.3s;">
-                        <div style="width: 64px; height: 64px; background: linear-gradient(135deg, var(--green), var(--green-dark)); border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-bottom: 1.5rem; font-size: 1.8rem;">🎾</div>
-                        <h3 style="font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 1.2rem; color: var(--ink); margin: 0 0 0.5rem;">Fun & Play</h3>
-                        <p style="color: var(--muted); font-size: 0.95rem; line-height: 1.6; margin: 0;">Interactive toys and enrichment products that keep your pets entertained and mentally stimulated.</p>
-                    </div>
-
-                    <div style="background: var(--white); border-radius: 12px; padding: 2rem; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08); transition: transform 0.3s, box-shadow 0.3s;">
-                        <div style="width: 64px; height: 64px; background: linear-gradient(135deg, #ff6b9d, #ff1493); border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-bottom: 1.5rem; font-size: 1.8rem;">❤️</div>
-                        <h3 style="font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 1.2rem; color: var(--ink); margin: 0 0 0.5rem;">Health & Wellness</h3>
-                        <p style="color: var(--muted); font-size: 0.95rem; line-height: 1.6; margin: 0;">Grooming supplies, health supplements, and wellness products for comprehensive pet care.</p>
-                    </div>
-
-                    <div style="background: var(--white); border-radius: 12px; padding: 2rem; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08); transition: transform 0.3s, box-shadow 0.3s;">
-                        <div style="width: 64px; height: 64px; background: linear-gradient(135deg, #ffa500, #ff8c00); border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-bottom: 1.5rem; font-size: 1.8rem;">🏠</div>
-                        <h3 style="font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 1.2rem; color: var(--ink); margin: 0 0 0.5rem;">Comfort & Home</h3>
-                        <p style="color: var(--muted); font-size: 0.95rem; line-height: 1.6; margin: 0;">Cozy beds, carriers, and home accessories designed for your pet's comfort and style.</p>
-                    </div>
-
-                    <div style="background: var(--white); border-radius: 12px; padding: 2rem; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08); transition: transform 0.3s, box-shadow 0.3s;">
-                        <div style="width: 64px; height: 64px; background: linear-gradient(135deg, #6366f1, #8b5cf6); border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-bottom: 1.5rem; font-size: 1.8rem;">👥</div>
-                        <h3 style="font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 1.2rem; color: var(--ink); margin: 0 0 0.5rem;">Community & Advice</h3>
-                        <p style="color: var(--muted); font-size: 0.95rem; line-height: 1.6; margin: 0;">Connect with other pet lovers and get expert advice on caring for your beloved companions.</p>
-                    </div>
-                </div>
-
-                <div style="text-align: center; margin-top: 3rem;">
-                    <a href="{{ path('app_register') }}" style="display: inline-block; background: var(--blue); color: white; padding: 0.8rem 2rem; border-radius: 8px; text-decoration: none; font-family: 'Montserrat', sans-serif; font-weight: 700; transition: background 0.3s;">Explore Products</a>
-                </div>
-            </div>
-        </section>
-    </main>
-</body>
-</html>
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<title>PawStuff | Landing</title>
+		<link rel="preconnect" href="https://fonts.googleapis.com">
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+		<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700;800;900&family=Nunito:wght@400;500;600;700&display=swap" rel="stylesheet">
+		<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css"/>
+		<script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+		<style>
+			html {
+				scroll-behavior: smooth;
+			}
+
+			:root {
+				--page: #f4f5f9;
+				--white: #ffffff;
+				--ink: #171a21;
+				--muted: #50555f;
+				--blue: #154b7f;
+				--blue-soft: #2f679d;
+				--green: #2baf6f;
+				--green-dark: #1f8a56;
+				--blue-circle-x: 84%;
+				--blue-circle-rx: 45%;
+			}
+
+			* {
+				box-sizing: border-box;
+			}
+
+			body {
+				margin: 0;
+				min-height: 100%;
+				overflow-x: hidden;
+				font-family: 'Nunito', sans-serif;
+				color: var(--ink);
+				background: radial-gradient(800px 420px at 90% -10%, rgba(21, 75, 127, 0.16), transparent 70%), var(--page);
+			}
+
+			.wrap {
+				width: 100%;
+				margin: 0;
+				padding: 0;
+			}
+
+			.banner {
+				position: relative;
+				height: 100vh;
+				min-height: 100vh;
+				overflow: hidden;
+				background: var(--white);
+			}
+
+			.banner::before {
+				content: "";
+				position: absolute;
+				inset: 0;
+				background: linear-gradient(160deg, var(--blue), #1f5f9a 68%, #194c80);
+				clip-path: ellipse(var(--blue-circle-rx) 98% at var(--blue-circle-x) 30%);
+				z-index: 1;
+			}
+
+			.banner::after {
+				content: "";
+				position: absolute;
+				inset: 0;
+				background: radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.13), transparent 35%);
+				z-index: 2;
+				pointer-events: none;
+			}
+
+			.top-row,
+			.hero-copy,
+			.pet-shot,
+			.cat-shot {
+				position: relative;
+				z-index: 3;
+			}
+
+			.top-row {
+				display: flex;
+				align-items: center;
+				gap: 0.45rem;
+				justify-content: flex-end;
+				padding: 1.2rem 1.8rem 0 1.3rem;
+				z-index: 5;
+			}
+
+			.logo {
+				display: inline-flex;
+				align-items: center;
+				gap: 0;
+				text-decoration: none;
+				margin-right: auto;
+			}
+
+			.logo img {
+				width: 88px;
+				height: 88px;
+				display: block;
+				object-fit: contain;
+				clip-path: inset(0 20px 0 0);
+				margin-right: -14px;
+			}
+
+			.logo span {
+				display: inline-flex;
+				align-items: center;
+				color: #184a79;
+				font-family: 'Montserrat', sans-serif;
+				font-weight: 800;
+				font-size: 1.18rem;
+				letter-spacing: -0.01em;
+				line-height: 1.1;
+				margin-left: -7px;
+			}
+
+			.nav-links {
+				display: inline-flex;
+				gap: 0.28rem;
+				align-items: center;
+				border-radius: 999px;
+				padding: 0.3rem;
+				background: linear-gradient(120deg, rgba(23, 73, 120, 0.92), rgba(39, 101, 157, 0.9));
+				backdrop-filter: blur(8px);
+				border: 1px solid rgba(255, 255, 255, 0.18);
+				box-shadow: 0 10px 22px rgba(8, 23, 40, 0.18);
+			}
+
+			.nav-links a {
+				text-decoration: none;
+				color: #f7fbff;
+				font-family: 'Montserrat', sans-serif;
+				font-size: 0.74rem;
+				font-weight: 700;
+				letter-spacing: 0.03em;
+				padding: 0.45rem 0.66rem;
+				border-radius: 999px;
+				text-transform: uppercase;
+				white-space: nowrap;
+				text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);
+			}
+
+			.nav-links a:hover {
+				background: rgba(255, 255, 255, 0.22);
+			}
+
+			.signup {
+				text-decoration: none;
+				background: #ffffff;
+				color: #11395f;
+				border-radius: 999px;
+				padding: 0.48rem 1rem;
+				font-family: 'Montserrat', sans-serif;
+				font-size: 0.72rem;
+				font-weight: 800;
+				letter-spacing: 0.03em;
+				text-transform: uppercase;
+				white-space: nowrap;
+				margin-left: 0.2rem;
+			}
+
+			.hero-copy {
+				position: absolute;
+				top: 9.6rem;
+				left: clamp(2rem, 5vw, 4rem);
+				width: min(40%, 460px);
+				margin: 0;
+				padding: 0;
+			}
+
+			.hero-copy small {
+				display: inline-block;
+				color: #1a4d80;
+				font-family: 'Montserrat', sans-serif;
+				font-weight: 700;
+				letter-spacing: 0.01em;
+			}
+
+			.hero-copy h1 {
+				margin: 0.3rem 0 0;
+				font-family: 'Montserrat', sans-serif;
+				font-size: clamp(1.85rem, 3.5vw, 2.9rem);
+				line-height: 0.96;
+				letter-spacing: -0.03em;
+				color: #171a21;
+			}
+
+			.hero-copy p {
+				margin: 0.8rem 0 0;
+				color: var(--muted);
+				line-height: 1.6;
+				max-width: 47ch;
+				font-size: 0.95rem;
+			}
+
+			.learn {
+				margin-top: 0.95rem;
+				display: inline-block;
+				text-decoration: none;
+				border-radius: 999px;
+				padding: 0.56rem 1.05rem;
+				font-family: 'Montserrat', sans-serif;
+				font-size: 0.72rem;
+				font-weight: 800;
+				color: #fff;
+				text-transform: uppercase;
+				letter-spacing: 0.03em;
+				background: linear-gradient(130deg, var(--green), var(--green-dark));
+			}
+
+			.pet-shot {
+				position: absolute;
+				right: 0;
+				bottom: 0;
+				width: min(46vw, 560px);
+				aspect-ratio: 4 / 5;
+				border-radius: 0;
+				overflow: hidden;
+				border: 0;
+				box-shadow: none;
+				background: transparent;
+				margin: 0;
+				pointer-events: none;
+				z-index: 2;
+			}
+
+			.pet-shot img {
+				width: 100%;
+				height: 100%;
+				display: block;
+				object-fit: contain;
+				object-position: right bottom;
+				filter: drop-shadow(0 16px 24px rgba(8, 20, 36, 0.35));
+				margin: 0;
+			}
+
+			.cat-shot {
+				position: absolute;
+				left: clamp(2rem, 5vw, 4rem);
+				bottom: 0;
+				width: min(42vw, 400px);
+				aspect-ratio: 3 / 4;
+				border-radius: 0;
+				overflow: hidden;
+				border: 0;
+				box-shadow: none;
+				background: transparent;
+				margin: 0;
+				pointer-events: none;
+				z-index: 2;
+			}
+
+			.cat-shot img {
+				width: 100%;
+				height: 100%;
+				display: block;
+				object-fit: contain;
+				object-position: center bottom;
+				filter: drop-shadow(0 12px 20px rgba(8, 20, 36, 0.25));
+				margin: 0;
+			}
+
+			.products-container {
+				max-width: 1400px;
+				margin: 0 auto;
+				padding: 0 2rem;
+			}
+
+			.swiper-slide {
+				height: auto; /* Ensures all cards are same height */
+				padding-bottom: 20px;
+			}
+
+			.product-card {
+				background: #fff;
+				border-radius: 16px;
+				box-shadow: 0 4px 15px rgba(21, 75, 127, 0.08);
+				padding: 1.5rem;
+				display: flex;
+				flex-direction: column;
+				align-items: center;
+				transition: transform 0.3s ease;
+				border: 1px solid rgba(0, 0, 0, 0.03);
+			}
+
+			.product-card:hover {
+				transform: translateY(-5px);
+			}
+
+			.product-rating {
+				display: flex;
+				align-items: center;
+				gap: 0.35rem;
+				margin: 0.15rem 0 1rem;
+			}
+
+			.product-rating .star {
+				color: #c9d3de;
+				font-size: 0.9rem;
+				line-height: 1;
+			}
+
+			.product-rating .star.filled {
+				color: #f4b740;
+			}
+
+			.product-rating .rating-text {
+				color: var(--muted);
+				font-size: 0.82rem;
+				font-weight: 600;
+			}
+
+			.nav-btn {
+				width: 40px;
+				height: 40px;
+				background: #171a21;
+				color: white;
+				border-radius: 50%;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				cursor: pointer;
+				transition: background 0.3s;
+				user-select: none;
+			}
+
+			.nav-btn:hover {
+				background: var(--blue);
+			}
+			.nav-btn.swiper-button-disabled {
+				opacity: 0.3;
+				cursor: auto;
+			}
+
+			@media(max-width: 900px) {
+				.top-row {
+					flex-wrap: wrap;
+					justify-content: flex-start;
+					gap: 0.6rem;
+				}
+
+				.nav-links {
+					order: 3;
+					width: 100%;
+					justify-content: center;
+				}
+
+				.hero-copy {
+					width: min(52%, 420px);
+					top: 8.4rem;
+				}
+			}
+
+			@media(max-width: 760px) {
+				.banner {
+					min-height: auto;
+					height: auto;
+					padding-bottom: 1rem;
+				}
+
+				.banner::before {
+					clip-path: ellipse(145% 66% at 76% 4%);
+				}
+
+				.top-row {
+					padding: 0.8rem 0.8rem 0;
+					justify-content: space-between;
+					align-items: center;
+					row-gap: 0.6rem;
+				}
+
+				.logo img {
+					width: 70px;
+					height: 70px;
+					margin-right: -10px;
+				}
+
+				.logo span {
+					font-size: 1rem;
+					margin-left: -4px;
+				}
+
+				.nav-links {
+					gap: 0.24rem;
+					padding: 0.22rem;
+					overflow-x: auto;
+					justify-content: flex-start;
+					-webkit-overflow-scrolling: touch;
+					scrollbar-width: none;
+				}
+
+				.nav-links::-webkit-scrollbar {
+					display: none;
+				}
+
+				.nav-links a {
+					font-size: 0.66rem;
+					padding: 0.4rem 0.56rem;
+					flex: 0 0 auto;
+				}
+
+				.signup {
+					padding: 0.4rem 0.75rem;
+					font-size: 0.64rem;
+				}
+
+				.hero-copy {
+					position: static;
+					width: auto;
+					margin: 0.7rem 1rem 0;
+					text-align: left;
+				}
+
+				.hero-copy h1 {
+					font-size: clamp(1.8rem, 8vw, 2.4rem);
+					line-height: 1.06;
+				}
+
+				.hero-copy p {
+					font-size: 0.88rem;
+					margin-top: 0.6rem;
+				}
+
+				.learn {
+					margin-top: 0.7rem;
+				}
+
+				.pet-shot {
+					position: static;
+					width: min(80vw, 320px);
+					margin: 0.1rem auto 0;
+					aspect-ratio: 4 / 3;
+				}
+
+				.cat-shot {
+					position: static;
+					width: min(62vw, 200px);
+					height: auto;
+					margin: 0 auto;
+				}
+
+				#about {
+					min-height: auto !important;
+					padding: 2.2rem 1rem !important;
+				}
+
+				#about > div {
+					grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+					gap: 0.9rem !important;
+					margin-bottom: 1.5rem !important;
+				}
+
+				#products {
+					padding: 2.2rem 0 !important;
+				}
+
+				.products-container {
+					padding: 0 1rem !important;
+				}
+
+				#gallery {
+					padding: 2.2rem 1rem !important;
+					overflow-x: hidden !important;
+				}
+
+				#gallery > div > div {
+					min-width: 0 !important;
+					grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+					gap: 0.8rem !important;
+				}
+
+				#why-choose-us {
+					padding: 2.4rem 1rem !important;
+				}
+
+				section[aria-label="Customer Testimonials"] {
+					margin: 2rem 1rem 0 !important;
+					padding: 1.2rem !important;
+					overflow-x: hidden !important;
+				}
+
+				section[aria-label="Customer Testimonials"] > div > div:last-child {
+					min-width: 0 !important;
+					grid-template-columns: 1fr !important;
+				}
+			}
+
+			@media(max-width: 520px) {
+				.top-row {
+					padding: 0.65rem 0.65rem 0;
+				}
+
+				.hero-copy h1 {
+					font-size: clamp(1.5rem, 7.6vw, 2rem);
+				}
+
+				#about > div,
+				#gallery > div > div {
+					grid-template-columns: 1fr !important;
+				}
+
+				#why-choose-us > div:last-child {
+					grid-template-columns: 1fr !important;
+					gap: 1.3rem !important;
+				}
+
+				#why-choose-us > div:last-child > div:first-child > div:last-child {
+					position: static !important;
+					margin-top: 0.8rem !important;
+					width: 100% !important;
+				}
+			}
+		</style>
+	</head>
+	<body>
+		<main class="wrap">
+			<section class="banner" id="home" aria-label="Banner">
+				<div class="top-row">
+					<a href="{{ path('app_landing') }}" class="logo" aria-label="PawStuff home">
+						<img src="{{ asset('images/logo.png') }}" alt="PawStuff logo">
+						<span>PawStuff</span>
+					</a>
+
+					<nav class="nav-links" aria-label="Main links">
+						<a href="{{ path('app_landing') }}#home">Home</a>
+						<a href="{{ path('app_landing') }}#about">About Us</a>
+						<a href="{{ path('app_landing') }}#products">Products</a>
+						<a href="{{ path('app_landing') }}#gallery">Gallery</a>
+						<a href="{{ path('app_landing') }}#why-choose-us">Why Choose Us</a>
+						<a href="{{ path('app_contact') }}">Contact Us</a>
+					</nav>
+
+					<a href="{{ path('app_register') }}" class="signup">Sign Up</a>
+				</div>
+
+				<article class="hero-copy">
+					<small>At PawStuff</small>
+					<h1>We make pet care simple. Quality supplies, happy pets, wagging tails.</h1>
+					<p>
+						We believe every pet deserves the best. From premium nutrition to playful toys and cozy essentials, we carefully curate products that keep tails wagging and purrs coming.
+					</p>
+					<a class="learn" href="{{ path('app_login') }}">Shop Now</a>
+				</article>
+
+				<figure class="pet-shot" aria-label="Featured dog image">
+					<img src="{{ asset('images/ddog2-removebg-preview.png') }}" alt="Dog">
+				</figure>
+
+				<figure class="cat-shot" aria-label="Featured cat image">
+					<img src="{{ asset('images/cat1-removebg-preview.png') }}" alt="Cat">
+				</figure>
+			</section>
+
+			<section id="about" style="background: linear-gradient(160deg, #154b7f, #2f679d 68%, #17547f); padding: 3.5rem 2rem; text-align: center; min-height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center;">
+				<h2 style="font-family: 'Montserrat', sans-serif; font-size: clamp(2.2rem, 5vw, 3.2rem); font-weight: 900; color: #ffffff; margin: 0 0 1rem; letter-spacing: -0.02em; line-height: 1.1;">Meet Our Team</h2>
+				<p style="color: #e8f0f8; max-width: 850px; margin: 0 auto 2.5rem; font-size: 1.05rem; line-height: 1.6;">Our passionate team is dedicated to delivering the best products and service for pet owners everywhere. We believe in quality, care, and making pets happy.</p>
+
+				<div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 2rem; max-width: 1200px; margin: 0 auto 3rem; width: 100%;">
+					<div style="background: #ffffff; border-radius: 16px; padding: 1.5rem; overflow: hidden; transition: transform 0.3s, box-shadow 0.3s;">
+						<div style="width: 100%; aspect-ratio: 1; overflow: hidden; border-radius: 12px; background: #f0f4f9; margin-bottom: 1.2rem; display: flex; align-items: center; justify-content: center;">
+							<img src="{{ asset('images/KhriciaDivino.jpg') }}" alt="Khricia Divino" style="width: 100%; height: 100%; object-fit: cover; object-position: center;">
+						</div>
+						<h3 style="font-family: 'Montserrat', sans-serif; font-size: 1.15rem; font-weight: 700; color: #154b7f; margin: 0 0 0.4rem; letter-spacing: -0.01em;">Khricia Divino</h3>
+						<p style="color: #50555f; font-size: 0.9rem; font-weight: 500; margin: 0;">Founder & CEO</p>
+					</div>
+
+					<div style="background: #ffffff; border-radius: 16px; padding: 1.5rem; overflow: hidden; transition: transform 0.3s, box-shadow 0.3s;">
+						<div style="width: 100%; aspect-ratio: 1; overflow: hidden; border-radius: 12px; background: #f0f4f9; margin-bottom: 1.2rem; display: flex; align-items: center; justify-content: center;">
+							<img src="{{ asset('images/Jim.jpg') }}" alt="Jimwella De Guzman" style="width: 100%; height: 100%; object-fit: cover; object-position: center;">
+						</div>
+						<h3 style="font-family: 'Montserrat', sans-serif; font-size: 1.15rem; font-weight: 700; color: #154b7f; margin: 0 0 0.4rem; letter-spacing: -0.01em;">Jimwella De Guzman</h3>
+						<p style="color: #50555f; font-size: 0.9rem; font-weight: 500; margin: 0;">Product Director</p>
+					</div>
+
+					<div style="background: #ffffff; border-radius: 16px; padding: 1.5rem; overflow: hidden; transition: transform 0.3s, box-shadow 0.3s;">
+						<div style="width: 100%; aspect-ratio: 1; overflow: hidden; border-radius: 12px; background: #f0f4f9; margin-bottom: 1.2rem; display: flex; align-items: center; justify-content: center;">
+							<img src="{{ asset('images/Rhea.png') }}" alt="Rhea Amor Delejero" style="width: 100%; height: 100%; object-fit: cover; object-position: center;">
+						</div>
+						<h3 style="font-family: 'Montserrat', sans-serif; font-size: 1.15rem; font-weight: 700; color: #154b7f; margin: 0 0 0.4rem; letter-spacing: -0.01em;">Rhea Amor Delejero</h3>
+						<p style="color: #50555f; font-size: 0.9rem; font-weight: 500; margin: 0;">Customer Success Lead</p>
+					</div>
+
+					<div style="background: #ffffff; border-radius: 16px; padding: 1.5rem; overflow: hidden; transition: transform 0.3s, box-shadow 0.3s;">
+						<div style="width: 100%; aspect-ratio: 1; overflow: hidden; border-radius: 12px; background: #f0f4f9; margin-bottom: 1.2rem; display: flex; align-items: center; justify-content: center;">
+							<img src="{{ asset('images/vincent.png') }}" alt="Vincent Delostrico" style="width: 100%; height: 100%; object-fit: cover; object-position: center;">
+						</div>
+						<h3 style="font-family: 'Montserrat', sans-serif; font-size: 1.15rem; font-weight: 700; color: #154b7f; margin: 0 0 0.4rem; letter-spacing: -0.01em;">Vincent Delostrico</h3>
+						<p style="color: #50555f; font-size: 0.9rem; font-weight: 500; margin: 0;">Operations Manager</p>
+					</div>
+				</div>
+
+				<a href="{{ path('app_about') }}" style="background: #ffffff; color: #154b7f; font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 1rem; padding: 1rem 2.5rem; border-radius: 50px; text-decoration: none; display: inline-block; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+					Learn More About Us
+				</a>
+			</section>
+			<section id="products" style="padding: 5rem 0; background: var(--white); position: relative;">
+<div class="products-container">
+	<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2.5rem;">
+		<h2 style="margin: 0; font-family: 'Montserrat', sans-serif; font-size: 2.2rem; font-weight: 800; color: var(--blue);">Browse Products</h2>
+
+		<div style="display: flex; gap: 12px;">
+			<div class="nav-btn prev-btn">❮</div>
+			<div class="nav-btn next-btn">❯</div>
+		</div>
+	</div>
+
+	<div class="swiper productSwiper">
+		<div class="swiper-wrapper">
+			{% set items = [
+					{'name': "Charlie's Choice", 'img': 'Charlie-s-Choice-69c01614331a4.jpg', 'price': '150.00', 'desc': '72% salmon content', 'rating': 4.8, 'reviews': 148},
+					{'name': 'Carriers', 'img': 'aesthetic-cage-69c0211ba9536.jpg', 'price': '699.00', 'desc': 'Hard-sided travel', 'rating': 4.6, 'reviews': 92},
+					{'name': 'Grooming Set', 'img': 'AllPetSolutions-4-Piece-Dog-Grooming-Set-69c0202724f1d.jpg', 'price': '200.00', 'desc': '4-piece kit', 'rating': 4.7, 'reviews': 75},
+					{'name': 'Dental Chews', 'img': 'Bark-Bright-69c01f8975e9c.jpg', 'price': '199.00', 'desc': 'Chicken-based', 'rating': 4.9, 'reviews': 164},
+					{'name': 'Harness Set', 'img': 'Blue-dog-harness-69c0208b5c230.jpg', 'price': '500.00', 'desc': 'Walking kit', 'rating': 4.5, 'reviews': 66},
+					{'name': 'Pet Wipes', 'img': 'pet-wipes-69c03c6755705.jpg', 'price': '50.00', 'desc': 'Gentle cleaning', 'rating': 4.4, 'reviews': 58},
+					{'name': 'Salmon Dry Food', 'img': 'Loveabowl-Salmon-Dry-Cat-Food-69c03c1984b88.jpg', 'price': '99.00', 'desc': 'Grain-free', 'rating': 4.8, 'reviews': 139},
+					{'name': 'Shower Cup', 'img': 'Pet-Feet-Shower-Cup-69c03cdff0f0a.jpg', 'price': '144.00', 'desc': 'Paw cleaner', 'rating': 4.3, 'reviews': 44}
+				] %}
+
+			{% for item in items %}
+				{% set colorKey = loop.index0 % 2 %}
+				{% if colorKey == 0 %}
+					{% set cardBg = '#87d3f8' %}
+				{% elseif colorKey == 1 %}
+					{% set cardBg = '#ffffff' %}
+				{% endif %}
+
+				<div class="swiper-slide">
+					<div class="product-card" style="background: {{ cardBg }};">
+						<img src="{{ asset('images/' ~ item.img) }}" alt="{{ item.name }}" style="width: 130px; height: 130px; object-fit: contain; margin-bottom: 1rem;">
+						<h3 style="font-family: 'Montserrat', sans-serif; font-size: 1.1rem; color: var(--blue); margin: 0 0 0.5rem;">{{ item.name }}</h3>
+						<p style="color: var(--muted); font-size: 0.9rem; margin: 0 0 1rem; text-align: center;">{{ item.desc }}</p>
+						<div class="product-rating" aria-label="{{ item.rating }} out of 5 stars">
+							{% for i in 1..5 %}
+								<span class="star {{ i <= item.rating ? 'filled' : '' }}">&#9733;</span>
+							{% endfor %}
+							<span class="rating-text">{{ item.rating|number_format(1) }}
+								({{ item.reviews }})</span>
+						</div>
+						<div style="margin-top: auto; font-weight: 800; color: var(--green); font-size: 1.2rem;">₱{{ item.price }}</div>
+					</div>
+				</div>
+			{% endfor %}
+		</div>
+	</div>
+</div></section><section id="gallery" style="padding: 6rem 2rem; background: #ffffff; overflow-x: auto;">
+<div style="max-width: 1400px; margin: 0 auto; text-align: center;">
+	<small style="color: #1f5f9a; font-family: 'Montserrat', sans-serif; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase;">Our Collection</small>
+	<h2 style="font-family: 'Montserrat', sans-serif; font-size: 2.5rem; font-weight: 900; color: #171a21; margin: 0.5rem 0 3.5rem;">Happy Paws, Happy Moments</h2>
+
+	<div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 1.2rem; min-width: 1100px;">
+
+		{% set gallery_items = [
+				{'img': 'gallery8.jpg', 'color': '#87d3f8', 'title': 'HUMAN!', 'subtitle': 'YOU NEED ME', 'slug': 'human-you-need-me'},
+				{'img': 'gallery6.jpg', 'color': '#6485cd', 'title': 'ADOPT A', 'subtitle': 'FRIEND', 'slug': 'adopt-a-friend'},
+				{'img': 'gallery7.jpg', 'color': '#87d3f8', 'title': 'TRUE BEST', 'subtitle': 'FRIEND', 'slug': 'true-best-friend'},
+				{'img': 'gallery10.jpg', 'color': '#6485cd', 'title': 'PARTNER', 'subtitle': 'OF LIFE', 'slug': 'partner-of-life'},
+				{'img': 'gallery11.jpg', 'color': '#87d3f8', 'title': 'PUPPY IS', 'subtitle': 'THE ANSWER', 'slug': 'puppy-is-the-answer'}
+            ] %}
+
+		{% for item in gallery_items %}
+			<div style="position: relative; border-radius: 22px; aspect-ratio: 9 / 14; overflow: hidden; background: {{ item.color }}; box-shadow: 0 12px 25px rgba(0,0,0,0.06); display: flex; flex-direction: column; align-items: center; justify-content: center;">
+
+				<div style="position: absolute; top: 10%; width: 100%; z-index: 2; text-align: center; font-family: 'Montserrat', sans-serif;">
+					<h3 style="margin: 0; font-size: 1.8rem; font-weight: 900; color: #194c80; line-height: 1;">{{ item.title }}</h3>
+					<p style="margin: 4px 0 0; font-size: 0.9rem; font-weight: 700; color: rgba(25, 76, 128, 0.7);">{{ item.subtitle }}</p>
+				</div>
+
+				<div style="width: 85%; height: 50%; z-index: 3; display: flex; align-items: center; justify-content: center;">
+					<img src="{{ asset('images/' ~ item.img) }}" alt="Pet" style="width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 15px 25px rgba(0,0,0,0.12));">
+				</div>
+
+				<div style="position: absolute; width: 180px; height: 180px; background: rgba(255,255,255,0.15); border-radius: 50%; z-index: 1;"></div>
+
+				<a href="{{ path('app_pet_details', {'slug': item.slug}) }}" style="position: absolute; bottom: 8%; z-index: 4; background: rgba(255, 255, 255, 0.9); padding: 8px 18px; border-radius: 50px; font-size: 0.75rem; font-weight: 800; color: #194c80; text-transform: uppercase; letter-spacing: 0.05em; backdrop-filter: blur(4px); text-decoration: none;">
+					See Details
+				</a>
+
+			</div>
+		{% endfor %}
+
+	</div>
+</div></section><section id="why-choose-us" style="padding: 6rem 2rem; background: #ffffff; position: relative; overflow: hidden;">
+<div style="position: absolute; top: 10%; right: -5%; width: 300px; height: 300px; background: rgba(31, 95, 154, 0.03); border-radius: 50%; z-index: 1;"></div>
+
+<div style="max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 3rem; align-items: center; position: relative; z-index: 2;">
+	<div style="position: relative;">
+		<div style="background: #f0f4f8; border-radius: 24px; padding: 20px; position: relative; overflow: hidden; box-shadow: 0 20px 40px rgba(0,0,0,0.05);">
+			<img src="{{ asset('images/catdog-removebg-preview.png') }}" alt="Happy pets" style="width: 100%; height: auto; display: block; filter: drop-shadow(0 10px 15px rgba(0,0,0,0.1));">
+		</div>
+
+		<div style="position: absolute; bottom: -18px; right: -18px; background: #ffffff; padding: 20px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); border-left: 5px solid #1f5f9a; width: 185px;">
+			<p style="margin: 0; font-size: 0.75rem; color: #718096; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em;">Est. 2024</p>
+			<p style="margin: 5px 0 0; font-size: 1rem; color: #171a21; font-weight: 700; line-height: 1.3;">Built around better care for pets.</p>
+		</div>
+	</div>
+
+	<div>
+		<div style="display: inline-flex; align-items: center; gap: 10px; margin-bottom: 20px;">
+			<span style="width: 40px; height: 2px; background: #1f5f9a;"></span>
+			<span style="color: #1f5f9a; font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 0.85rem; letter-spacing: 0.15em; text-transform: uppercase;">Why Choose PawStuff</span>
+		</div>
+
+		<h2 style="font-family: 'Montserrat', sans-serif; font-size: clamp(2rem, 4vw, 3rem); color: #171a21; line-height: 1.1; margin: 0 0 1.2rem; letter-spacing: -0.02em;">Efficiency meets
+			<span style="color: #1f5f9a;">empathy.</span>
+		</h2>
+
+		<p style="font-family: 'Nunito', sans-serif; font-size: 1.06rem; color: #4a5568; line-height: 1.8; margin: 0 0 1.6rem; max-width: 640px;">We don't just offer products. We help pet parents and pet businesses run smarter daily operations with dependable tools, thoughtful support, and standards you can trust.</p>
+
+		<div style="display: grid; gap: 0.9rem; font-family: 'Nunito', sans-serif;">
+			<div style="display: flex; align-items: center; gap: 12px;">
+				<div style="width: 24px; height: 24px; background: rgba(31, 95, 154, 0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #1f5f9a; font-size: 0.8rem;">✓</div>
+				<span style="font-weight: 700; color: #2d3748;">Trusted Product Quality</span>
+			</div>
+			<div style="display: flex; align-items: center; gap: 12px;">
+				<div style="width: 24px; height: 24px; background: rgba(31, 95, 154, 0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #1f5f9a; font-size: 0.8rem;">✓</div>
+				<span style="font-weight: 700; color: #2d3748;">Data-Driven Store Management</span>
+			</div>
+			<div style="display: flex; align-items: center; gap: 12px;">
+				<div style="width: 24px; height: 24px; background: rgba(31, 95, 154, 0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #1f5f9a; font-size: 0.8rem;">✓</div>
+				<span style="font-weight: 700; color: #2d3748;">Fast, Human-Centered Support</span>
+			</div>
+		</div>
+	</div>
+
+</div></section><div style="text-align: center; margin-top: 3rem;"></div><section aria-label="Customer Testimonials" style="margin: 3rem 2rem 0; border-radius: 18px; padding: 2.2rem; background: #6485cd; color: #f8fafc; overflow-x: auto;">
+<div style="max-width: 1200px; margin: 0 auto;">
+	<div style="display: flex; justify-content: space-between; align-items: center; gap: 1rem; padding-bottom: 1.4rem; margin-bottom: 1.8rem; border-bottom: 1px solid rgba(70, 164, 227, 0.14); flex-wrap: wrap;">
+		<div>
+			<h2 style="margin: 0; font-family: 'Montserrat', sans-serif; font-size: clamp(1.6rem, 3vw, 2.3rem); font-weight: 900;">Customer Testimonials</h2>
+			<p style="margin: 0.6rem 0 0; color: rgba(255, 255, 255, 0.75); font-size: 1rem;">Real feedback from pet parents and clinics using PawStuff every day.</p>
+		</div>
+	</div>
+
+	<div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1.3rem; min-width: 980px;">
+		<article style="background: #f8fafc; color: #171a21; border-radius: 10px; padding: 1.3rem; box-shadow: 0 10px 24px rgba(5, 8, 15, 0.25);">
+			<div style="color: #e6a83b; letter-spacing: 0.08em; font-size: 0.95rem; font-weight: 700;">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+			<h3 style="font-family: 'Montserrat', sans-serif; font-size: 1rem; line-height: 1.45; margin: 0.8rem 0;">"Inventory is finally easy to track in one place."</h3>
+			<p style="font-size: 0.9rem; line-height: 1.65; font-style: italic; color: #586171; margin: 0;">"Before PawStuff we kept missing low-stock alerts. Now our restocks are on time and our team works faster every week."</p>
+			<span style="display: block; margin-top: 1.1rem; font-family: 'Montserrat', sans-serif; font-size: 0.82rem; font-weight: 700;">James Cameron</span>
+		</article>
+
+		<article style="background: #f8fafc; color: #171a21; border-radius: 10px; padding: 1.3rem; box-shadow: 0 10px 24px rgba(5, 8, 15, 0.25);">
+			<div style="color: #e6a83b; letter-spacing: 0.08em; font-size: 0.95rem; font-weight: 700;">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+			<h3 style="font-family: 'Montserrat', sans-serif; font-size: 1rem; line-height: 1.45; margin: 0.8rem 0;">"The dashboard gave us better control in days."</h3>
+			<p style="font-size: 0.9rem; line-height: 1.65; font-style: italic; color: #586171; margin: 0;">"Everything from products to orders feels connected. It helped us make decisions quickly without digging through spreadsheets."</p>
+			<span style="display: block; margin-top: 1.1rem; font-family: 'Montserrat', sans-serif; font-size: 0.82rem; font-weight: 700;">Liam Harper</span>
+		</article>
+
+		<article style="background: #f8fafc; color: #171a21; border-radius: 10px; padding: 1.3rem; box-shadow: 0 10px 24px rgba(5, 8, 15, 0.25);">
+			<div style="color: #e6a83b; letter-spacing: 0.08em; font-size: 0.95rem; font-weight: 700;">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+			<h3 style="font-family: 'Montserrat', sans-serif; font-size: 1rem; line-height: 1.45; margin: 0.8rem 0;">"Support is responsive and actually helpful."</h3>
+			<p style="font-size: 0.9rem; line-height: 1.65; font-style: italic; color: #586171; margin: 0;">"We had custom workflow questions and got clear answers fast. The platform feels built for real pet care operations."</p>
+			<span style="display: block; margin-top: 1.1rem; font-family: 'Montserrat', sans-serif; font-size: 0.82rem; font-weight: 700;">Sophia Reyes</span>
+		</article>
+
+		<article style="background: #f8fafc; color: #171a21; border-radius: 10px; padding: 1.3rem; box-shadow: 0 10px 24px rgba(5, 8, 15, 0.25);">
+			<div style="color: #e6a83b; letter-spacing: 0.08em; font-size: 0.95rem; font-weight: 700;">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+			<h3 style="font-family: 'Montserrat', sans-serif; font-size: 1rem; line-height: 1.45; margin: 0.8rem 0;">"Our front desk process is smoother now."</h3>
+			<p style="font-size: 0.9rem; line-height: 1.65; font-style: italic; color: #586171; margin: 0;">"From customer records to checkout, our daily flow is cleaner and less stressful. PawStuff saved us hours every week."</p>
+			<span style="display: block; margin-top: 1.1rem; font-family: 'Montserrat', sans-serif; font-size: 0.82rem; font-weight: 700;">Noah Bennett</span>
+		</article>
+	</div>
+</div></section><footer style="background: #171a21; color: #ffffff; padding: 4rem 2rem 2rem; margin-top: 3rem;">
+	<div style="max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 2.5rem; border-bottom: 1px solid #2d323d; padding-bottom: 2.5rem;">
+		<div>
+			<h3 style="font-family: 'Montserrat', sans-serif; font-weight: 800; color: #ffffff; margin: 0 0 1rem;">PawStuff</h3>
+			<p style="color: #94a3b8; font-size: 0.9rem; line-height: 1.6; margin: 0;">Making pet care simple and accessible for everyone, one wagging tail at a time.</p>
+		</div>
+
+		<div>
+			<h4 style="font-family: 'Montserrat', sans-serif; font-size: 1rem; margin: 0 0 1.1rem;">Quick Links</h4>
+			<nav style="display: flex; flex-direction: column; gap: 0.65rem;">
+				<a href="#home" style="color: #94a3b8; text-decoration: none; font-size: 0.9rem;">Home</a>
+				<a href="#about" style="color: #94a3b8; text-decoration: none; font-size: 0.9rem;">About Us</a>
+				<a href="#products" style="color: #94a3b8; text-decoration: none; font-size: 0.9rem;">Products</a>
+				<a href="{{ path('app_contact') }}" style="color: #94a3b8; text-decoration: none; font-size: 0.9rem;">Contact</a>
+			</nav>
+		</div>
+
+		<div>
+			<h4 style="font-family: 'Montserrat', sans-serif; font-size: 1rem; margin: 0 0 1.1rem;">Social Media</h4>
+			<nav style="display: flex; flex-direction: column; gap: 0.65rem;">
+				<a href="https://facebook.com/pawstuff" target="_blank" rel="noopener noreferrer" style="color: #94a3b8; text-decoration: none; font-size: 0.9rem;">Facebook: @pawstuff</a>
+				<a href="https://instagram.com/pawstuff" target="_blank" rel="noopener noreferrer" style="color: #94a3b8; text-decoration: none; font-size: 0.9rem;">Instagram: @pawstuff</a>
+				<a href="https://www.tiktok.com/@pawstuff" target="_blank" rel="noopener noreferrer" style="color: #94a3b8; text-decoration: none; font-size: 0.9rem;">TikTok: @pawstuff</a>
+				<a href="https://x.com/pawstuff" target="_blank" rel="noopener noreferrer" style="color: #94a3b8; text-decoration: none; font-size: 0.9rem;">X: @pawstuff</a>
+			</nav>
+		</div>
+
+		<div>
+			<h4 style="font-family: 'Montserrat', sans-serif; font-size: 1rem; margin: 0 0 1.1rem;">Contact Info</h4>
+			<p style="color: #94a3b8; font-size: 0.9rem; margin: 0.35rem 0;">Email: hello@pawstuff.com</p>
+			<p style="color: #94a3b8; font-size: 0.9rem; margin: 0.35rem 0;">Phone: +63 123 456 789</p>
+		</div>
+	</div>
+
+	<div style="text-align: center; padding-top: 1.6rem; color: #64748b; font-size: 0.85rem;">
+		&copy; {{ "now"|date("Y") }} PawStuff. All rights reserved.
+	</div>
+</footer></main><script>new Swiper('.productSwiper', {
+slidesPerView: 4,
+spaceBetween: 24,
+navigation: {
+nextEl: '.next-btn',
+prevEl: '.prev-btn'
+},
+breakpoints: {
+0: {
+slidesPerView: 1
+},
+640: {
+slidesPerView: 2
+},
+1024: {
+slidesPerView: 4
+}
+}
+});</script></body></html>

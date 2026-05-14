@@ -23,6 +23,8 @@ services:
         arguments:
             $brevoApiKey: '%env(default::BREVO_API_KEY)%'
             $brevoListId: '%env(default::BREVO_LIST_ID)%'
+            $contactRecipientEmail: '%env(default::CONTACT_RECIPIENT_EMAIL)%'
+            $contactSenderEmail: '%env(default::CONTACT_SENDER_EMAIL)%'
 
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones

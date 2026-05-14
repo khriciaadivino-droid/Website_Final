@@ -48,11 +48,11 @@ class UserManagementController extends AbstractController
                 /** @var \App\Entity\User $currentUser */
                 $currentUser = $this->getUser();
                 $user->setCreatedBy($currentUser->getEmail());
-                
+
                 if ($role === 'admin') {
-                    $user->setRoles(['ROLE_ADMIN', 'ROLE_USER']);
+                    $user->setRoles(['ROLE_ADMIN']);
                 } elseif ($role === 'staff') {
-                    $user->setRoles(['ROLE_STAFF', 'ROLE_USER']);
+                    $user->setRoles(['ROLE_STAFF']);
                 } else {
                     $user->setRoles(['ROLE_USER']);
                 }
@@ -92,15 +92,15 @@ class UserManagementController extends AbstractController
             $status = $request->request->get('status');
             $newPassword = $request->request->get('password');
 
-            if ($this->isCsrfTokenValid('user_edit'.$user->getId(), $request->request->get('_token'))) {
+            if ($this->isCsrfTokenValid('user_edit' . $user->getId(), $request->request->get('_token'))) {
                 $user->setEmail($email);
                 $user->setFullName($fullName);
                 $user->setStatus($status);
 
                 if ($role === 'admin') {
-                    $user->setRoles(['ROLE_ADMIN', 'ROLE_USER']);
+                    $user->setRoles(['ROLE_ADMIN']);
                 } elseif ($role === 'staff') {
-                    $user->setRoles(['ROLE_STAFF', 'ROLE_USER']);
+                    $user->setRoles(['ROLE_STAFF']);
                 } else {
                     $user->setRoles(['ROLE_USER']);
                 }
@@ -131,7 +131,7 @@ class UserManagementController extends AbstractController
     #[Route('/{id}', name: 'app_user_management_delete', methods: ['POST'])]
     public function delete(Request $request, User $user, EntityManagerInterface $entityManager, ActivityLogService $activityLogService): Response
     {
-        if ($this->isCsrfTokenValid('delete'.$user->getId(), $request->getPayload()->getString('_token'))) {
+        if ($this->isCsrfTokenValid('delete' . $user->getId(), $request->getPayload()->getString('_token'))) {
             // Prevent deleting yourself
             /** @var \App\Entity\User $currentUser */
             $currentUser = $this->getUser();
@@ -159,7 +159,7 @@ class UserManagementController extends AbstractController
     #[Route('/{id}/toggle-status', name: 'app_user_management_toggle_status', methods: ['POST'])]
     public function toggleStatus(Request $request, User $user, EntityManagerInterface $entityManager): Response
     {
-        if ($this->isCsrfTokenValid('toggle_status'.$user->getId(), $request->request->get('_token'))) {
+        if ($this->isCsrfTokenValid('toggle_status' . $user->getId(), $request->request->get('_token'))) {
             $newStatus = $user->getStatus() === 'active' ? 'disabled' : 'active';
             $user->setStatus($newStatus);
             $entityManager->flush();

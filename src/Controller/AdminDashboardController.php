@@ -24,10 +24,14 @@ class AdminDashboardController extends AbstractController
         $totalUsers = $userRepository->count([]);
         $totalAdmins = $userRepository->countAdminUsers();
         $totalStaff = $userRepository->countStaffUsers();
-        
+
         $totalProducts = $productssRepository->count([]);
         $totalOrders = $ordersRepository->count([]);
-        
+        $totalStockQuantity = (int) $productssRepository->createQueryBuilder('p')
+            ->select('COALESCE(SUM(p.quantity), 0)')
+            ->getQuery()
+            ->getSingleScalarResult();
+
         $recentUsers = $userRepository->findBy([], ['createdAt' => 'DESC'], 5);
         $petOfTheMonth = $petProfileRepository->findOneBy(['isPetOfTheMonth' => true]);
 
@@ -37,6 +41,7 @@ class AdminDashboardController extends AbstractController
             'totalStaff' => $totalStaff,
             'totalProducts' => $totalProducts,
             'totalOrders' => $totalOrders,
+            'totalStockQuantity' => $totalStockQuantity,
             'recentUsers' => $recentUsers,
             'petOfTheMonth' => $petOfTheMonth,
         ]);

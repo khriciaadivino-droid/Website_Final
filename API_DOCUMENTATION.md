@@ -76,6 +76,62 @@ curl -X GET http://localhost:8000/api/customers \
 
 ---
 
+## Entity Read API Endpoints
+
+Use these endpoints to quickly inspect existing records for mobile/Postman checks.
+
+All endpoints below require JWT authentication:
+
+- `GET /api/products` (already existing)
+- `POST /api/products`
+- `PUT/PATCH /api/products/{id}`
+- `DELETE /api/products/{id}`
+- `GET /api/activity_logs`
+- `GET /api/events` (alias of activity logs)
+- `GET /api/stocks`
+- `POST /api/stocks`
+- `PUT/PATCH /api/stocks/{id}`
+- `DELETE /api/stocks/{id}`
+- `GET /api/orders`
+- `POST /api/orders`
+- `PUT/PATCH /api/orders/{id}`
+- `DELETE /api/orders/{id}`
+- `GET /api/categories`
+- `POST /api/categories`
+- `PUT/PATCH /api/categories/{id}`
+- `DELETE /api/categories/{id}`
+- `GET /api/pet-owners`
+- `POST /api/pet-owners`
+- `PUT/PATCH /api/pet-owners/{id}`
+- `DELETE /api/pet-owners/{id}`
+- `GET /api/pet-profiles`
+- `POST /api/pet-profiles`
+- `PUT/PATCH /api/pet-profiles/{id}`
+- `DELETE /api/pet-profiles/{id}`
+
+Standard response format:
+
+```json
+{
+        "success": true,
+        "message": "Activity logs fetched successfully",
+        "data": [],
+        "meta": {
+                "count": 0,
+                "timestamp": "2026-04-08T08:00:00+08:00"
+        }
+}
+```
+
+Example cURL:
+
+```bash
+curl -X GET http://localhost:8000/api/stocks \
+    -H "Authorization: Bearer YOUR_JWT_TOKEN"
+```
+
+---
+
 ### 2. Get Single Customer
 
 **Endpoint:** `GET /api/customers/{id}`

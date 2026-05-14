@@ -4,9 +4,9 @@ namespace App\Form;
 
 use App\Entity\PetOwners;
 use App\Entity\PetProfileManagement;
+use App\Repository\PetOwnersRepository;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
-use Symfony\Component\Form\CallbackTransformer;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\DateType;
 use Symfony\Component\Form\Extension\Core\Type\FileType;
@@ -14,6 +14,7 @@ use Symfony\Component\Form\Extension\Core\Type\NumberType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Validator\Constraints\File;
+use Symfony\Component\Validator\Constraints\NotNull;
 
 class PetProfileManagementType extends AbstractType
 {
@@ -25,6 +26,13 @@ class PetProfileManagementType extends AbstractType
                 'class' => PetOwners::class,
                 'choice_label' => 'fullName',
                 'placeholder' => 'Select Pet Owner',
+                'required' => true,
+                'query_builder' => static fn(PetOwnersRepository $repository) => $repository->createQueryBuilder('o')
+                    ->orderBy('o.firstName', 'ASC')
+                    ->addOrderBy('o.lastName', 'ASC'),
+                'constraints' => [
+                    new NotNull(['message' => 'Please select a pet owner.']),
+                ],
                 'attr' => ['class' => 'form-control'],
             ])
             ->add('Species', ChoiceType::class, [

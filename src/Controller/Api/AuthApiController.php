@@ -16,7 +16,7 @@ use Symfony\Component\Routing\Attribute\Route;
 #[Route('/api', name: 'api_')]
 class AuthApiController extends AbstractController
 {
-    #[Route('/register', name: 'register', methods: ['POST'])]
+    #[Route('/register-legacy', name: 'register_legacy', methods: ['POST'])]
     public function register(
         Request $request,
         UserPasswordHasherInterface $passwordHasher,
@@ -88,7 +88,7 @@ class AuthApiController extends AbstractController
         ], Response::HTTP_CREATED);
     }
 
-    #[Route('/verify-email', name: 'verify_email', methods: ['POST'])]
+    #[Route('/verify-email-legacy', name: 'verify_email_legacy', methods: ['POST'])]
     public function verifyEmail(
         Request $request,
         EmailVerificationService $emailVerificationService

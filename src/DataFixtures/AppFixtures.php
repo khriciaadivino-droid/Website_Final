@@ -4,6 +4,8 @@ namespace App\DataFixtures;
 
 use App\Entity\User;
 use App\Entity\Customer;
+use App\Entity\Category;
+use App\Entity\Productss;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Persistence\ObjectManager;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
@@ -26,6 +28,7 @@ class AppFixtures extends Fixture
         $adminUser->setRoles(['ROLE_USER', 'ROLE_ADMIN']);
         $adminUser->setStatus('active');
         $adminUser->setCreatedBy('System');
+        $adminUser->setVerifiedAt(new \DateTime());
         $hashedPassword = $this->passwordHasher->hashPassword($adminUser, 'password');
         $adminUser->setPassword($hashedPassword);
         $manager->persist($adminUser);
@@ -185,6 +188,53 @@ class AppFixtures extends Fixture
             $customer->setRegistrationDate($customerData['registrationDate']);
             $customer->setLastPurchaseDate($customerData['lastPurchaseDate']);
             $manager->persist($customer);
+        }
+
+        // Create product categories
+        $categoryNames = ['Food', 'Accessories', 'Health'];
+        $categories = [];
+
+        foreach ($categoryNames as $categoryName) {
+            $category = new Category();
+            $category->setName($categoryName);
+            $manager->persist($category);
+            $categories[$categoryName] = $category;
+        }
+
+        // Create sample products
+        $products = [
+            [
+                'name' => 'Premium Dog Food',
+                'description' => 'High-protein dry food for adult dogs',
+                'price' => 29.99,
+                'quantity' => 50,
+                'category' => 'Food',
+            ],
+            [
+                'name' => 'Cat Scratching Post',
+                'description' => 'Durable sisal scratching post for cats',
+                'price' => 19.50,
+                'quantity' => 30,
+                'category' => 'Accessories',
+            ],
+            [
+                'name' => 'Pet Vitamin Supplement',
+                'description' => 'Daily multivitamin tablets for pets',
+                'price' => 15.25,
+                'quantity' => 75,
+                'category' => 'Health',
+            ],
+        ];
+
+        foreach ($products as $productData) {
+            $product = new Productss();
+            $product->setName($productData['name']);
+            $product->setDescription($productData['description']);
+            $product->setPrice($productData['price']);
+            $product->setQuantity($productData['quantity']);
+            $product->setCategory($categories[$productData['category']] ?? null);
+            $product->setCreatedBy($adminUser);
+            $manager->persist($product);
         }
 
         $manager->flush();
