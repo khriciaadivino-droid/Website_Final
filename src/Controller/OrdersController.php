@@ -31,10 +31,15 @@ final class OrdersController extends AbstractController
     public function new(Request $request, EntityManagerInterface $entityManager, ActivityLogService $activityLogService): Response
     {
         $order = new Orders();
-        $form = $this->createForm(OrdersType::class, $order);
+        $canEditStatus = $this->canEditOrderStatus();
+        $form = $this->createForm(OrdersType::class, $order, [
+            'can_edit_status' => $canEditStatus,
+        ]);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
+            $order->setStatus($canEditStatus ? ($order->getStatus() ?? 'Pending') : 'Pending');
+
             // Set order date to current time
             $order->setOrderDate(new \DateTime());
 
@@ -124,13 +129,19 @@ final class OrdersController extends AbstractController
             return $this->redirectToRoute('app_orders_show', ['id' => $order->getId()], Response::HTTP_SEE_OTHER);
         }
 
+        $canEditStatus = $this->canEditOrderStatus();
         $originalProduct = $order->getProduct();
         $originalQuantity = $order->getQuantity() ?? 0;
+        $originalStatus = $order->getStatus() ?? 'Pending';
 
-        $form = $this->createForm(OrdersType::class, $order);
+        $form = $this->createForm(OrdersType::class, $order, [
+            'can_edit_status' => $canEditStatus,
+        ]);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
+            $order->setStatus($canEditStatus ? ($order->getStatus() ?? $originalStatus) : $originalStatus);
+
             // Recalculate total amount: price * quantity
             $product = $order->getProduct();
             $quantity = $order->getQuantity();
@@ -258,6 +269,11 @@ final class OrdersController extends AbstractController
         }
 
         return $this->redirectToRoute('app_orders_index', [], Response::HTTP_SEE_OTHER);
+    }
+
+    private function canEditOrderStatus(): bool
+    {
+        return $this->isGranted('ROLE_ADMIN');
     }
 
     private function createStockMovement(EntityManagerInterface $entityManager, Productss $product, int $quantityChange, string $message): void

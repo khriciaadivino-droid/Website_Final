@@ -22,10 +22,34 @@ final class Version20251211080927 extends AbstractMigration
         // this up() migration is auto-generated, please modify it to your needs
         $this->addSql('DROP TABLE IF EXISTS product');
         $this->addSql('DROP TABLE IF EXISTS products');
-        $this->addSql('ALTER TABLE orders ADD product_id INT DEFAULT NULL');
-        $this->addSql('ALTER TABLE orders ADD CONSTRAINT FK_E52FFDEE4584665A FOREIGN KEY (product_id) REFERENCES productss (id)');
-        $this->addSql('CREATE INDEX IDX_E52FFDEE4584665A ON orders (product_id)');
-        $this->addSql('ALTER TABLE user CHANGE status status VARCHAR(20) NOT NULL');
+        // Guard against existing column/constraints on orders.
+        $schemaManager = $this->connection->createSchemaManager();
+        if ($schemaManager->tablesExist(['orders'])) {
+            $columns = $schemaManager->listTableColumns('orders');
+            if (!array_key_exists('product_id', $columns)) {
+                $this->addSql('ALTER TABLE orders ADD product_id INT DEFAULT NULL');
+            }
+
+            $existingIndexes = $schemaManager->listTableIndexes('orders');
+            if (!array_key_exists('idx_e52ffdee4584665a', $existingIndexes)) {
+                $this->addSql('CREATE INDEX IDX_E52FFDEE4584665A ON orders (product_id)');
+            }
+
+            $existingForeignKeys = $schemaManager->listTableForeignKeys('orders');
+            $hasProductFk = false;
+            foreach ($existingForeignKeys as $foreignKey) {
+                if ($foreignKey->getName() === 'FK_E52FFDEE4584665A') {
+                    $hasProductFk = true;
+                    break;
+                }
+            }
+            if (!$hasProductFk) {
+                $this->addSql('ALTER TABLE orders ADD CONSTRAINT FK_E52FFDEE4584665A FOREIGN KEY (product_id) REFERENCES productss (id)');
+            }
+        }
+        if ($schemaManager->tablesExist(['user'])) {
+            $this->addSql('ALTER TABLE user CHANGE status status VARCHAR(20) NOT NULL');
+        }
     }
 
     public function down(Schema $schema): void

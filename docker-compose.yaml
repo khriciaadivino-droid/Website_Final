@@ -11,7 +11,7 @@ services:
       MYSQL_MAX_ALLOWED_PACKET: 64M
       MYSQL_WAIT_TIMEOUT: 28800
     ports:
-      - "3307:3306"
+      - "3306:3306"
     volumes:
       - mysql_data:/var/lib/mysql
     networks:
@@ -55,7 +55,6 @@ services:
 
 volumes:
   mysql_data:
-
 
 networks:
   khringproj_network:

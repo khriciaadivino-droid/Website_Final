@@ -33,12 +33,86 @@ final class Version20260326154737 extends AbstractMigration
         $this->addSql('CREATE TABLE IF NOT EXISTS `user` (id INT AUTO_INCREMENT NOT NULL, email VARCHAR(180) NOT NULL, roles JSON NOT NULL, password VARCHAR(255) NOT NULL, full_name VARCHAR(100) NOT NULL, created_at DATETIME NOT NULL, last_login_at DATETIME DEFAULT NULL, status VARCHAR(20) NOT NULL, created_by VARCHAR(100) DEFAULT NULL, verified_at DATETIME DEFAULT NULL, google_id VARCHAR(255) DEFAULT NULL, UNIQUE INDEX UNIQ_8D93D649E7927C74 (email), UNIQUE INDEX UNIQ_8D93D64976F5C865 (google_id), PRIMARY KEY(id)) DEFAULT CHARACTER SET utf8mb4 COLLATE `utf8mb4_unicode_ci` ENGINE = InnoDB');
         $this->addSql('CREATE TABLE IF NOT EXISTS verification_token (id INT AUTO_INCREMENT NOT NULL, user_id INT NOT NULL, token VARCHAR(255) NOT NULL, expires_at DATETIME NOT NULL, created_at DATETIME NOT NULL, used_at DATETIME DEFAULT NULL, UNIQUE INDEX UNIQ_C1CC006B5F37A13B (token), INDEX IDX_C1CC006BA76ED395 (user_id), PRIMARY KEY(id)) DEFAULT CHARACTER SET utf8mb4 COLLATE `utf8mb4_unicode_ci` ENGINE = InnoDB');
         $this->addSql('CREATE TABLE IF NOT EXISTS messenger_messages (id BIGINT AUTO_INCREMENT NOT NULL, body LONGTEXT NOT NULL, headers LONGTEXT NOT NULL, queue_name VARCHAR(190) NOT NULL, created_at DATETIME NOT NULL COMMENT \'(DC2Type:datetime_immutable)\', available_at DATETIME NOT NULL COMMENT \'(DC2Type:datetime_immutable)\', delivered_at DATETIME DEFAULT NULL COMMENT \'(DC2Type:datetime_immutable)\', INDEX IDX_75EA56E0FB7336F0 (queue_name), INDEX IDX_75EA56E0E3BD61CE (available_at), INDEX IDX_75EA56E016BA31DB (delivered_at), PRIMARY KEY(id)) DEFAULT CHARACTER SET utf8mb4 COLLATE `utf8mb4_unicode_ci` ENGINE = InnoDB');
-        $this->addSql('ALTER TABLE orders ADD CONSTRAINT FK_E52FFDEE4584665A FOREIGN KEY (product_id) REFERENCES productss (id)');
-        $this->addSql('ALTER TABLE pet_profile_management ADD CONSTRAINT FK_9AC1397B7E3C61F9 FOREIGN KEY (owner_id) REFERENCES pet_owners (id)');
-        $this->addSql('ALTER TABLE productss ADD CONSTRAINT FK_9003CDBB12469DE2 FOREIGN KEY (category_id) REFERENCES category (id)');
-        $this->addSql('ALTER TABLE productss ADD CONSTRAINT FK_9003CDBBB03A8386 FOREIGN KEY (created_by_id) REFERENCES `user` (id) ON DELETE SET NULL');
-        $this->addSql('ALTER TABLE stocks ADD CONSTRAINT FK_56F7980548172CE8 FOREIGN KEY (productss_id) REFERENCES productss (id)');
-        $this->addSql('ALTER TABLE verification_token ADD CONSTRAINT FK_C1CC006BA76ED395 FOREIGN KEY (user_id) REFERENCES `user` (id) ON DELETE CASCADE');
+        $schemaManager = $this->connection->createSchemaManager();
+
+        $ordersForeignKeys = $schemaManager->tablesExist(['orders'])
+            ? $schemaManager->listTableForeignKeys('orders')
+            : [];
+        $hasOrdersProductFk = false;
+        foreach ($ordersForeignKeys as $foreignKey) {
+            if ($foreignKey->getName() === 'FK_E52FFDEE4584665A') {
+                $hasOrdersProductFk = true;
+                break;
+            }
+        }
+        if (!$hasOrdersProductFk) {
+            $this->addSql('ALTER TABLE orders ADD CONSTRAINT FK_E52FFDEE4584665A FOREIGN KEY (product_id) REFERENCES productss (id)');
+        }
+
+        $petProfileForeignKeys = $schemaManager->tablesExist(['pet_profile_management'])
+            ? $schemaManager->listTableForeignKeys('pet_profile_management')
+            : [];
+        $hasOwnerFk = false;
+        foreach ($petProfileForeignKeys as $foreignKey) {
+            if ($foreignKey->getName() === 'FK_9AC1397B7E3C61F9') {
+                $hasOwnerFk = true;
+                break;
+            }
+        }
+        if (!$hasOwnerFk) {
+            $this->addSql('ALTER TABLE pet_profile_management ADD CONSTRAINT FK_9AC1397B7E3C61F9 FOREIGN KEY (owner_id) REFERENCES pet_owners (id)');
+        }
+
+        $productssForeignKeys = $schemaManager->tablesExist(['productss'])
+            ? $schemaManager->listTableForeignKeys('productss')
+            : [];
+        $hasCategoryFk = false;
+        $hasCreatedByFk = false;
+        foreach ($productssForeignKeys as $foreignKey) {
+            if ($foreignKey->getName() === 'FK_9003CDBB12469DE2') {
+                $hasCategoryFk = true;
+            }
+            if ($foreignKey->getName() === 'FK_9003CDBBB03A8386') {
+                $hasCreatedByFk = true;
+            }
+        }
+        if (!$hasCategoryFk) {
+            $this->addSql('ALTER TABLE productss ADD CONSTRAINT FK_9003CDBB12469DE2 FOREIGN KEY (category_id) REFERENCES category (id)');
+        }
+        if (!$hasCreatedByFk && $schemaManager->tablesExist(['user'])) {
+            $productssColumns = $schemaManager->listTableColumns('productss');
+            if (array_key_exists('created_by_id', $productssColumns)) {
+                $this->addSql('ALTER TABLE productss ADD CONSTRAINT FK_9003CDBBB03A8386 FOREIGN KEY (created_by_id) REFERENCES `user` (id) ON DELETE SET NULL');
+            }
+        }
+
+        $stocksForeignKeys = $schemaManager->tablesExist(['stocks'])
+            ? $schemaManager->listTableForeignKeys('stocks')
+            : [];
+        $hasStocksProductFk = false;
+        foreach ($stocksForeignKeys as $foreignKey) {
+            if ($foreignKey->getName() === 'FK_56F7980548172CE8') {
+                $hasStocksProductFk = true;
+                break;
+            }
+        }
+        if (!$hasStocksProductFk) {
+            $this->addSql('ALTER TABLE stocks ADD CONSTRAINT FK_56F7980548172CE8 FOREIGN KEY (productss_id) REFERENCES productss (id)');
+        }
+
+        $verificationForeignKeys = $schemaManager->tablesExist(['verification_token'])
+            ? $schemaManager->listTableForeignKeys('verification_token')
+            : [];
+        $hasVerificationFk = false;
+        foreach ($verificationForeignKeys as $foreignKey) {
+            if ($foreignKey->getName() === 'FK_C1CC006BA76ED395') {
+                $hasVerificationFk = true;
+                break;
+            }
+        }
+        if (!$hasVerificationFk && $schemaManager->tablesExist(['user'])) {
+            $this->addSql('ALTER TABLE verification_token ADD CONSTRAINT FK_C1CC006BA76ED395 FOREIGN KEY (user_id) REFERENCES `user` (id) ON DELETE CASCADE');
+        }
     }
 
     public function down(Schema $schema): void

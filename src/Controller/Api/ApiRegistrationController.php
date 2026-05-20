@@ -76,6 +76,8 @@ class ApiRegistrationController extends AbstractController
         $user->setEmail($email);
         $user->setRoles(['ROLE_USER']);
         $user->setStatus('active');
+        // Mobile app registrations are auto-verified — no email link required.
+        $user->setVerifiedAt(new \DateTimeImmutable());
 
         $hashedPassword = $this->passwordHasher->hashPassword($user, $password);
         $user->setPassword($hashedPassword);
@@ -97,17 +99,16 @@ class ApiRegistrationController extends AbstractController
         $this->entityManager->persist($user);
         $this->entityManager->flush();
 
-        $verificationUrl = $this->emailVerificationService->generateAndGetVerificationUrl($user);
-
         try {
+            $verificationUrl = $this->emailVerificationService->generateAndGetVerificationUrl($user);
             $this->emailVerificationService->sendVerificationEmail($user, $verificationUrl);
         } catch (\Throwable) {
-            // Registration succeeds even if mail provider is temporarily unavailable.
+            // Welcome email failure should not block the user.
         }
 
         return $this->json([
             'success' => true,
-            'message' => 'Registration successful. Please check your email to verify your account.',
+            'message' => 'Registration successful. You can now sign in.',
             'user' => [
                 'id' => $user->getId(),
                 'username' => $user->getFullName(),

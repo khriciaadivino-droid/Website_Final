@@ -45,8 +45,10 @@ class OrdersType extends AbstractType
                 'label' => 'Customer Email',
                 'required' => false,
                 'attr' => ['class' => 'mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500']
-            ])
-            ->add('status', ChoiceType::class, [
+            ]);
+
+        if ($options['can_edit_status']) {
+            $builder->add('status', ChoiceType::class, [
                 'label' => 'Status',
                 'choices' => [
                     'Pending' => 'Pending',
@@ -55,14 +57,17 @@ class OrdersType extends AbstractType
                     'Cancelled' => 'Cancelled',
                 ],
                 'attr' => ['class' => 'mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500']
-            ])
-        ;
+            ]);
+        }
     }
 
     public function configureOptions(OptionsResolver $resolver): void
     {
         $resolver->setDefaults([
             'data_class' => Orders::class,
+            'can_edit_status' => false,
         ]);
+
+        $resolver->setAllowedTypes('can_edit_status', 'bool');
     }
 }

@@ -17,14 +17,23 @@ use App\Repository\ProductssRepository;
 use App\Repository\StocksRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\File\Exception\FileException;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\String\Slugger\SluggerInterface;
 
 #[Route('/api', name: 'api_entities_')]
 class EntityReadApiController extends AbstractController
 {
+    private const ORDER_STATUS_MAP = [
+        'pending' => 'Pending',
+        'processing' => 'Processing',
+        'completed' => 'Completed',
+        'cancelled' => 'Cancelled',
+    ];
+
     #[Route('/activity_logs', name: 'activity_logs', methods: ['GET'])]
     public function activityLogs(ActivityLogRepository $activityLogRepository): JsonResponse
     {
@@ -177,6 +186,10 @@ class EntityReadApiController extends AbstractController
                 'quantity' => $order->getQuantity(),
                 'total_amount' => $order->getTotalAmount(),
                 'status' => $order->getStatus(),
+                'fulfillment_type' => $order->getFulfillmentType(),
+                'delivery_address' => $order->getDeliveryAddress(),
+                'payment_method'   => $order->getPaymentMethod(),
+                'payment_status'   => $order->getPaymentStatus(),
             ];
         }, $orders);
 
@@ -191,7 +204,7 @@ class EntityReadApiController extends AbstractController
             return $this->error('Invalid JSON body', Response::HTTP_BAD_REQUEST);
         }
 
-        foreach (['order_number', 'customer_name', 'quantity', 'total_amount', 'status', 'product_id'] as $requiredField) {
+        foreach (['order_number', 'customer_name', 'quantity', 'total_amount', 'product_id'] as $requiredField) {
             if (!isset($data[$requiredField]) || $data[$requiredField] === '') {
                 return $this->error($requiredField . ' is required', Response::HTTP_BAD_REQUEST);
             }
@@ -218,7 +231,32 @@ class EntityReadApiController extends AbstractController
         $order->setCustomerEmail(isset($data['customer_email']) ? (string) $data['customer_email'] : null);
         $order->setQuantity($quantity);
         $order->setTotalAmount((float) $data['total_amount']);
-        $order->setStatus((string) $data['status']);
+
+        $fulfillmentType = isset($data['fulfillment_type']) ? strtolower(trim((string) $data['fulfillment_type'])) : null;
+        if ($fulfillmentType !== null && !in_array($fulfillmentType, ['pickup', 'delivery'], true)) {
+            return $this->error('fulfillment_type must be "pickup" or "delivery"', Response::HTTP_BAD_REQUEST);
+        }
+        $order->setFulfillmentType($fulfillmentType);
+
+        $deliveryAddress = isset($data['delivery_address']) ? trim((string) $data['delivery_address']) : null;
+        if ($fulfillmentType === 'delivery' && ($deliveryAddress === null || $deliveryAddress === '')) {
+            return $this->error('delivery_address is required when fulfillment_type is "delivery"', Response::HTTP_BAD_REQUEST);
+        }
+        $order->setDeliveryAddress($deliveryAddress ?: null);
+
+        $paymentMethod = isset($data['payment_method']) ? strtolower(trim((string) $data['payment_method'])) : null;
+        $validPaymentMethods = ['cash', 'gcash', 'maya', 'card'];
+        if ($paymentMethod !== null && !in_array($paymentMethod, $validPaymentMethods, true)) {
+            return $this->error('payment_method must be one of: cash, gcash, maya, card', Response::HTTP_BAD_REQUEST);
+        }
+        $order->setPaymentMethod($paymentMethod);
+
+        $status = $this->resolveOrderStatus($data, 'Pending');
+        if ($status === null) {
+            return $this->error('Invalid order status', Response::HTTP_BAD_REQUEST);
+        }
+
+        $order->setStatus($status);
         $order->setOrderDate(isset($data['order_date']) ? new \DateTime((string) $data['order_date']) : new \DateTime());
 
         $order->setProduct($product);
@@ -237,7 +275,13 @@ class EntityReadApiController extends AbstractController
         return $this->json([
             'success' => true,
             'message' => 'Order created successfully',
-            'data' => ['id' => $order->getId()],
+            'data' => [
+                'id' => $order->getId(),
+                'order_number' => $order->getOrderNumber(),
+                'fulfillment_type' => $order->getFulfillmentType(),
+                'delivery_address' => $order->getDeliveryAddress(),
+                'payment_method' => $order->getPaymentMethod(),
+            ],
         ], Response::HTTP_CREATED);
     }
 
@@ -273,7 +317,12 @@ class EntityReadApiController extends AbstractController
             $order->setTotalAmount((float) $data['total_amount']);
         }
         if (isset($data['status'])) {
-            $order->setStatus((string) $data['status']);
+            $status = $this->resolveOrderStatus($data, $order->getStatus() ?? 'Pending');
+            if ($status === null) {
+                return $this->error('Invalid order status', Response::HTTP_BAD_REQUEST);
+            }
+
+            $order->setStatus($status);
         }
         if (isset($data['order_date'])) {
             $order->setOrderDate(new \DateTime((string) $data['order_date']));
@@ -798,6 +847,38 @@ class EntityReadApiController extends AbstractController
         return $this->success('Product deleted successfully', [['id' => $id]]);
     }
 
+    #[Route('/products/upload/image', name: 'products_upload_image', methods: ['POST'])]
+    public function uploadProductImage(Request $request, SluggerInterface $slugger): JsonResponse
+    {
+        $file = $request->files->get('image');
+
+        if (!$file) {
+            return $this->error('No image file provided', Response::HTTP_BAD_REQUEST);
+        }
+
+        $originalFilename = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
+        $safeFilename = $slugger->slug($originalFilename);
+        $newFilename = $safeFilename . '-' . uniqid() . '.' . $file->guessExtension();
+
+        try {
+            $file->move(
+                $this->getParameter('images_directory'),
+                $newFilename
+            );
+        } catch (FileException $e) {
+            return $this->error('Failed to upload image: ' . $e->getMessage(), Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
+
+        return $this->json([
+            'success' => true,
+            'message' => 'Image uploaded successfully',
+            'data' => [
+                'filename' => $newFilename,
+                'url' => '/uploads/products/' . $newFilename
+            ]
+        ], Response::HTTP_CREATED);
+    }
+
     private function success(string $message, array $data): JsonResponse
     {
         return $this->json([
@@ -833,6 +914,31 @@ class EntityReadApiController extends AbstractController
         } catch (\JsonException) {
             return null;
         }
+    }
+
+    private function resolveOrderStatus(array $data, string $fallback): ?string
+    {
+        if (!$this->canEditOrderStatus()) {
+            return $fallback;
+        }
+
+        if (!array_key_exists('status', $data) || $data['status'] === null || $data['status'] === '') {
+            return $fallback;
+        }
+
+        return $this->normalizeOrderStatus((string) $data['status']);
+    }
+
+    private function normalizeOrderStatus(string $status): ?string
+    {
+        $normalized = strtolower(trim($status));
+
+        return self::ORDER_STATUS_MAP[$normalized] ?? null;
+    }
+
+    private function canEditOrderStatus(): bool
+    {
+        return $this->isGranted('ROLE_ADMIN');
     }
 
     private function createStockMovement(EntityManagerInterface $entityManager, Productss $product, int $quantityChange, string $message): void

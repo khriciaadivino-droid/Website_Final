@@ -23,7 +23,17 @@ final class Version20251004051621 extends AbstractMigration
         $this->addSql('CREATE TABLE IF NOT EXISTS productpet (id INT AUTO_INCREMENT NOT NULL, name VARCHAR(100) NOT NULL, category VARCHAR(100) NOT NULL, quantity VARCHAR(100) NOT NULL, description VARCHAR(100) NOT NULL, price DOUBLE PRECISION NOT NULL, PRIMARY KEY(id)) DEFAULT CHARACTER SET utf8mb4 COLLATE `utf8mb4_unicode_ci` ENGINE = InnoDB');
         $this->addSql('CREATE TABLE IF NOT EXISTS products (id INT AUTO_INCREMENT NOT NULL, name VARCHAR(100) NOT NULL, price DOUBLE PRECISION NOT NULL, image VARCHAR(255) NOT NULL, description LONGTEXT NOT NULL, category VARCHAR(100) NOT NULL, quantity VARCHAR(255) NOT NULL, PRIMARY KEY(id)) DEFAULT CHARACTER SET utf8mb4 COLLATE `utf8mb4_unicode_ci` ENGINE = InnoDB');
         $this->addSql('CREATE TABLE IF NOT EXISTS productss (id INT AUTO_INCREMENT NOT NULL, name VARCHAR(100) NOT NULL, description VARCHAR(100) NOT NULL, price DOUBLE PRECISION NOT NULL, category VARCHAR(100) NOT NULL, PRIMARY KEY(id)) DEFAULT CHARACTER SET utf8mb4 COLLATE `utf8mb4_unicode_ci` ENGINE = InnoDB');
-        $this->addSql('ALTER TABLE product ADD category VARCHAR(100) NOT NULL, ADD quantity VARCHAR(100) NOT NULL');
+        // Only alter product if the table exists.
+        $schemaManager = $this->connection->createSchemaManager();
+        if ($schemaManager->tablesExist(['product'])) {
+            $columns = $schemaManager->listTableColumns('product');
+            if (!array_key_exists('category', $columns)) {
+                $this->addSql('ALTER TABLE product ADD category VARCHAR(100) NOT NULL');
+            }
+            if (!array_key_exists('quantity', $columns)) {
+                $this->addSql('ALTER TABLE product ADD quantity VARCHAR(100) NOT NULL');
+            }
+        }
     }
 
     public function down(Schema $schema): void

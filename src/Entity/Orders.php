@@ -39,6 +39,21 @@ class Orders
     #[ORM\Column(length: 50)]
     private ?string $status = null;
 
+    #[ORM\Column(length: 20, nullable: true)]
+    private ?string $fulfillmentType = null;
+
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
+    private ?string $deliveryAddress = null;
+
+    #[ORM\Column(length: 30, nullable: true)]
+    private ?string $paymentMethod = null;
+
+    #[ORM\Column(length: 20, nullable: true)]
+    private ?string $paymentStatus = null;
+
+    #[ORM\Column(length: 100, nullable: true)]
+    private ?string $paymentIntentId = null;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -136,6 +151,66 @@ class Orders
     public function setProduct(?Productss $product): static
     {
         $this->product = $product;
+
+        return $this;
+    }
+
+    public function getFulfillmentType(): ?string
+    {
+        return $this->fulfillmentType;
+    }
+
+    public function setFulfillmentType(?string $fulfillmentType): static
+    {
+        $this->fulfillmentType = $fulfillmentType;
+
+        return $this;
+    }
+
+    public function getDeliveryAddress(): ?string
+    {
+        return $this->deliveryAddress;
+    }
+
+    public function setDeliveryAddress(?string $deliveryAddress): static
+    {
+        $this->deliveryAddress = $deliveryAddress;
+
+        return $this;
+    }
+
+    public function getPaymentMethod(): ?string
+    {
+        return $this->paymentMethod;
+    }
+
+    public function setPaymentMethod(?string $paymentMethod): static
+    {
+        $this->paymentMethod = $paymentMethod;
+
+        return $this;
+    }
+
+    public function getPaymentStatus(): ?string
+    {
+        return $this->paymentStatus;
+    }
+
+    public function setPaymentStatus(?string $paymentStatus): static
+    {
+        $this->paymentStatus = $paymentStatus;
+
+        return $this;
+    }
+
+    public function getPaymentIntentId(): ?string
+    {
+        return $this->paymentIntentId;
+    }
+
+    public function setPaymentIntentId(?string $paymentIntentId): static
+    {
+        $this->paymentIntentId = $paymentIntentId;
 
         return $this;
     }

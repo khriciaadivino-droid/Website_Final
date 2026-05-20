@@ -10,8 +10,7 @@ class ActivityLogService
 {
     public function __construct(
         private EntityManagerInterface $entityManager
-    ) {
-    }
+    ) {}
 
     /**
      * Log any activity
@@ -24,8 +23,8 @@ class ActivityLogService
     {
         $log = new ActivityLog();
         $log->setUserId($user->getId());
-        $log->setUsername($user->getEmail());
-        
+        $log->setUsername($user->getFullName() ?: $user->getEmail());
+
         // Get the primary role (highest priority)
         $roles = $user->getRoles();
         if (in_array('ROLE_ADMIN', $roles)) {
@@ -35,7 +34,7 @@ class ActivityLogService
         } else {
             $log->setRole('ROLE_USER');
         }
-        
+
         $log->setAction($action);
         $log->setTargetData($targetData);
 

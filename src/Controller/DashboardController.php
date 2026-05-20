@@ -37,6 +37,7 @@ final class DashboardController extends AbstractController
 
         // Count total products
         $totalProducts = $productssRepository->count([]);
+        $products = $productssRepository->findBy([], ['id' => 'DESC'], 8);
 
         // Sum total quantity of all products -> total stocks
         $totalStocks = $productssRepository->createQueryBuilder('p')
@@ -58,6 +59,7 @@ final class DashboardController extends AbstractController
 
         return $this->render('dashboard/index.html.twig', [
             'totalProducts' => $totalProducts,
+            'products' => $products,
             'totalStocks' => $totalStocks ?? 0,
             'totalOrders' => $totalOrders,
             'totalPetProfiles' => $totalPetProfiles,

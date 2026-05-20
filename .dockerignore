@@ -1,0 +1,16 @@
+.git
+.gitignore
+node_modules
+var/cache
+var/log
+var/sessions
+tests
+docker-compose*.yaml
+compose*.yaml
+compose*.yml
+*.md
+screenshots
+source
+.env.dev
+.env.test
+phpunit.dist.xml

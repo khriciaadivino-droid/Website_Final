@@ -79,12 +79,23 @@ final class ProductssController extends AbstractController
 
     #[Route('/{id}/edit', name: 'app_productss_edit', methods: ['GET', 'POST'])]
     #[IsGranted('ROLE_STAFF')]
-    public function edit(Request $request, Productss $productss, EntityManagerInterface $entityManager, ActivityLogService $activityLogService): Response
+    public function edit(Request $request, Productss $productss, EntityManagerInterface $entityManager, ActivityLogService $activityLogService, SluggerInterface $slugger): Response
     {
         $form = $this->createForm(ProductssType::class, $productss);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
+            // Handle image upload
+            $imageFile = $form->get('imagefilename')->getData();
+            if ($imageFile) {
+                $originalFilename = pathinfo($imageFile->getClientOriginalName(), PATHINFO_FILENAME);
+                $safeFilename = $slugger->slug($originalFilename);
+                $newFilename = $safeFilename . '-' . uniqid() . '.' . $imageFile->guessExtension();
+
+                $imageFile->move($this->getParameter('images_directory'), $newFilename);
+                $productss->setImageFilename($newFilename);
+            }
+
             $entityManager->flush();
 
             // Log the product update
