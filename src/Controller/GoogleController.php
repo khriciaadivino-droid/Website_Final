@@ -12,11 +12,8 @@ class GoogleController extends AbstractController
     #[Route('/connect/google', name: 'connect_google')]
     public function connect(ClientRegistry $clientRegistry): RedirectResponse
     {
-        $clientId = trim((string) ($_ENV['GOOGLE_CLIENT_ID'] ?? $_SERVER['GOOGLE_CLIENT_ID'] ?? ''));
-        $clientSecret = trim((string) ($_ENV['GOOGLE_CLIENT_SECRET'] ?? $_SERVER['GOOGLE_CLIENT_SECRET'] ?? ''));
-
-        if ($clientId === '' || $clientSecret === '') {
-            $this->addFlash('error', 'Google sign-in is not configured yet. Please set GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET in .env.local.');
+        if (!$this->isGoogleOauthConfigured()) {
+            $this->addFlash('error', 'Google sign-in is not configured yet. Please set the Google OAuth client credentials in .env.local.');
 
             return $this->redirectToRoute('app_login');
         }
@@ -27,8 +24,22 @@ class GoogleController extends AbstractController
     }
 
     #[Route('/connect/google/check', name: 'connect_google_check')]
-    public function connectCheck(): never
+    public function connectCheck(): RedirectResponse
     {
-        throw new \LogicException('This should never be reached!');
+        $message = $this->isGoogleOauthConfigured()
+            ? 'Google sign-in could not be completed. Please try again.'
+            : 'Google sign-in is not configured yet. Please set the Google OAuth client credentials in .env.local.';
+
+        $this->addFlash('error', $message);
+
+        return $this->redirectToRoute('app_login');
+    }
+
+    private function isGoogleOauthConfigured(): bool
+    {
+        $clientId = trim((string) ($_ENV['GOOGLE_CLIENT_ID'] ?? $_SERVER['GOOGLE_CLIENT_ID'] ?? $_ENV['GOOGLE_OAUTH_CLIENT_ID'] ?? $_SERVER['GOOGLE_OAUTH_CLIENT_ID'] ?? ''));
+        $clientSecret = trim((string) ($_ENV['GOOGLE_CLIENT_SECRET'] ?? $_SERVER['GOOGLE_CLIENT_SECRET'] ?? $_ENV['GOOGLE_OAUTH_CLIENT_SECRET'] ?? $_SERVER['GOOGLE_OAUTH_CLIENT_SECRET'] ?? ''));
+
+        return $clientId !== '' && $clientSecret !== '';
     }
 }

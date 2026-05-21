@@ -24,10 +24,7 @@ class OAuthController extends AbstractController
     #[Route('/connect/check-google', name: 'app_oauth2_google_check')]
     public function connectCheckGoogle(): Response
     {
-        $googleClientId = (string) ($_ENV['GOOGLE_OAUTH_CLIENT_ID'] ?? $_SERVER['GOOGLE_OAUTH_CLIENT_ID'] ?? '');
-        $googleClientSecret = (string) ($_ENV['GOOGLE_OAUTH_CLIENT_SECRET'] ?? $_SERVER['GOOGLE_OAUTH_CLIENT_SECRET'] ?? '');
-
-        if ($googleClientId === '' || $googleClientSecret === '') {
+        if (!$this->isGoogleOauthConfigured()) {
             $this->addFlash('error', 'Google sign-in is not configured yet. Please contact the administrator.');
 
             return $this->redirectToRoute('app_login');
@@ -41,14 +38,38 @@ class OAuthController extends AbstractController
     #[Route('/oauth2/callback/google', name: 'app_oauth2_callback')]
     public function connectGoogleCheck(Request $request): Response
     {
-        $client = $this->clientRegistry->getClient('google');
-        $accessToken = $client->getAccessToken();
+        if (!$this->isGoogleOauthConfigured()) {
+            $this->addFlash('error', 'Google sign-in is not configured yet. Please contact the administrator.');
 
-        // Normalize provider data to a plain array for compatibility.
-        $googleUserData = $client->fetchUserFromToken($accessToken)->toArray();
-        $email = $googleUserData['email'] ?? null;
-        $name = $googleUserData['name'] ?? 'Google User';
-        $googleId = $googleUserData['sub'] ?? null;
+            return $this->redirectToRoute('app_login');
+        }
+
+        if ($request->query->has('error')) {
+            $this->addFlash('error', 'Google sign-in was cancelled or could not be completed.');
+
+            return $this->redirectToRoute('app_login');
+        }
+
+        if (!$request->query->has('code')) {
+            $this->addFlash('error', 'Google sign-in could not be completed. Please try again.');
+
+            return $this->redirectToRoute('app_login');
+        }
+
+        try {
+            $client = $this->clientRegistry->getClient('google');
+            $accessToken = $client->getAccessToken();
+
+            // Normalize provider data to a plain array for compatibility.
+            $googleUserData = $client->fetchUserFromToken($accessToken)->toArray();
+            $email = $googleUserData['email'] ?? null;
+            $name = $googleUserData['name'] ?? 'Google User';
+            $googleId = $googleUserData['sub'] ?? null;
+        } catch (\Throwable) {
+            $this->addFlash('error', 'Google sign-in could not be completed. Please try again.');
+
+            return $this->redirectToRoute('app_login');
+        }
 
         if (!$email) {
             $this->addFlash('error', 'Google account does not expose an email address.');
@@ -97,6 +118,14 @@ class OAuthController extends AbstractController
 
         // Redirect to dashboard
         return $this->redirectToRoute('app_dashboard_index');
+    }
+
+    private function isGoogleOauthConfigured(): bool
+    {
+        $googleClientId = trim((string) ($_ENV['GOOGLE_CLIENT_ID'] ?? $_SERVER['GOOGLE_CLIENT_ID'] ?? $_ENV['GOOGLE_OAUTH_CLIENT_ID'] ?? $_SERVER['GOOGLE_OAUTH_CLIENT_ID'] ?? ''));
+        $googleClientSecret = trim((string) ($_ENV['GOOGLE_CLIENT_SECRET'] ?? $_SERVER['GOOGLE_CLIENT_SECRET'] ?? $_ENV['GOOGLE_OAUTH_CLIENT_SECRET'] ?? $_SERVER['GOOGLE_OAUTH_CLIENT_SECRET'] ?? ''));
+
+        return $googleClientId !== '' && $googleClientSecret !== '';
     }
 
     #[Route('/logout', name: 'app_logout')]
