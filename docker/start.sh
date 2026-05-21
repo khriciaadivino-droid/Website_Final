@@ -8,6 +8,96 @@ export APP_SECRET="${APP_SECRET:-change-me-in-railway-app-secret}"
 export JWT_SECRET_KEY="${JWT_SECRET_KEY:-/var/www/html/config/jwt/private.pem}"
 export JWT_PUBLIC_KEY="${JWT_PUBLIC_KEY:-/var/www/html/config/jwt/public.pem}"
 export JWT_PASSPHRASE="${JWT_PASSPHRASE:-}"
+export MIGRATION_LOCK_NAME="${MIGRATION_LOCK_NAME:-website_final_doctrine_migrations}"
+
+acquire_migration_lock() {
+    php <<'PHP'
+<?php
+$databaseUrl = getenv('DATABASE_URL') ?: '';
+$lockName = getenv('MIGRATION_LOCK_NAME') ?: 'website_final_doctrine_migrations';
+
+if ($databaseUrl === '') {
+    fwrite(STDERR, "DATABASE_URL is required before acquiring the migration lock.\n");
+    exit(1);
+}
+
+$parts = parse_url($databaseUrl);
+if ($parts === false || ($parts['scheme'] ?? '') !== 'mysql') {
+    fwrite(STDERR, "Unsupported DATABASE_URL for MySQL advisory lock.\n");
+    exit(1);
+}
+
+$host = $parts['host'] ?? '127.0.0.1';
+$port = (int) ($parts['port'] ?? 3306);
+$database = rawurldecode(ltrim($parts['path'] ?? '', '/'));
+$username = rawurldecode($parts['user'] ?? '');
+$password = rawurldecode($parts['pass'] ?? '');
+
+if ($database === '' || $username === '') {
+    fwrite(STDERR, "DATABASE_URL is missing required MySQL connection parts.\n");
+    exit(1);
+}
+
+$dsn = sprintf('mysql:host=%s;port=%d;dbname=%s;charset=utf8mb4', $host, $port, $database);
+
+try {
+    $pdo = new PDO($dsn, $username, $password, [
+        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+        PDO::ATTR_TIMEOUT => 10,
+    ]);
+    $statement = $pdo->prepare('SELECT GET_LOCK(:lock_name, 120)');
+    $statement->execute(['lock_name' => $lockName]);
+    $acquired = (int) $statement->fetchColumn();
+
+    if ($acquired === 1) {
+        exit(0);
+    }
+
+    fwrite(STDERR, "Timed out waiting for the migration lock.\n");
+    exit(2);
+} catch (Throwable $exception) {
+    fwrite(STDERR, $exception->getMessage() . "\n");
+    exit(1);
+}
+PHP
+}
+
+release_migration_lock() {
+    php <<'PHP'
+<?php
+$databaseUrl = getenv('DATABASE_URL') ?: '';
+$lockName = getenv('MIGRATION_LOCK_NAME') ?: 'website_final_doctrine_migrations';
+
+$parts = parse_url($databaseUrl);
+if ($parts === false || ($parts['scheme'] ?? '') !== 'mysql') {
+    exit(0);
+}
+
+$host = $parts['host'] ?? '127.0.0.1';
+$port = (int) ($parts['port'] ?? 3306);
+$database = rawurldecode(ltrim($parts['path'] ?? '', '/'));
+$username = rawurldecode($parts['user'] ?? '');
+$password = rawurldecode($parts['pass'] ?? '');
+
+if ($database === '' || $username === '') {
+    exit(0);
+}
+
+$dsn = sprintf('mysql:host=%s;port=%d;dbname=%s;charset=utf8mb4', $host, $port, $database);
+
+try {
+    $pdo = new PDO($dsn, $username, $password, [
+        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+        PDO::ATTR_TIMEOUT => 10,
+    ]);
+    $statement = $pdo->prepare('SELECT RELEASE_LOCK(:lock_name)');
+    $statement->execute(['lock_name' => $lockName]);
+} catch (Throwable $exception) {
+    fwrite(STDERR, $exception->getMessage() . "\n");
+    exit(1);
+}
+PHP
+}
 
 if [ -z "$DATABASE_URL" ]; then
     if [ -n "$MYSQL_URL" ]; then
@@ -52,8 +142,29 @@ fi
 echo "==> Warming up cache..."
 php /var/www/html/bin/console cache:warmup --env=prod --no-debug
 
-echo "==> Running database migrations..."
-php /var/www/html/bin/console doctrine:migrations:migrate --no-interaction --env=prod
+echo "==> Waiting for migration lock..."
+set +e
+acquire_migration_lock
+lock_status=$?
+set -e
+
+if [ "$lock_status" -eq 0 ]; then
+    echo "==> Running database migrations..."
+    migration_status=0
+    php /var/www/html/bin/console doctrine:migrations:migrate --no-interaction --allow-no-migration --env=prod || migration_status=$?
+
+    echo "==> Releasing migration lock..."
+    release_migration_lock || true
+
+    if [ "$migration_status" -ne 0 ]; then
+        exit "$migration_status"
+    fi
+elif [ "$lock_status" -eq 2 ]; then
+    echo "==> Another instance is running migrations. Continuing startup without local migration execution."
+else
+    echo "==> ERROR: Failed to acquire the migration lock."
+    exit "$lock_status"
+fi
 
 echo "==> Starting PHP-FPM..."
 php-fpm -D
