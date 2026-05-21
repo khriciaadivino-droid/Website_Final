@@ -3,7 +3,7 @@ set -e
 
 export APP_ENV="${APP_ENV:-prod}"
 export APP_DEBUG="${APP_DEBUG:-0}"
-export PORT="${PORT:-80}"
+export PORT="${PORT:-8000}"
 export APP_SECRET="${APP_SECRET:-change-me-in-railway-app-secret}"
 export JWT_SECRET_KEY="${JWT_SECRET_KEY:-/var/www/html/config/jwt/private.pem}"
 export JWT_PUBLIC_KEY="${JWT_PUBLIC_KEY:-/var/www/html/config/jwt/public.pem}"
