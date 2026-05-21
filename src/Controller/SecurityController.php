@@ -18,14 +18,10 @@ use Symfony\Contracts\HttpClient\HttpClientInterface;
 class SecurityController extends AbstractController
 {
     public function __construct(
-        private readonly HttpClientInterface $httpClient,
-        private readonly MailerInterface $mailer,
-        private readonly EntityManagerInterface $entityManager,
-        private readonly LoggerInterface $logger,
         private readonly ?string $brevoApiKey = null,
         private readonly ?string $brevoListId = null,
-        private readonly string $contactRecipientEmail = 'khriciaazucena@gmail.com',
-        private readonly string $contactSenderEmail = 'a45e93001@smtp-brevo.com',
+        private readonly ?string $contactRecipientEmail = null,
+        private readonly ?string $contactSenderEmail = null,
     ) {}
 
     #[Route(path: '/welcome', name: 'app_welcome')]
@@ -112,8 +108,13 @@ class SecurityController extends AbstractController
     }
 
     #[Route(path: '/contact/submit', name: 'app_contact_submit', methods: ['POST'])]
-    public function contactSubmit(Request $request): Response
-    {
+    public function contactSubmit(
+        Request $request,
+        HttpClientInterface $httpClient,
+        MailerInterface $mailer,
+        EntityManagerInterface $entityManager,
+        LoggerInterface $logger,
+    ): Response {
         $name = trim((string) $request->request->get('name', ''));
         $email = trim((string) $request->request->get('email', ''));
         $phone = trim((string) $request->request->get('phone', ''));
@@ -130,11 +131,11 @@ class SecurityController extends AbstractController
             return new JsonResponse(['error' => 'Invalid email address'], Response::HTTP_BAD_REQUEST);
         }
 
-        $recipientEmail = filter_var($this->contactRecipientEmail, FILTER_VALIDATE_EMAIL)
+        $recipientEmail = is_string($this->contactRecipientEmail) && filter_var($this->contactRecipientEmail, FILTER_VALIDATE_EMAIL)
             ? $this->contactRecipientEmail
             : 'khriciaazucena@gmail.com';
 
-        $senderEmail = filter_var($this->contactSenderEmail, FILTER_VALIDATE_EMAIL)
+        $senderEmail = is_string($this->contactSenderEmail) && filter_var($this->contactSenderEmail, FILTER_VALIDATE_EMAIL)
             ? $this->contactSenderEmail
             : $recipientEmail;
 
@@ -149,12 +150,15 @@ class SecurityController extends AbstractController
                 $email,
                 $phone,
                 $subject,
-                $message
+                $message,
+                $httpClient,
+                $mailer,
+                $logger,
             );
             $emailSent = true;
         } catch (\Throwable $exception) {
             $deliveryError = $exception->getMessage();
-            $this->logger->error('Contact form email send failed', [
+            $logger->error('Contact form email send failed', [
                 'error' => $deliveryError,
                 'recipient' => $recipientEmail,
                 'sender' => $senderEmail,
@@ -173,10 +177,10 @@ class SecurityController extends AbstractController
             ->setDeliveryError($deliveryError);
 
         try {
-            $this->entityManager->persist($contactMessage);
-            $this->entityManager->flush();
+            $entityManager->persist($contactMessage);
+            $entityManager->flush();
         } catch (\Throwable $exception) {
-            $this->logger->error('Contact form persistence failed', [
+            $logger->error('Contact form persistence failed', [
                 'error' => $exception->getMessage(),
                 'email' => $email,
                 'subject' => $subject,
@@ -212,7 +216,10 @@ class SecurityController extends AbstractController
         string $replyToEmail,
         string $phone,
         string $subject,
-        string $message
+        string $message,
+        HttpClientInterface $httpClient,
+        MailerInterface $mailer,
+        LoggerInterface $logger,
     ): void {
         $textBody =
             "New contact form submission\n\n" .
@@ -224,7 +231,7 @@ class SecurityController extends AbstractController
 
         if (is_string($this->brevoApiKey) && trim($this->brevoApiKey) !== '') {
             try {
-                $response = $this->httpClient->request('POST', 'https://api.brevo.com/v3/smtp/email', [
+                $response = $httpClient->request('POST', 'https://api.brevo.com/v3/smtp/email', [
                     'headers' => [
                         'accept' => 'application/json',
                         'content-type' => 'application/json',
@@ -256,12 +263,12 @@ class SecurityController extends AbstractController
                 }
 
                 $errorBody = $response->getContent(false);
-                $this->logger->warning('Brevo API send failed, falling back to SMTP', [
+                $logger->warning('Brevo API send failed, falling back to SMTP', [
                     'status_code' => $statusCode,
                     'error' => $errorBody,
                 ]);
             } catch (\Throwable $exception) {
-                $this->logger->warning('Brevo API transport error, falling back to SMTP', [
+                $logger->warning('Brevo API transport error, falling back to SMTP', [
                     'error' => $exception->getMessage(),
                 ]);
             }
@@ -275,7 +282,7 @@ class SecurityController extends AbstractController
             ->subject('[PawStuff Contact] ' . $subject)
             ->text($textBody);
 
-        $this->mailer->send($emailMessage);
+        $mailer->send($emailMessage);
     }
 
     #[Route(path: '/login', name: 'app_login')]
