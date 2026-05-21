@@ -3,6 +3,7 @@ set -e
 
 export APP_ENV="${APP_ENV:-prod}"
 export APP_DEBUG="${APP_DEBUG:-0}"
+export PORT="${PORT:-80}"
 
 if [ -z "$DATABASE_URL" ]; then
     if [ -n "$MYSQL_URL" ]; then
@@ -18,6 +19,9 @@ if [ -n "$DATABASE_URL" ]; then
 else
     echo "==> WARNING: DATABASE_URL is not set"
 fi
+
+echo "==> Rendering Nginx config for PORT=$PORT..."
+sed "s/__PORT__/${PORT}/g" /etc/nginx/sites-available/default.template > /etc/nginx/sites-available/default
 
 echo "==> Generating JWT keys if missing..."
 if [ ! -f /var/www/html/config/jwt/private.pem ]; then

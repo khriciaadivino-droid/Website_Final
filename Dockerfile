@@ -1,5 +1,7 @@
 FROM php:8.2-fpm
 
+ENV COMPOSER_ALLOW_SUPERUSER=1
+
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
     git \
@@ -57,6 +59,9 @@ RUN npm install
 # Copy the rest of the application
 COPY . .
 
+# Regenerate Composer autoload files after the full source tree is present.
+RUN composer dump-autoload --classmap-authoritative --no-dev --no-interaction
+
 # Build frontend assets for production
 RUN npm run build
 
@@ -72,8 +77,8 @@ RUN mkdir -p \
     && chown -R www-data:www-data /var/www/html/var /var/www/html/config/jwt \
     && chmod -R 775 /var/www/html/var
 
-# Copy nginx config
-COPY docker/nginx.conf /etc/nginx/sites-available/default
+# Copy nginx config template
+COPY docker/nginx.conf /etc/nginx/sites-available/default.template
 
 # Expose port
 EXPOSE 80
