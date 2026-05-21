@@ -8,6 +8,7 @@ use App\Repository\ProductssRepository;
 use App\Service\ActivityLogService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\File\Exception\FileException;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -41,7 +42,27 @@ final class ProductssController extends AbstractController
                 $safeFilename = $slugger->slug($originalFilename);
                 $newFilename = $safeFilename . '-' . uniqid() . '.' . $imageFile->guessExtension();
 
-                $imageFile->move($this->getParameter('images_directory'), $newFilename);
+                $uploadDirectory = (string) $this->getParameter('images_directory');
+                if (!is_dir($uploadDirectory) && !mkdir($uploadDirectory, 0775, true) && !is_dir($uploadDirectory)) {
+                    $this->addFlash('error', 'Product image upload directory is not available yet. Please try again in a moment.');
+
+                    return $this->render('productss/new.html.twig', [
+                        'productss' => $productss,
+                        'form' => $form,
+                    ]);
+                }
+
+                try {
+                    $imageFile->move($uploadDirectory, $newFilename);
+                } catch (FileException) {
+                    $this->addFlash('error', 'Product image upload failed. Please try again with the same image or save the product without an image first.');
+
+                    return $this->render('productss/new.html.twig', [
+                        'productss' => $productss,
+                        'form' => $form,
+                    ]);
+                }
+
                 $productss->setImageFilename($newFilename);
             }
         
@@ -92,7 +113,27 @@ final class ProductssController extends AbstractController
                 $safeFilename = $slugger->slug($originalFilename);
                 $newFilename = $safeFilename . '-' . uniqid() . '.' . $imageFile->guessExtension();
 
-                $imageFile->move($this->getParameter('images_directory'), $newFilename);
+                $uploadDirectory = (string) $this->getParameter('images_directory');
+                if (!is_dir($uploadDirectory) && !mkdir($uploadDirectory, 0775, true) && !is_dir($uploadDirectory)) {
+                    $this->addFlash('error', 'Product image upload directory is not available yet. Please try again in a moment.');
+
+                    return $this->render('productss/edit.html.twig', [
+                        'productss' => $productss,
+                        'form' => $form,
+                    ]);
+                }
+
+                try {
+                    $imageFile->move($uploadDirectory, $newFilename);
+                } catch (FileException) {
+                    $this->addFlash('error', 'Product image upload failed. Please try again with the same image or save the product without changing the image.');
+
+                    return $this->render('productss/edit.html.twig', [
+                        'productss' => $productss,
+                        'form' => $form,
+                    ]);
+                }
+
                 $productss->setImageFilename($newFilename);
             }
 

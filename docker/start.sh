@@ -133,6 +133,25 @@ write_runtime_env_file() {
     php <<'PHP'
 <?php
 $envPath = '/var/www/html/.env.local';
+$readEnv = static function (array $keys): string {
+    foreach ($keys as $key) {
+        $value = getenv($key);
+        if (!is_string($value)) {
+            continue;
+        }
+
+        $normalizedValue = trim($value);
+        if ($normalizedValue !== '') {
+            return $normalizedValue;
+        }
+    }
+
+    return '';
+};
+
+$googleClientId = $readEnv(['GOOGLE_CLIENT_ID', 'GOOGLE_OAUTH_CLIENT_ID', 'OAUTH_GOOGLE_CLIENT_ID']);
+$googleClientSecret = $readEnv(['GOOGLE_CLIENT_SECRET', 'GOOGLE_OAUTH_CLIENT_SECRET', 'OAUTH_GOOGLE_CLIENT_SECRET']);
+
 $values = [
     'APP_ENV' => getenv('APP_ENV') ?: 'prod',
     'APP_DEBUG' => getenv('APP_DEBUG') ?: '0',
@@ -143,6 +162,12 @@ $values = [
     'JWT_PASSPHRASE' => getenv('JWT_PASSPHRASE') ?: '',
     'MESSENGER_TRANSPORT_DSN' => getenv('MESSENGER_TRANSPORT_DSN') ?: 'doctrine://default?auto_setup=0',
     'MAILER_DSN' => getenv('MAILER_DSN') ?: 'null://null',
+    'GOOGLE_CLIENT_ID' => $googleClientId,
+    'GOOGLE_CLIENT_SECRET' => $googleClientSecret,
+    'GOOGLE_OAUTH_CLIENT_ID' => $googleClientId,
+    'GOOGLE_OAUTH_CLIENT_SECRET' => $googleClientSecret,
+    'OAUTH_GOOGLE_CLIENT_ID' => $googleClientId,
+    'OAUTH_GOOGLE_CLIENT_SECRET' => $googleClientSecret,
 ];
 
 $lines = [];
@@ -196,6 +221,9 @@ fi
 
 echo "==> Rendering Nginx config for PORT=$PORT..."
 render_nginx_config
+
+echo "==> Ensuring upload directories exist..."
+mkdir -p /var/www/html/public/uploads/products /var/www/html/public/uploads/pets
 
 echo "==> Configuring PHP-FPM to preserve runtime environment..."
 if grep -Eq '^[;[:space:]]*clear_env[[:space:]]*=' /usr/local/etc/php-fpm.d/www.conf; then
