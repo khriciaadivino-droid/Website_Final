@@ -21,17 +21,17 @@ RUN apt-get update && apt-get install -y \
 # Install PHP extensions
 RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install \
-        pdo \
-        pdo_mysql \
-        gd \
-        zip \
-        intl \
-        mbstring \
-        xml \
-        ctype \
-        iconv \
-        fileinfo \
-        opcache
+    pdo \
+    pdo_mysql \
+    gd \
+    zip \
+    intl \
+    mbstring \
+    xml \
+    ctype \
+    iconv \
+    fileinfo \
+    opcache
 
 # Configure OPcache for production
 RUN echo "opcache.enable=1" >> /usr/local/etc/php/conf.d/opcache.ini \
@@ -64,10 +64,13 @@ RUN npm run build
 RUN composer run-script --no-dev post-install-cmd || true
 
 # Set proper permissions
-RUN chown -R www-data:www-data /var/www/html/var \
-    && chmod -R 775 /var/www/html/var \
-    && mkdir -p /var/www/html/config/jwt \
-    && chown -R www-data:www-data /var/www/html/config/jwt
+RUN mkdir -p \
+    /var/www/html/var/cache \
+    /var/www/html/var/log \
+    /var/www/html/var/sessions \
+    /var/www/html/config/jwt \
+    && chown -R www-data:www-data /var/www/html/var /var/www/html/config/jwt \
+    && chmod -R 775 /var/www/html/var
 
 # Copy nginx config
 COPY docker/nginx.conf /etc/nginx/sites-available/default
