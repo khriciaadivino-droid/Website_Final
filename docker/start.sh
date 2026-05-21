@@ -236,6 +236,9 @@ else
     exit "$lock_status"
 fi
 
+echo "==> Ensuring bootstrap admin accounts exist..."
+php /var/www/html/bin/console app:create-admin --no-interaction --env=prod
+
 echo "==> Starting PHP-FPM..."
 php-fpm -D
 
