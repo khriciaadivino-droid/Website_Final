@@ -19,20 +19,101 @@ final class Version20260516175003 extends AbstractMigration
 
     public function up(Schema $schema): void
     {
-        // this up() migration is auto-generated, please modify it to your needs
-        $this->addSql('CREATE TABLE contact_message (id INT AUTO_INCREMENT NOT NULL, name VARCHAR(150) NOT NULL, email VARCHAR(180) NOT NULL, phone VARCHAR(50) DEFAULT NULL, subject VARCHAR(255) NOT NULL, message LONGTEXT NOT NULL, email_sent TINYINT(1) NOT NULL, delivery_status VARCHAR(50) NOT NULL, delivery_error LONGTEXT DEFAULT NULL, created_at DATETIME NOT NULL, INDEX idx_contact_message_created_at (created_at), INDEX idx_contact_message_email_sent (email_sent), PRIMARY KEY(id)) DEFAULT CHARACTER SET utf8mb4 COLLATE `utf8mb4_unicode_ci` ENGINE = InnoDB');
-        $this->addSql('ALTER TABLE shipment_tracking DROP FOREIGN KEY FK_E2B9D7D7BE036FC');
-        $this->addSql('DROP TABLE courier');
-        $this->addSql('DROP TABLE shipment');
-        $this->addSql('DROP TABLE shipment_tracking');
-        $this->addSql('DROP TABLE shipping_zone');
-        $this->addSql('ALTER TABLE productss ADD created_by_id INT DEFAULT NULL');
-        $this->addSql('ALTER TABLE productss ADD CONSTRAINT FK_9003CDBBB03A8386 FOREIGN KEY (created_by_id) REFERENCES `user` (id) ON DELETE SET NULL');
-        $this->addSql('CREATE INDEX IDX_9003CDBBB03A8386 ON productss (created_by_id)');
-        $this->addSql('ALTER TABLE user RENAME INDEX google_id TO UNIQ_8D93D64976F5C865');
-        $this->addSql('ALTER TABLE verification_token DROP FOREIGN KEY verification_token_ibfk_1');
-        $this->addSql('ALTER TABLE verification_token RENAME INDEX token TO UNIQ_C1CC006B5F37A13B');
-        $this->addSql('ALTER TABLE verification_token RENAME INDEX fk_c1cc006ba76ed395 TO IDX_C1CC006BA76ED395');
+        $schemaManager = $this->connection->createSchemaManager();
+
+        $hasProductss = $schemaManager->tablesExist(['productss']);
+        $hasCreatedById = $hasProductss && $this->hasColumn($schemaManager, 'productss', 'created_by_id');
+        $hasProductssFk = $hasProductss && $this->hasForeignKey($schemaManager, 'productss', 'FK_9003CDBBB03A8386');
+
+        $hasUser = $schemaManager->tablesExist(['user']);
+        $hasGoogleId = $hasUser && $this->hasColumn($schemaManager, 'user', 'google_id');
+        $hasGoogleIdIndex = $hasUser && $this->hasIndex($schemaManager, 'user', 'UNIQ_8D93D64976F5C865');
+        $hasLegacyGoogleIdIndex = $hasUser && $this->hasIndex($schemaManager, 'user', 'google_id');
+
+        $hasVerificationToken = $schemaManager->tablesExist(['verification_token']);
+        $hasLegacyVerificationTokenFk = $hasVerificationToken && $this->hasForeignKey($schemaManager, 'verification_token', 'verification_token_ibfk_1');
+        $hasVerificationTokenFk = $hasVerificationToken && $this->hasForeignKey($schemaManager, 'verification_token', 'FK_C1CC006BA76ED395');
+        $hasVerificationTokenColumn = $hasVerificationToken && $this->hasColumn($schemaManager, 'verification_token', 'token');
+        $hasVerificationUserIdColumn = $hasVerificationToken && $this->hasColumn($schemaManager, 'verification_token', 'user_id');
+        $hasVerificationTokenIndex = $hasVerificationToken && $this->hasIndex($schemaManager, 'verification_token', 'UNIQ_C1CC006B5F37A13B');
+        $hasLegacyVerificationTokenIndex = $hasVerificationToken && $this->hasIndex($schemaManager, 'verification_token', 'token');
+        $hasVerificationUserIdIndex = $hasVerificationToken && $this->hasIndex($schemaManager, 'verification_token', 'IDX_C1CC006BA76ED395');
+        $hasLegacyVerificationUserIdIndex = $hasVerificationToken && $this->hasIndex($schemaManager, 'verification_token', 'fk_c1cc006ba76ed395');
+
+        $this->addSql('CREATE TABLE IF NOT EXISTS contact_message (id INT AUTO_INCREMENT NOT NULL, name VARCHAR(150) NOT NULL, email VARCHAR(180) NOT NULL, phone VARCHAR(50) DEFAULT NULL, subject VARCHAR(255) NOT NULL, message LONGTEXT NOT NULL, email_sent TINYINT(1) NOT NULL, delivery_status VARCHAR(50) NOT NULL, delivery_error LONGTEXT DEFAULT NULL, created_at DATETIME NOT NULL, INDEX idx_contact_message_created_at (created_at), INDEX idx_contact_message_email_sent (email_sent), PRIMARY KEY(id)) DEFAULT CHARACTER SET utf8mb4 COLLATE `utf8mb4_unicode_ci` ENGINE = InnoDB');
+
+        $this->addSql('DROP TABLE IF EXISTS shipment_tracking');
+        $this->addSql('DROP TABLE IF EXISTS shipment');
+        $this->addSql('DROP TABLE IF EXISTS courier');
+        $this->addSql('DROP TABLE IF EXISTS shipping_zone');
+
+        if ($hasProductss) {
+            if (!$hasCreatedById) {
+                $this->addSql('ALTER TABLE productss ADD created_by_id INT DEFAULT NULL');
+            }
+            if (!$hasProductssFk) {
+                $this->addSql('ALTER TABLE productss ADD CONSTRAINT FK_9003CDBBB03A8386 FOREIGN KEY (created_by_id) REFERENCES `user` (id) ON DELETE SET NULL');
+            }
+        }
+
+        if ($hasUser) {
+            if ($hasLegacyGoogleIdIndex && !$hasGoogleIdIndex) {
+                $this->addSql('ALTER TABLE `user` RENAME INDEX google_id TO UNIQ_8D93D64976F5C865');
+            } elseif ($hasGoogleId && !$hasGoogleIdIndex) {
+                $this->addSql('CREATE UNIQUE INDEX UNIQ_8D93D64976F5C865 ON `user` (google_id)');
+            }
+        }
+
+        if ($hasVerificationToken) {
+            if ($hasLegacyVerificationTokenFk) {
+                $this->addSql('ALTER TABLE verification_token DROP FOREIGN KEY verification_token_ibfk_1');
+            }
+
+            if ($hasLegacyVerificationTokenIndex && !$hasVerificationTokenIndex) {
+                $this->addSql('ALTER TABLE verification_token RENAME INDEX token TO UNIQ_C1CC006B5F37A13B');
+            } elseif ($hasVerificationTokenColumn && !$hasVerificationTokenIndex) {
+                $this->addSql('CREATE UNIQUE INDEX UNIQ_C1CC006B5F37A13B ON verification_token (token)');
+            }
+
+            if ($hasLegacyVerificationUserIdIndex && !$hasVerificationUserIdIndex) {
+                $this->addSql('ALTER TABLE verification_token RENAME INDEX fk_c1cc006ba76ed395 TO IDX_C1CC006BA76ED395');
+            } elseif ($hasVerificationUserIdColumn && !$hasVerificationUserIdIndex) {
+                $this->addSql('CREATE INDEX IDX_C1CC006BA76ED395 ON verification_token (user_id)');
+            }
+
+            if (!$hasVerificationTokenFk && $hasVerificationUserIdColumn && $hasUser) {
+                $this->addSql('ALTER TABLE verification_token ADD CONSTRAINT FK_C1CC006BA76ED395 FOREIGN KEY (user_id) REFERENCES `user` (id) ON DELETE CASCADE');
+            }
+        }
+    }
+
+    private function hasColumn($schemaManager, string $table, string $column): bool
+    {
+        $columns = array_change_key_case($schemaManager->listTableColumns($table), CASE_LOWER);
+
+        return array_key_exists(strtolower($column), $columns);
+    }
+
+    private function hasForeignKey($schemaManager, string $table, string $foreignKeyName): bool
+    {
+        foreach ($schemaManager->listTableForeignKeys($table) as $foreignKey) {
+            if (strcasecmp($foreignKey->getName(), $foreignKeyName) === 0) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private function hasIndex($schemaManager, string $table, string $indexName): bool
+    {
+        foreach ($schemaManager->listTableIndexes($table) as $index) {
+            if (strcasecmp($index->getName(), $indexName) === 0) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     public function down(Schema $schema): void

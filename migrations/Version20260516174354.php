@@ -19,22 +19,95 @@ final class Version20260516174354 extends AbstractMigration
 
     public function up(Schema $schema): void
     {
-        // this up() migration is auto-generated, please modify it to your needs
-        $this->addSql('CREATE TABLE contact_message (id INT AUTO_INCREMENT NOT NULL, name VARCHAR(150) NOT NULL, email VARCHAR(180) NOT NULL, phone VARCHAR(50) DEFAULT NULL, subject VARCHAR(255) NOT NULL, message LONGTEXT NOT NULL, email_sent TINYINT(1) NOT NULL, delivery_status VARCHAR(50) NOT NULL, delivery_error LONGTEXT DEFAULT NULL, created_at DATETIME NOT NULL, INDEX idx_contact_message_created_at (created_at), INDEX idx_contact_message_email_sent (email_sent), PRIMARY KEY(id)) DEFAULT CHARACTER SET utf8mb4 COLLATE `utf8mb4_unicode_ci` ENGINE = InnoDB');
-        $this->addSql('CREATE TABLE customer (id INT AUTO_INCREMENT NOT NULL, first_name VARCHAR(100) NOT NULL, last_name VARCHAR(100) NOT NULL, email VARCHAR(100) NOT NULL, phone_number VARCHAR(20) DEFAULT NULL, address LONGTEXT DEFAULT NULL, city VARCHAR(100) DEFAULT NULL, postal_code VARCHAR(20) DEFAULT NULL, country VARCHAR(100) DEFAULT NULL, registration_date DATETIME NOT NULL, last_purchase_date DATETIME DEFAULT NULL, PRIMARY KEY(id)) DEFAULT CHARACTER SET utf8mb4 COLLATE `utf8mb4_unicode_ci` ENGINE = InnoDB');
-        $this->addSql('CREATE TABLE verification_token (id INT AUTO_INCREMENT NOT NULL, user_id INT NOT NULL, token VARCHAR(255) NOT NULL, expires_at DATETIME NOT NULL, created_at DATETIME NOT NULL, used_at DATETIME DEFAULT NULL, UNIQUE INDEX UNIQ_C1CC006B5F37A13B (token), INDEX IDX_C1CC006BA76ED395 (user_id), PRIMARY KEY(id)) DEFAULT CHARACTER SET utf8mb4 COLLATE `utf8mb4_unicode_ci` ENGINE = InnoDB');
-        $this->addSql('ALTER TABLE verification_token ADD CONSTRAINT FK_C1CC006BA76ED395 FOREIGN KEY (user_id) REFERENCES `user` (id) ON DELETE CASCADE');
-        $this->addSql('ALTER TABLE shipment_tracking DROP FOREIGN KEY FK_E2B9D7D7BE036FC');
-        $this->addSql('DROP TABLE courier');
-        $this->addSql('DROP TABLE shipment');
-        $this->addSql('DROP TABLE shipment_tracking');
-        $this->addSql('DROP TABLE shipping_zone');
-        $this->addSql('ALTER TABLE pet_profile_management ADD CONSTRAINT FK_9AC1397B7E3C61F9 FOREIGN KEY (owner_id) REFERENCES pet_owners (id)');
-        $this->addSql('ALTER TABLE productss ADD created_by_id INT DEFAULT NULL');
-        $this->addSql('ALTER TABLE productss ADD CONSTRAINT FK_9003CDBBB03A8386 FOREIGN KEY (created_by_id) REFERENCES `user` (id) ON DELETE SET NULL');
-        $this->addSql('CREATE INDEX IDX_9003CDBBB03A8386 ON productss (created_by_id)');
-        $this->addSql('ALTER TABLE user ADD verified_at DATETIME DEFAULT NULL, ADD google_id VARCHAR(255) DEFAULT NULL');
-        $this->addSql('CREATE UNIQUE INDEX UNIQ_8D93D64976F5C865 ON user (google_id)');
+        $schemaManager = $this->connection->createSchemaManager();
+
+        $hasVerificationToken = $schemaManager->tablesExist(['verification_token']);
+        $hasVerificationTokenFk = $hasVerificationToken && $this->hasForeignKey($schemaManager, 'verification_token', 'FK_C1CC006BA76ED395');
+
+        $hasPetProfileManagement = $schemaManager->tablesExist(['pet_profile_management']);
+        $hasOwnerId = $hasPetProfileManagement && $this->hasColumn($schemaManager, 'pet_profile_management', 'owner_id');
+        $hasPetOwnerFk = $hasPetProfileManagement && $this->hasForeignKey($schemaManager, 'pet_profile_management', 'FK_9AC1397B7E3C61F9');
+
+        $hasProductss = $schemaManager->tablesExist(['productss']);
+        $hasCreatedById = $hasProductss && $this->hasColumn($schemaManager, 'productss', 'created_by_id');
+        $hasProductssFk = $hasProductss && $this->hasForeignKey($schemaManager, 'productss', 'FK_9003CDBBB03A8386');
+
+        $hasUser = $schemaManager->tablesExist(['user']);
+        $hasVerifiedAt = $hasUser && $this->hasColumn($schemaManager, 'user', 'verified_at');
+        $hasGoogleId = $hasUser && $this->hasColumn($schemaManager, 'user', 'google_id');
+        $hasGoogleIdIndex = $hasUser && $this->hasIndex($schemaManager, 'user', 'UNIQ_8D93D64976F5C865');
+        $hasLegacyGoogleIdIndex = $hasUser && $this->hasIndex($schemaManager, 'user', 'google_id');
+
+        $this->addSql('CREATE TABLE IF NOT EXISTS contact_message (id INT AUTO_INCREMENT NOT NULL, name VARCHAR(150) NOT NULL, email VARCHAR(180) NOT NULL, phone VARCHAR(50) DEFAULT NULL, subject VARCHAR(255) NOT NULL, message LONGTEXT NOT NULL, email_sent TINYINT(1) NOT NULL, delivery_status VARCHAR(50) NOT NULL, delivery_error LONGTEXT DEFAULT NULL, created_at DATETIME NOT NULL, INDEX idx_contact_message_created_at (created_at), INDEX idx_contact_message_email_sent (email_sent), PRIMARY KEY(id)) DEFAULT CHARACTER SET utf8mb4 COLLATE `utf8mb4_unicode_ci` ENGINE = InnoDB');
+        $this->addSql('CREATE TABLE IF NOT EXISTS customer (id INT AUTO_INCREMENT NOT NULL, first_name VARCHAR(100) NOT NULL, last_name VARCHAR(100) NOT NULL, email VARCHAR(100) NOT NULL, phone_number VARCHAR(20) DEFAULT NULL, address LONGTEXT DEFAULT NULL, city VARCHAR(100) DEFAULT NULL, postal_code VARCHAR(20) DEFAULT NULL, country VARCHAR(100) DEFAULT NULL, registration_date DATETIME NOT NULL, last_purchase_date DATETIME DEFAULT NULL, PRIMARY KEY(id)) DEFAULT CHARACTER SET utf8mb4 COLLATE `utf8mb4_unicode_ci` ENGINE = InnoDB');
+        $this->addSql('CREATE TABLE IF NOT EXISTS verification_token (id INT AUTO_INCREMENT NOT NULL, user_id INT NOT NULL, token VARCHAR(255) NOT NULL, expires_at DATETIME NOT NULL, created_at DATETIME NOT NULL, used_at DATETIME DEFAULT NULL, UNIQUE INDEX UNIQ_C1CC006B5F37A13B (token), INDEX IDX_C1CC006BA76ED395 (user_id), PRIMARY KEY(id)) DEFAULT CHARACTER SET utf8mb4 COLLATE `utf8mb4_unicode_ci` ENGINE = InnoDB');
+
+        if (!$hasVerificationTokenFk && $hasUser) {
+            $this->addSql('ALTER TABLE verification_token ADD CONSTRAINT FK_C1CC006BA76ED395 FOREIGN KEY (user_id) REFERENCES `user` (id) ON DELETE CASCADE');
+        }
+
+        $this->addSql('DROP TABLE IF EXISTS shipment_tracking');
+        $this->addSql('DROP TABLE IF EXISTS shipment');
+        $this->addSql('DROP TABLE IF EXISTS courier');
+        $this->addSql('DROP TABLE IF EXISTS shipping_zone');
+
+        if ($hasPetProfileManagement && $hasOwnerId && !$hasPetOwnerFk) {
+            $this->addSql('ALTER TABLE pet_profile_management ADD CONSTRAINT FK_9AC1397B7E3C61F9 FOREIGN KEY (owner_id) REFERENCES pet_owners (id)');
+        }
+
+        if ($hasProductss) {
+            if (!$hasCreatedById) {
+                $this->addSql('ALTER TABLE productss ADD created_by_id INT DEFAULT NULL');
+            }
+            if (!$hasProductssFk) {
+                $this->addSql('ALTER TABLE productss ADD CONSTRAINT FK_9003CDBBB03A8386 FOREIGN KEY (created_by_id) REFERENCES `user` (id) ON DELETE SET NULL');
+            }
+        }
+
+        if ($hasUser) {
+            $columnsToAdd = [];
+            if (!$hasVerifiedAt) {
+                $columnsToAdd[] = 'ADD verified_at DATETIME DEFAULT NULL';
+            }
+            if (!$hasGoogleId) {
+                $columnsToAdd[] = 'ADD google_id VARCHAR(255) DEFAULT NULL';
+            }
+            if ($columnsToAdd !== []) {
+                $this->addSql('ALTER TABLE `user` ' . implode(', ', $columnsToAdd));
+            }
+            if (!$hasGoogleIdIndex && !$hasLegacyGoogleIdIndex) {
+                $this->addSql('CREATE UNIQUE INDEX UNIQ_8D93D64976F5C865 ON `user` (google_id)');
+            }
+        }
+    }
+
+    private function hasColumn($schemaManager, string $table, string $column): bool
+    {
+        $columns = array_change_key_case($schemaManager->listTableColumns($table), CASE_LOWER);
+
+        return array_key_exists(strtolower($column), $columns);
+    }
+
+    private function hasForeignKey($schemaManager, string $table, string $foreignKeyName): bool
+    {
+        foreach ($schemaManager->listTableForeignKeys($table) as $foreignKey) {
+            if (strcasecmp($foreignKey->getName(), $foreignKeyName) === 0) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private function hasIndex($schemaManager, string $table, string $indexName): bool
+    {
+        foreach ($schemaManager->listTableIndexes($table) as $index) {
+            if (strcasecmp($index->getName(), $indexName) === 0) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     public function down(Schema $schema): void
