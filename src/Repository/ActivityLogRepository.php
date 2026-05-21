@@ -30,22 +30,22 @@ class ActivityLogRepository extends ServiceEntityRepository
 
         if (!empty($filters['userId'])) {
             $qb->andWhere('a.userId = :userId')
-               ->setParameter('userId', $filters['userId']);
+                ->setParameter('userId', $filters['userId']);
         }
 
         if (!empty($filters['username'])) {
             $qb->andWhere('a.username LIKE :username')
-               ->setParameter('username', '%' . $filters['username'] . '%');
+                ->setParameter('username', '%' . $filters['username'] . '%');
         }
 
         if (!empty($filters['action'])) {
             $qb->andWhere('a.action = :action')
-               ->setParameter('action', $filters['action']);
+                ->setParameter('action', $filters['action']);
         }
 
         if (!empty($filters['dateFrom'])) {
             $qb->andWhere('a.timestamp >= :dateFrom')
-               ->setParameter('dateFrom', $filters['dateFrom']);
+                ->setParameter('dateFrom', $filters['dateFrom']);
         }
 
         if (!empty($filters['dateTo'])) {
@@ -53,7 +53,7 @@ class ActivityLogRepository extends ServiceEntityRepository
             $dateTo = clone $filters['dateTo'];
             $dateTo->modify('+1 day');
             $qb->andWhere('a.timestamp < :dateTo')
-               ->setParameter('dateTo', $dateTo);
+                ->setParameter('dateTo', $dateTo);
         }
 
         $qb->orderBy('a.' . $orderBy, $orderDirection);
@@ -116,6 +116,20 @@ class ActivityLogRepository extends ServiceEntityRepository
     public function findRecentLogs(int $limit = 50): array
     {
         return $this->createQueryBuilder('a')
+            ->orderBy('a.timestamp', 'DESC')
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * @return ActivityLog[]
+     */
+    public function findRecentLogsByUserId(int $userId, int $limit = 50): array
+    {
+        return $this->createQueryBuilder('a')
+            ->andWhere('a.userId = :userId')
+            ->setParameter('userId', $userId)
             ->orderBy('a.timestamp', 'DESC')
             ->setMaxResults($limit)
             ->getQuery()

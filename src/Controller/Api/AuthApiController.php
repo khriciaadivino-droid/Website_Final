@@ -16,6 +16,24 @@ use Symfony\Component\Routing\Attribute\Route;
 #[Route('/api', name: 'api_')]
 class AuthApiController extends AbstractController
 {
+    private function buildProductPayload(Productss $product, Request $request): array
+    {
+        $imageFilename = $product->getImagefilename();
+
+        return [
+            'id' => $product->getId(),
+            'name' => $product->getName(),
+            'description' => $product->getDescription(),
+            'price' => $product->getPrice(),
+            'quantity' => $product->getQuantity(),
+            'category' => $product->getCategory()?->getName(),
+            'image' => $imageFilename,
+            'imageUrl' => $imageFilename
+                ? $request->getUriForPath('/uploads/products/' . rawurlencode($imageFilename))
+                : null,
+        ];
+    }
+
     #[Route('/register-legacy', name: 'register_legacy', methods: ['POST'])]
     public function register(
         Request $request,
@@ -150,22 +168,14 @@ class AuthApiController extends AbstractController
     }
 
     #[Route('/products', name: 'products_list', methods: ['GET'])]
-    public function listProducts(EntityManagerInterface $entityManager): JsonResponse
+    public function listProducts(Request $request, EntityManagerInterface $entityManager): JsonResponse
     {
         // Get all products from database
         $products = $entityManager->getRepository(Productss::class)->findAll();
 
         $data = [];
         foreach ($products as $product) {
-            $data[] = [
-                'id' => $product->getId(),
-                'name' => $product->getName(),
-                'description' => $product->getDescription(),
-                'price' => $product->getPrice(),
-                'quantity' => $product->getQuantity(),
-                'category' => $product->getCategory()?->getName(),
-                'image' => $product->getImagefilename(),
-            ];
+            $data[] = $this->buildProductPayload($product, $request);
         }
 
         return new JsonResponse([
@@ -177,7 +187,7 @@ class AuthApiController extends AbstractController
     }
 
     #[Route('/products/{id}', name: 'product_detail', methods: ['GET'])]
-    public function getProduct(int $id, EntityManagerInterface $entityManager): JsonResponse
+    public function getProduct(int $id, Request $request, EntityManagerInterface $entityManager): JsonResponse
     {
         $product = $entityManager->getRepository(Productss::class)->find($id);
 
@@ -190,15 +200,7 @@ class AuthApiController extends AbstractController
 
         return new JsonResponse([
             'success' => true,
-            'data' => [
-                'id' => $product->getId(),
-                'name' => $product->getName(),
-                'description' => $product->getDescription(),
-                'price' => $product->getPrice(),
-                'quantity' => $product->getQuantity(),
-                'category' => $product->getCategory()?->getName(),
-                'image' => $product->getImagefilename(),
-            ],
+            'data' => $this->buildProductPayload($product, $request),
         ], Response::HTTP_OK);
     }
 }

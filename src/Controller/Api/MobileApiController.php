@@ -7,27 +7,36 @@ use App\Repository\PetProfileManagementRepository;
 use App\Repository\ProductssRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
 
 #[Route('/api/mobile', name: 'api_mobile_')]
 class MobileApiController extends AbstractController
 {
+    private function buildProductPayload(object $product, Request $request): array
+    {
+        $imageFilename = $product->getImagefilename();
+
+        return [
+            'id' => $product->getId(),
+            'name' => $product->getName(),
+            'description' => $product->getDescription(),
+            'price' => $product->getPrice(),
+            'quantity' => $product->getQuantity(),
+            'image' => $imageFilename,
+            'imageUrl' => $imageFilename
+                ? $request->getUriForPath('/uploads/products/' . rawurlencode($imageFilename))
+                : null,
+            'category' => $product->getCategory()?->getName(),
+        ];
+    }
+
     #[Route('/products', name: 'products', methods: ['GET'])]
-    public function products(ProductssRepository $productssRepository): JsonResponse
+    public function products(Request $request, ProductssRepository $productssRepository): JsonResponse
     {
         $products = $productssRepository->findAll();
 
-        $data = array_map(static function ($product): array {
-            return [
-                'id' => $product->getId(),
-                'name' => $product->getName(),
-                'description' => $product->getDescription(),
-                'price' => $product->getPrice(),
-                'quantity' => $product->getQuantity(),
-                'image' => $product->getImagefilename(),
-                'category' => $product->getCategory()?->getName(),
-            ];
-        }, $products);
+        $data = array_map(fn($product): array => $this->buildProductPayload($product, $request), $products);
 
         return $this->successResponse('Products fetched successfully', $data);
     }

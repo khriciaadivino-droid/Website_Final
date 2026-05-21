@@ -36,6 +36,16 @@ class OrdersRepository extends ServiceEntityRepository
             ->find((int) $row['productId']);
     }
 
+    public function getCompletedIncomeTotal(): float
+    {
+        return (float) $this->createQueryBuilder('o')
+            ->select('COALESCE(SUM(o.totalAmount), 0)')
+            ->where('o.status = :status')
+            ->setParameter('status', 'Completed')
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+
     //    /**
     //     * @return Orders[] Returns an array of Orders objects
     //     */

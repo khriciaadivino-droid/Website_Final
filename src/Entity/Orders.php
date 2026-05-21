@@ -18,7 +18,7 @@ class Orders
     private ?string $orderNumber = null;
 
     #[ORM\ManyToOne(targetEntity: Productss::class)]
-    #[ORM\JoinColumn(nullable: true)]
+    #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
     private ?Productss $product = null;
 
     #[ORM\Column(length: 100)]
@@ -53,6 +53,9 @@ class Orders
 
     #[ORM\Column(length: 100, nullable: true)]
     private ?string $paymentIntentId = null;
+
+    #[ORM\Column(options: ['default' => false])]
+    private bool $stockDeducted = false;
 
     public function getId(): ?int
     {
@@ -211,6 +214,18 @@ class Orders
     public function setPaymentIntentId(?string $paymentIntentId): static
     {
         $this->paymentIntentId = $paymentIntentId;
+
+        return $this;
+    }
+
+    public function isStockDeducted(): bool
+    {
+        return $this->stockDeducted;
+    }
+
+    public function setStockDeducted(bool $stockDeducted): static
+    {
+        $this->stockDeducted = $stockDeducted;
 
         return $this;
     }

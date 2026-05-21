@@ -3,6 +3,7 @@
 namespace App\Service;
 
 use App\Entity\ActivityLog;
+use App\Entity\Orders;
 use App\Entity\User;
 use Doctrine\ORM\EntityManagerInterface;
 
@@ -21,25 +22,18 @@ class ActivityLogService
      */
     public function log(User $user, string $action, ?string $targetData = null): void
     {
-        $log = new ActivityLog();
-        $log->setUserId($user->getId());
-        $log->setUsername($user->getFullName() ?: $user->getEmail());
-
-        // Get the primary role (highest priority)
-        $roles = $user->getRoles();
-        if (in_array('ROLE_ADMIN', $roles)) {
-            $log->setRole('ROLE_ADMIN');
-        } elseif (in_array('ROLE_STAFF', $roles)) {
-            $log->setRole('ROLE_STAFF');
-        } else {
-            $log->setRole('ROLE_USER');
+        $userId = $user->getId();
+        if ($userId === null) {
+            return;
         }
 
-        $log->setAction($action);
-        $log->setTargetData($targetData);
-
-        $this->entityManager->persist($log);
-        $this->entityManager->flush();
+        $this->persistLog(
+            $userId,
+            $user->getFullName() ?: $user->getEmail(),
+            $this->resolvePrimaryRole($user),
+            $action,
+            $targetData
+        );
     }
 
     /**
@@ -110,5 +104,67 @@ class ActivityLogService
     {
         $targetData = sprintf('User: %s (ID: %d)', $updatedUser->getEmail(), $updatedUser->getId());
         $this->log($admin, 'UPDATE', $targetData);
+    }
+
+    public function logOrderStatusNotification(User $actor, Orders $order, string $previousStatus, string $newStatus): void
+    {
+        if (strcasecmp($previousStatus, $newStatus) === 0) {
+            return;
+        }
+
+        $normalizedStatus = strtolower(trim($newStatus));
+        if (!in_array($normalizedStatus, ['processing', 'completed', 'cancelled'], true)) {
+            return;
+        }
+
+        $customerEmail = trim((string) ($order->getCustomerEmail() ?? ''));
+        if ($customerEmail === '') {
+            return;
+        }
+
+        $customer = $this->entityManager->getRepository(User::class)->findOneBy([
+            'email' => $customerEmail,
+        ]);
+        if (!$customer instanceof User || $customer->getId() === null) {
+            return;
+        }
+
+        $orderLabel = $order->getOrderNumber() ?: ('Order #' . $order->getId());
+        $targetData = sprintf('%s is now %s.', $orderLabel, $newStatus);
+
+        $this->persistLog(
+            $customer->getId(),
+            $actor->getFullName() ?: $actor->getEmail(),
+            $this->resolvePrimaryRole($actor),
+            'ORDER_STATUS',
+            $targetData
+        );
+    }
+
+    private function resolvePrimaryRole(User $user): string
+    {
+        $roles = $user->getRoles();
+        if (in_array('ROLE_ADMIN', $roles, true)) {
+            return 'ROLE_ADMIN';
+        }
+
+        if (in_array('ROLE_STAFF', $roles, true)) {
+            return 'ROLE_STAFF';
+        }
+
+        return 'ROLE_USER';
+    }
+
+    private function persistLog(int $userId, string $username, string $role, string $action, ?string $targetData): void
+    {
+        $log = new ActivityLog();
+        $log->setUserId($userId);
+        $log->setUsername($username);
+        $log->setRole($role);
+        $log->setAction($action);
+        $log->setTargetData($targetData);
+
+        $this->entityManager->persist($log);
+        $this->entityManager->flush();
     }
 }

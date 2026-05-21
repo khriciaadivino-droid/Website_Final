@@ -28,7 +28,7 @@ class ApiRegistrationController extends AbstractController
     {
         $data = json_decode($request->getContent(), true);
 
-        $username = trim((string) ($data['username'] ?? ''));
+        $username = trim((string) ($data['username'] ?? $data['name'] ?? ''));
         $email = trim((string) ($data['email'] ?? ''));
         $password = (string) ($data['password'] ?? '');
 

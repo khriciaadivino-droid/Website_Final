@@ -2,6 +2,8 @@
 
 namespace App\Controller;
 
+use App\Repository\ActivityLogRepository;
+use App\Repository\ContactMessageRepository;
 use App\Repository\UserRepository;
 use App\Repository\ProductssRepository;
 use App\Repository\OrdersRepository;
@@ -19,7 +21,9 @@ class AdminDashboardController extends AbstractController
         UserRepository $userRepository,
         ProductssRepository $productssRepository,
         OrdersRepository $ordersRepository,
-        PetProfileManagementRepository $petProfileRepository
+        PetProfileManagementRepository $petProfileRepository,
+        ActivityLogRepository $activityLogRepository,
+        ContactMessageRepository $contactMessageRepository
     ): Response {
         $totalUsers = $userRepository->count([]);
         $totalAdmins = $userRepository->countAdminUsers();
@@ -27,6 +31,7 @@ class AdminDashboardController extends AbstractController
 
         $totalProducts = $productssRepository->count([]);
         $totalOrders = $ordersRepository->count([]);
+        $totalCompletedIncome = $ordersRepository->getCompletedIncomeTotal();
         $totalStockQuantity = (int) $productssRepository->createQueryBuilder('p')
             ->select('COALESCE(SUM(p.quantity), 0)')
             ->getQuery()
@@ -34,6 +39,11 @@ class AdminDashboardController extends AbstractController
 
         $recentUsers = $userRepository->findBy([], ['createdAt' => 'DESC'], 5);
         $petOfTheMonth = $petProfileRepository->findOneBy(['isPetOfTheMonth' => true]);
+        $allPets = $petProfileRepository->findBy([], ['id' => 'DESC']);
+        $recentActivityLogs = $activityLogRepository->findRecentLogs(6);
+        $recentContactMessages = $contactMessageRepository->findLatest(5);
+        $pendingContactMessages = $contactMessageRepository->count(['emailSent' => false]);
+        $totalContactMessages = $contactMessageRepository->count([]);
 
         return $this->render('admin_dashboard/index.html.twig', [
             'totalUsers' => $totalUsers,
@@ -41,9 +51,15 @@ class AdminDashboardController extends AbstractController
             'totalStaff' => $totalStaff,
             'totalProducts' => $totalProducts,
             'totalOrders' => $totalOrders,
+            'totalCompletedIncome' => $totalCompletedIncome,
             'totalStockQuantity' => $totalStockQuantity,
             'recentUsers' => $recentUsers,
             'petOfTheMonth' => $petOfTheMonth,
+            'allPets' => $allPets,
+            'recentActivityLogs' => $recentActivityLogs,
+            'recentContactMessages' => $recentContactMessages,
+            'pendingContactMessages' => $pendingContactMessages,
+            'totalContactMessages' => $totalContactMessages,
         ]);
     }
 }

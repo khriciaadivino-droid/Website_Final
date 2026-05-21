@@ -8,6 +8,7 @@ use App\Entity\PetOwners;
 use App\Entity\PetProfileManagement;
 use App\Entity\Productss;
 use App\Entity\Stocks;
+use App\Entity\User;
 use App\Repository\ActivityLogRepository;
 use App\Repository\CategoryRepository;
 use App\Repository\OrdersRepository;
@@ -15,6 +16,8 @@ use App\Repository\PetOwnersRepository;
 use App\Repository\PetProfileManagementRepository;
 use App\Repository\ProductssRepository;
 use App\Repository\StocksRepository;
+use App\Service\OrderStockService;
+use App\Service\ActivityLogService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\File\Exception\FileException;
@@ -35,9 +38,20 @@ class EntityReadApiController extends AbstractController
     ];
 
     #[Route('/activity_logs', name: 'activity_logs', methods: ['GET'])]
-    public function activityLogs(ActivityLogRepository $activityLogRepository): JsonResponse
+    public function activityLogs(Request $request, ActivityLogRepository $activityLogRepository): JsonResponse
     {
-        $logs = $activityLogRepository->findBy([], ['timestamp' => 'DESC']);
+        $limit = max(1, min((int) $request->query->get('limit', 25), 100));
+
+        if ($this->canManageAllOrders()) {
+            $logs = $activityLogRepository->findRecentLogs($limit);
+        } else {
+            $currentUser = $this->getAuthenticatedApiUser();
+            if (!$currentUser || !$currentUser->getId()) {
+                return $this->error('You must be signed in to view your notifications.', Response::HTTP_FORBIDDEN);
+            }
+
+            $logs = $activityLogRepository->findRecentLogsByUserId($currentUser->getId(), $limit);
+        }
 
         $data = array_map(static function ($log): array {
             return [
@@ -55,10 +69,10 @@ class EntityReadApiController extends AbstractController
     }
 
     #[Route('/events', name: 'events', methods: ['GET'])]
-    public function events(ActivityLogRepository $activityLogRepository): JsonResponse
+    public function events(Request $request, ActivityLogRepository $activityLogRepository): JsonResponse
     {
         // Alias endpoint for mobile/Postman collections expecting /api/events.
-        return $this->activityLogs($activityLogRepository);
+        return $this->activityLogs($request, $activityLogRepository);
     }
 
     #[Route('/stocks', name: 'stocks', methods: ['GET'])]
@@ -170,7 +184,18 @@ class EntityReadApiController extends AbstractController
     #[Route('/orders', name: 'orders', methods: ['GET'])]
     public function orders(OrdersRepository $ordersRepository): JsonResponse
     {
-        $orders = $ordersRepository->findBy([], ['orderDate' => 'DESC']);
+        if ($this->canManageAllOrders()) {
+            $orders = $ordersRepository->findBy([], ['orderDate' => 'DESC']);
+        } else {
+            $currentUser = $this->getAuthenticatedApiUser();
+            if (!$currentUser || !$currentUser->getEmail()) {
+                return $this->error('You must be signed in to view your orders.', Response::HTTP_FORBIDDEN);
+            }
+
+            $orders = $ordersRepository->findBy([
+                'customerEmail' => $currentUser->getEmail(),
+            ], ['orderDate' => 'DESC']);
+        }
 
         $data = array_map(static function ($order): array {
             return [
@@ -197,14 +222,26 @@ class EntityReadApiController extends AbstractController
     }
 
     #[Route('/orders', name: 'orders_create', methods: ['POST'])]
-    public function createOrder(Request $request, EntityManagerInterface $entityManager, ProductssRepository $productssRepository): JsonResponse
-    {
+    public function createOrder(
+        Request $request,
+        EntityManagerInterface $entityManager,
+        ProductssRepository $productssRepository,
+        OrderStockService $orderStockService,
+        ActivityLogService $activityLogService
+    ): JsonResponse {
         $data = $this->parseJson($request);
         if ($data === null) {
             return $this->error('Invalid JSON body', Response::HTTP_BAD_REQUEST);
         }
 
-        foreach (['order_number', 'customer_name', 'quantity', 'total_amount', 'product_id'] as $requiredField) {
+        $currentUser = $this->getAuthenticatedApiUser();
+
+        $requiredFields = ['order_number', 'quantity', 'total_amount', 'product_id'];
+        if ($this->canManageAllOrders()) {
+            $requiredFields[] = 'customer_name';
+        }
+
+        foreach ($requiredFields as $requiredField) {
             if (!isset($data[$requiredField]) || $data[$requiredField] === '') {
                 return $this->error($requiredField . ' is required', Response::HTTP_BAD_REQUEST);
             }
@@ -220,15 +257,21 @@ class EntityReadApiController extends AbstractController
             return $this->error('Product not found', Response::HTTP_NOT_FOUND);
         }
 
-        $availableStock = $product->getQuantity() ?? 0;
-        if ($availableStock < $quantity) {
-            return $this->error(sprintf('Insufficient stock. Available: %d, requested: %d.', $availableStock, $quantity), Response::HTTP_CONFLICT);
-        }
-
         $order = new Orders();
         $order->setOrderNumber((string) $data['order_number']);
-        $order->setCustomerName((string) $data['customer_name']);
-        $order->setCustomerEmail(isset($data['customer_email']) ? (string) $data['customer_email'] : null);
+
+        if ($this->canManageAllOrders()) {
+            $order->setCustomerName((string) $data['customer_name']);
+            $order->setCustomerEmail(isset($data['customer_email']) ? (string) $data['customer_email'] : null);
+        } else {
+            if (!$currentUser || !$currentUser->getEmail()) {
+                return $this->error('You must be signed in to create an order.', Response::HTTP_FORBIDDEN);
+            }
+
+            $order->setCustomerName($currentUser->getFullName() ?: $currentUser->getEmail());
+            $order->setCustomerEmail($currentUser->getEmail());
+        }
+
         $order->setQuantity($quantity);
         $order->setTotalAmount((float) $data['total_amount']);
 
@@ -260,17 +303,26 @@ class EntityReadApiController extends AbstractController
         $order->setOrderDate(isset($data['order_date']) ? new \DateTime((string) $data['order_date']) : new \DateTime());
 
         $order->setProduct($product);
-        $product->setQuantity($availableStock - $quantity);
 
-        $this->createStockMovement(
-            $entityManager,
-            $product,
-            -$quantity,
-            sprintf('Order %s created via API. Deducted %d item(s).', $order->getOrderNumber(), $quantity)
-        );
+        try {
+            $orderStockService->syncForCreate($order, 'api');
+        } catch (\InvalidArgumentException $exception) {
+            return $this->error($exception->getMessage(), Response::HTTP_BAD_REQUEST);
+        } catch (\RuntimeException $exception) {
+            return $this->error($exception->getMessage(), Response::HTTP_CONFLICT);
+        }
 
         $entityManager->persist($order);
         $entityManager->flush();
+
+        if ($currentUser) {
+            $activityLogService->logCreate(
+                $currentUser,
+                'Order',
+                $order->getOrderNumber() ?: ('Order #' . $order->getId()),
+                (int) $order->getId()
+            );
+        }
 
         return $this->json([
             'success' => true,
@@ -286,11 +338,28 @@ class EntityReadApiController extends AbstractController
     }
 
     #[Route('/orders/{id}', name: 'orders_update', methods: ['PUT', 'PATCH'])]
-    public function updateOrder(int $id, Request $request, OrdersRepository $ordersRepository, ProductssRepository $productssRepository, EntityManagerInterface $entityManager): JsonResponse
-    {
+    public function updateOrder(
+        int $id,
+        Request $request,
+        OrdersRepository $ordersRepository,
+        ProductssRepository $productssRepository,
+        EntityManagerInterface $entityManager,
+        OrderStockService $orderStockService,
+        ActivityLogService $activityLogService
+    ): JsonResponse {
         $order = $ordersRepository->find($id);
         if (!$order) {
             return $this->error('Order not found', Response::HTTP_NOT_FOUND);
+        }
+
+        $currentUser = $this->getAuthenticatedApiUser();
+
+        if (!$this->canAccessOrder($order)) {
+            return $this->error('You do not have access to this order.', Response::HTTP_FORBIDDEN);
+        }
+
+        if ($order->getStatus() === 'Completed') {
+            return $this->error('Completed orders cannot be edited.', Response::HTTP_CONFLICT);
         }
 
         $data = $this->parseJson($request);
@@ -300,14 +369,16 @@ class EntityReadApiController extends AbstractController
 
         $originalProduct = $order->getProduct();
         $originalQuantity = $order->getQuantity() ?? 0;
+        $originalStatus = $order->getStatus() ?? 'Pending';
+        $originalStockDeducted = $order->isStockDeducted();
 
         if (isset($data['order_number'])) {
             $order->setOrderNumber((string) $data['order_number']);
         }
-        if (isset($data['customer_name'])) {
+        if ($this->canManageAllOrders() && isset($data['customer_name'])) {
             $order->setCustomerName((string) $data['customer_name']);
         }
-        if (array_key_exists('customer_email', $data)) {
+        if ($this->canManageAllOrders() && array_key_exists('customer_email', $data)) {
             $order->setCustomerEmail($data['customer_email'] !== null ? (string) $data['customer_email'] : null);
         }
         if (isset($data['quantity'])) {
@@ -342,82 +413,68 @@ class EntityReadApiController extends AbstractController
         $currentProduct = $order->getProduct();
         $currentQuantity = $order->getQuantity() ?? 0;
 
-        if ($currentQuantity <= 0) {
-            return $this->error('quantity must be greater than zero', Response::HTTP_BAD_REQUEST);
-        }
-
-        if ($originalProduct && $currentProduct && $originalProduct->getId() === $currentProduct->getId()) {
-            $stockAdjustment = $originalQuantity - $currentQuantity;
-            $newStock = ($currentProduct->getQuantity() ?? 0) + $stockAdjustment;
-
-            if ($newStock < 0) {
-                return $this->error(sprintf('Insufficient stock. Available: %d, requested increase: %d.', $currentProduct->getQuantity() ?? 0, $currentQuantity - $originalQuantity), Response::HTTP_CONFLICT);
-            }
-
-            $currentProduct->setQuantity($newStock);
-
-            if ($stockAdjustment !== 0) {
-                $movementText = $stockAdjustment > 0
-                    ? sprintf('Order %s updated via API. Restored %d item(s).', $order->getOrderNumber(), $stockAdjustment)
-                    : sprintf('Order %s updated via API. Deducted %d item(s).', $order->getOrderNumber(), abs($stockAdjustment));
-
-                $this->createStockMovement($entityManager, $currentProduct, $stockAdjustment, $movementText);
-            }
-        } else {
-            if ($originalProduct) {
-                $originalProduct->setQuantity(($originalProduct->getQuantity() ?? 0) + $originalQuantity);
-                $this->createStockMovement(
-                    $entityManager,
-                    $originalProduct,
-                    $originalQuantity,
-                    sprintf('Order %s moved/de-linked via API. Restored %d item(s).', $order->getOrderNumber(), $originalQuantity)
-                );
-            }
-
-            if ($currentProduct) {
-                $availableStock = $currentProduct->getQuantity() ?? 0;
-                if ($availableStock < $currentQuantity) {
-                    return $this->error(sprintf('Insufficient stock for selected product. Available: %d, requested: %d.', $availableStock, $currentQuantity), Response::HTTP_CONFLICT);
-                }
-
-                $currentProduct->setQuantity($availableStock - $currentQuantity);
-                $this->createStockMovement(
-                    $entityManager,
-                    $currentProduct,
-                    -$currentQuantity,
-                    sprintf('Order %s moved/linked via API. Deducted %d item(s).', $order->getOrderNumber(), $currentQuantity)
-                );
-            }
+        try {
+            $orderStockService->syncForUpdate(
+                $order,
+                $originalProduct,
+                $originalQuantity,
+                $originalStockDeducted,
+                'api'
+            );
+        } catch (\InvalidArgumentException $exception) {
+            return $this->error($exception->getMessage(), Response::HTTP_BAD_REQUEST);
+        } catch (\RuntimeException $exception) {
+            return $this->error($exception->getMessage(), Response::HTTP_CONFLICT);
         }
 
         $entityManager->flush();
+
+        if ($currentUser) {
+            $activityLogService->logUpdate(
+                $currentUser,
+                'Order',
+                $order->getOrderNumber() ?: ('Order #' . $order->getId()),
+                (int) $order->getId()
+            );
+            $activityLogService->logOrderStatusNotification(
+                $currentUser,
+                $order,
+                $originalStatus,
+                $order->getStatus() ?? $originalStatus
+            );
+        }
 
         return $this->success('Order updated successfully', [['id' => $order->getId()]]);
     }
 
     #[Route('/orders/{id}', name: 'orders_delete', methods: ['DELETE'])]
-    public function deleteOrder(int $id, OrdersRepository $ordersRepository, EntityManagerInterface $entityManager): JsonResponse
-    {
+    public function deleteOrder(
+        int $id,
+        OrdersRepository $ordersRepository,
+        EntityManagerInterface $entityManager,
+        OrderStockService $orderStockService,
+        ActivityLogService $activityLogService
+    ): JsonResponse {
         $order = $ordersRepository->find($id);
         if (!$order) {
             return $this->error('Order not found', Response::HTTP_NOT_FOUND);
         }
 
-        $product = $order->getProduct();
-        $quantity = $order->getQuantity() ?? 0;
+        $currentUser = $this->getAuthenticatedApiUser();
+        $orderLabel = $order->getOrderNumber() ?: ('Order #' . $order->getId());
 
-        if ($product && $quantity > 0) {
-            $product->setQuantity(($product->getQuantity() ?? 0) + $quantity);
-            $this->createStockMovement(
-                $entityManager,
-                $product,
-                $quantity,
-                sprintf('Order %s deleted via API. Restored %d item(s).', $order->getOrderNumber(), $quantity)
-            );
+        if (!$this->canAccessOrder($order)) {
+            return $this->error('You do not have access to this order.', Response::HTTP_FORBIDDEN);
         }
+
+        $orderStockService->restoreForDelete($order, 'api');
 
         $entityManager->remove($order);
         $entityManager->flush();
+
+        if ($currentUser) {
+            $activityLogService->logDelete($currentUser, 'Order', $orderLabel, $id);
+        }
 
         return $this->success('Order deleted successfully', [['id' => $id]]);
     }
@@ -607,10 +664,85 @@ class EntityReadApiController extends AbstractController
         return $this->success('Pet owner deleted successfully', [['id' => $id]]);
     }
 
+    #[Route('/pet-profiles/upload/image', name: 'pet_profiles_upload_image', methods: ['POST'])]
+    public function uploadPetImage(Request $request, SluggerInterface $slugger): JsonResponse
+    {
+        $file = $request->files->get('image');
+
+        if (!$file) {
+            return $this->error('No image file provided', Response::HTTP_BAD_REQUEST);
+        }
+
+        $originalFilename = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
+        $safeFilename = $slugger->slug($originalFilename);
+        $newFilename = $safeFilename . '-' . uniqid() . '.' . $file->guessExtension();
+
+        try {
+            $file->move(
+                $this->getParameter('pet_images_directory'),
+                $newFilename
+            );
+        } catch (FileException $e) {
+            return $this->error('Failed to upload image: ' . $e->getMessage(), Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
+
+        return $this->json([
+            'success' => true,
+            'message' => 'Pet image uploaded successfully',
+            'data' => [
+                'filename' => $newFilename,
+                'url' => '/uploads/pets/' . $newFilename,
+            ],
+        ], Response::HTTP_CREATED);
+    }
+
+    #[Route('/pet-profiles/{id}/set-pet-of-month', name: 'pet_profiles_set_pet_of_month', methods: ['POST'])]
+    public function setPetOfTheMonth(int $id, PetProfileManagementRepository $petProfileRepository, EntityManagerInterface $entityManager): JsonResponse
+    {
+        if (!$this->canManageAllOrders()) {
+            return $this->error('Access denied. Admin or staff role required.', Response::HTTP_FORBIDDEN);
+        }
+
+        $pet = $petProfileRepository->find($id);
+        if (!$pet) {
+            return $this->error('Pet profile not found', Response::HTTP_NOT_FOUND);
+        }
+
+        $wasPotm = $pet->isPetOfTheMonth();
+
+        // Clear all existing pet-of-the-month flags
+        $allPotm = $petProfileRepository->findBy(['isPetOfTheMonth' => true]);
+        foreach ($allPotm as $p) {
+            $p->setIsPetOfTheMonth(false);
+        }
+
+        // If this pet was not already POTM, set it now; otherwise it stays cleared (toggle)
+        if (!$wasPotm) {
+            $pet->setIsPetOfTheMonth(true);
+        }
+
+        $entityManager->flush();
+
+        return $this->success('Pet of the month updated', [['id' => $pet->getId(), 'is_pet_of_the_month' => $pet->isPetOfTheMonth()]]);
+    }
+
     #[Route('/pet-profiles', name: 'pet_profiles', methods: ['GET'])]
     public function petProfiles(PetProfileManagementRepository $petProfileRepository): JsonResponse
     {
-        $petProfiles = $petProfileRepository->findAll();
+        if ($this->canManageAllOrders()) {
+            $petProfiles = $petProfileRepository->findAll();
+        } else {
+            $currentUser = $this->getAuthenticatedApiUser();
+            if (!$currentUser || !$currentUser->getEmail()) {
+                return $this->error('You must be signed in to view your pets.', Response::HTTP_FORBIDDEN);
+            }
+            $petProfiles = $petProfileRepository->createQueryBuilder('p')
+                ->leftJoin('p.owner', 'o')
+                ->where('o.email = :email')
+                ->setParameter('email', $currentUser->getEmail())
+                ->getQuery()
+                ->getResult();
+        }
 
         $data = array_map(static function ($pet): array {
             return [
@@ -621,6 +753,7 @@ class EntityReadApiController extends AbstractController
                 'age' => $pet->getAge(),
                 'date_of_birth' => $pet->getDateofbirth()?->format('Y-m-d'),
                 'image' => $pet->getImage(),
+                'image_url' => $pet->getImage() ? '/uploads/pets/' . $pet->getImage() : null,
                 'is_pet_of_the_month' => $pet->isPetOfTheMonth(),
                 'owner' => $pet->getOwner() ? [
                     'id' => $pet->getOwner()->getId(),
@@ -634,14 +767,14 @@ class EntityReadApiController extends AbstractController
     }
 
     #[Route('/pet-profiles', name: 'pet_profiles_create', methods: ['POST'])]
-    public function createPetProfile(Request $request, EntityManagerInterface $entityManager, PetOwnersRepository $petOwnersRepository): JsonResponse
+    public function createPetProfile(Request $request, EntityManagerInterface $entityManager, PetOwnersRepository $petOwnersRepository, ActivityLogService $activityLogService): JsonResponse
     {
         $data = $this->parseJson($request);
         if ($data === null) {
             return $this->error('Invalid JSON body', Response::HTTP_BAD_REQUEST);
         }
 
-        foreach (['name', 'species', 'breed', 'age'] as $requiredField) {
+        foreach (['name', 'species'] as $requiredField) {
             if (!isset($data[$requiredField]) || $data[$requiredField] === '') {
                 return $this->error($requiredField . ' is required', Response::HTTP_BAD_REQUEST);
             }
@@ -650,8 +783,8 @@ class EntityReadApiController extends AbstractController
         $pet = new PetProfileManagement();
         $pet->setName((string) $data['name']);
         $pet->setSpecies((string) $data['species']);
-        $pet->setBreed((string) $data['breed']);
-        $pet->setAge((float) $data['age']);
+        $pet->setBreed((string) ($data['breed'] ?? ''));
+        $pet->setAge((float) ($data['age'] ?? 0));
         if (isset($data['date_of_birth']) && $data['date_of_birth'] !== null) {
             $pet->setDateofbirth(new \DateTime((string) $data['date_of_birth']));
         }
@@ -661,7 +794,22 @@ class EntityReadApiController extends AbstractController
         if (isset($data['is_pet_of_the_month'])) {
             $pet->setIsPetOfTheMonth((bool) $data['is_pet_of_the_month']);
         }
-        if (isset($data['owner_id']) && $data['owner_id'] !== null) {
+
+        // Auto-link to authenticated user; fall back to explicit owner_id for admin/staff
+        $currentUser = $this->getAuthenticatedApiUser();
+        if ($currentUser && !$this->canManageAllOrders()) {
+            $owner = $petOwnersRepository->findOneBy(['email' => $currentUser->getEmail()]);
+            if (!$owner) {
+                $owner = new PetOwners();
+                $owner->setEmail($currentUser->getEmail());
+                $nameParts = explode(' ', $currentUser->getFullName() ?? '', 2);
+                $owner->setFirstName($nameParts[0] !== '' ? $nameParts[0] : ($currentUser->getEmail() ?? 'User'));
+                $owner->setLastName($nameParts[1] ?? '');
+                $owner->setRegistrationDate(new \DateTime());
+                $entityManager->persist($owner);
+            }
+            $pet->setOwner($owner);
+        } elseif (isset($data['owner_id']) && $data['owner_id'] !== null) {
             $owner = $petOwnersRepository->find((int) $data['owner_id']);
             if (!$owner) {
                 return $this->error('Pet owner not found', Response::HTTP_NOT_FOUND);
@@ -672,6 +820,10 @@ class EntityReadApiController extends AbstractController
         $entityManager->persist($pet);
         $entityManager->flush();
 
+        if ($currentUser) {
+            $activityLogService->logCreate($currentUser, 'Pet Profile', $pet->getName() ?: ('Pet #' . $pet->getId()), (int) $pet->getId());
+        }
+
         return $this->json([
             'success' => true,
             'message' => 'Pet profile created successfully',
@@ -680,12 +832,14 @@ class EntityReadApiController extends AbstractController
     }
 
     #[Route('/pet-profiles/{id}', name: 'pet_profiles_update', methods: ['PUT', 'PATCH'])]
-    public function updatePetProfile(int $id, Request $request, PetProfileManagementRepository $petProfileRepository, PetOwnersRepository $petOwnersRepository, EntityManagerInterface $entityManager): JsonResponse
+    public function updatePetProfile(int $id, Request $request, PetProfileManagementRepository $petProfileRepository, PetOwnersRepository $petOwnersRepository, EntityManagerInterface $entityManager, ActivityLogService $activityLogService): JsonResponse
     {
         $pet = $petProfileRepository->find($id);
         if (!$pet) {
             return $this->error('Pet profile not found', Response::HTTP_NOT_FOUND);
         }
+
+        $currentUser = $this->getAuthenticatedApiUser();
 
         $data = $this->parseJson($request);
         if ($data === null) {
@@ -727,19 +881,30 @@ class EntityReadApiController extends AbstractController
 
         $entityManager->flush();
 
+        if ($currentUser) {
+            $activityLogService->logUpdate($currentUser, 'Pet Profile', $pet->getName() ?: ('Pet #' . $pet->getId()), (int) $pet->getId());
+        }
+
         return $this->success('Pet profile updated successfully', [['id' => $pet->getId()]]);
     }
 
     #[Route('/pet-profiles/{id}', name: 'pet_profiles_delete', methods: ['DELETE'])]
-    public function deletePetProfile(int $id, PetProfileManagementRepository $petProfileRepository, EntityManagerInterface $entityManager): JsonResponse
+    public function deletePetProfile(int $id, PetProfileManagementRepository $petProfileRepository, EntityManagerInterface $entityManager, ActivityLogService $activityLogService): JsonResponse
     {
         $pet = $petProfileRepository->find($id);
         if (!$pet) {
             return $this->error('Pet profile not found', Response::HTTP_NOT_FOUND);
         }
 
+        $currentUser = $this->getAuthenticatedApiUser();
+        $petLabel = $pet->getName() ?: ('Pet #' . $pet->getId());
+
         $entityManager->remove($pet);
         $entityManager->flush();
+
+        if ($currentUser) {
+            $activityLogService->logDelete($currentUser, 'Pet Profile', $petLabel, $id);
+        }
 
         return $this->success('Pet profile deleted successfully', [['id' => $id]]);
     }
@@ -941,32 +1106,34 @@ class EntityReadApiController extends AbstractController
         return $this->isGranted('ROLE_ADMIN');
     }
 
-    private function createStockMovement(EntityManagerInterface $entityManager, Productss $product, int $quantityChange, string $message): void
+    private function canManageAllOrders(): bool
     {
-        $messageWithActor = sprintf('%s By: %s.', rtrim($message, '.'), $this->getStockActorLabel());
-
-        $movement = new Stocks();
-        $movement->setProductss($product);
-        $movement->setQuantityChange((float) $quantityChange);
-        $movement->setStockChangeLog($messageWithActor);
-        $movement->setCreateAt(new \DateTimeImmutable());
-        $movement->setUpdateAt(new \DateTimeImmutable());
-
-        $entityManager->persist($movement);
+        return $this->isGranted('ROLE_ADMIN') || $this->isGranted('ROLE_STAFF');
     }
 
-    private function getStockActorLabel(): string
+    private function getAuthenticatedApiUser(): ?User
     {
         $user = $this->getUser();
-        if (!$user instanceof \App\Entity\User) {
-            return 'System';
+
+        return $user instanceof User ? $user : null;
+    }
+
+    private function canAccessOrder(Orders $order): bool
+    {
+        if ($this->canManageAllOrders()) {
+            return true;
         }
 
-        $roles = $user->getRoles();
-        $roleLabel = in_array('ROLE_ADMIN', $roles, true)
-            ? 'Admin'
-            : (in_array('ROLE_STAFF', $roles, true) ? 'Staff' : 'User');
+        $currentUser = $this->getAuthenticatedApiUser();
+        if (!$currentUser || !$currentUser->getEmail()) {
+            return false;
+        }
 
-        return sprintf('%s (%s)', $roleLabel, $user->getEmail() ?? 'unknown');
+        $orderEmail = trim((string) ($order->getCustomerEmail() ?? ''));
+        if ($orderEmail === '') {
+            return false;
+        }
+
+        return strcasecmp($orderEmail, $currentUser->getEmail()) === 0;
     }
 }
