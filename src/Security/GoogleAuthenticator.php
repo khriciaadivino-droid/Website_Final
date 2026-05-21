@@ -83,6 +83,11 @@ class GoogleAuthenticator extends OAuth2Authenticator
 
     public function onAuthenticationFailure(Request $request, AuthenticationException $exception): ?Response
     {
+        $session = $request->getSession();
+        if ($session instanceof \Symfony\Component\HttpFoundation\Session\FlashBagAwareSessionInterface) {
+            $session->getFlashBag()->add('error', 'Google sign-in failed. Please try again or use your email and password.');
+        }
+
         return new RedirectResponse($this->router->generate('app_login'));
     }
 }

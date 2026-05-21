@@ -28,6 +28,7 @@
 							<th class="px-4 py-3 text-left font-semibold">Customer Name</th>
 							<th class="px-4 py-3 text-left font-semibold">Email</th>
 							<th class="px-4 py-3 text-left font-semibold">Order Date</th>
+							<th class="px-4 py-3 text-left font-semibold">Quantity</th>
 							<th class="px-4 py-3 text-left font-semibold">Total Amount</th>
 							<th class="px-4 py-3 text-left font-semibold">Status</th>
 							<th class="px-4 py-3 text-left font-semibold">Fulfillment</th>
@@ -50,6 +51,7 @@
 								<td class="px-4 py-3 text-gray-900">{{ order.customerName }}</td>
 								<td class="px-4 py-3 text-gray-600">{{ order.customerEmail ?? '-' }}</td>
 								<td class="px-4 py-3 text-gray-600">{{ order.orderDate|date('Y-m-d H:i') }}</td>
+								<td class="px-4 py-3 font-semibold text-gray-900">{{ order.quantity }}</td>
 								<td class="px-4 py-3 font-semibold text-gray-900">₱{{ order.totalAmount|number_format(2, '.', ',') }}</td>
 								<td class="px-4 py-3">
 									{% if order.status == 'Completed' %}
@@ -107,7 +109,7 @@
 							</tr>
 						{% else %}
 							<tr>
-								<td colspan="11" class="px-4 py-8 text-center text-gray-500">
+								<td colspan="12" class="px-4 py-8 text-center text-gray-500">
 									No orders found.
 									<a href="{{ path('app_orders_new') }}" class="text-blue-600 hover:underline">Create one now</a>
 								</td>
@@ -131,7 +133,7 @@ pageLength: 10,
 columnDefs: [
 {
 orderable: false,
-targets: [7, 8, 9, 10]
+targets: [8, 9, 10, 11]
 }
 ],
 language: {

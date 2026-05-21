@@ -236,7 +236,7 @@ class EntityReadApiController extends AbstractController
 
         $currentUser = $this->getAuthenticatedApiUser();
 
-        $requiredFields = ['order_number', 'quantity', 'total_amount', 'product_id'];
+        $requiredFields = ['order_number', 'quantity', 'product_id'];
         if ($this->canManageAllOrders()) {
             $requiredFields[] = 'customer_name';
         }
@@ -273,7 +273,6 @@ class EntityReadApiController extends AbstractController
         }
 
         $order->setQuantity($quantity);
-        $order->setTotalAmount((float) $data['total_amount']);
 
         $fulfillmentType = isset($data['fulfillment_type']) ? strtolower(trim((string) $data['fulfillment_type'])) : null;
         if ($fulfillmentType !== null && !in_array($fulfillmentType, ['pickup', 'delivery'], true)) {
@@ -303,6 +302,7 @@ class EntityReadApiController extends AbstractController
         $order->setOrderDate(isset($data['order_date']) ? new \DateTime((string) $data['order_date']) : new \DateTime());
 
         $order->setProduct($product);
+        $this->recalculateOrderTotal($order);
 
         try {
             $orderStockService->syncForCreate($order, 'api');
@@ -330,6 +330,8 @@ class EntityReadApiController extends AbstractController
             'data' => [
                 'id' => $order->getId(),
                 'order_number' => $order->getOrderNumber(),
+                'quantity' => $order->getQuantity(),
+                'total_amount' => $order->getTotalAmount(),
                 'fulfillment_type' => $order->getFulfillmentType(),
                 'delivery_address' => $order->getDeliveryAddress(),
                 'payment_method' => $order->getPaymentMethod(),
@@ -384,9 +386,6 @@ class EntityReadApiController extends AbstractController
         if (isset($data['quantity'])) {
             $order->setQuantity((int) $data['quantity']);
         }
-        if (isset($data['total_amount'])) {
-            $order->setTotalAmount((float) $data['total_amount']);
-        }
         if (isset($data['status'])) {
             $status = $this->resolveOrderStatus($data, $order->getStatus() ?? 'Pending');
             if ($status === null) {
@@ -409,6 +408,8 @@ class EntityReadApiController extends AbstractController
                 $order->setProduct($product);
             }
         }
+
+        $this->recalculateOrderTotal($order);
 
         $currentProduct = $order->getProduct();
         $currentQuantity = $order->getQuantity() ?? 0;
@@ -444,7 +445,13 @@ class EntityReadApiController extends AbstractController
             );
         }
 
-        return $this->success('Order updated successfully', [['id' => $order->getId()]]);
+        return $this->success('Order updated successfully', [[
+            'id' => $order->getId(),
+            'order_number' => $order->getOrderNumber(),
+            'quantity' => $order->getQuantity(),
+            'total_amount' => $order->getTotalAmount(),
+            'product_id' => $order->getProduct()?->getId(),
+        ]]);
     }
 
     #[Route('/orders/{id}', name: 'orders_delete', methods: ['DELETE'])]
@@ -1079,6 +1086,18 @@ class EntityReadApiController extends AbstractController
         } catch (\JsonException) {
             return null;
         }
+    }
+
+    private function recalculateOrderTotal(Orders $order): void
+    {
+        $product = $order->getProduct();
+        $quantity = $order->getQuantity() ?? 0;
+
+        if (!$product || $quantity <= 0) {
+            return;
+        }
+
+        $order->setTotalAmount($product->getPrice() * $quantity);
     }
 
     private function resolveOrderStatus(array $data, string $fallback): ?string

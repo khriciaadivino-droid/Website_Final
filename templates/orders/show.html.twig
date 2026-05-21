@@ -42,6 +42,10 @@
 							<td class="px-4 py-3 text-gray-900">{{ order.orderDate|date('F d, Y H:i:s') }}</td>
 						</tr>
 						<tr>
+							<th class="px-4 py-3 text-left text-gray-600 font-semibold">Quantity</th>
+							<td class="px-4 py-3 text-gray-900 font-semibold">{{ order.quantity }}</td>
+						</tr>
+						<tr>
 							<th class="px-4 py-3 text-left text-gray-600 font-semibold">Total Amount</th>
 							<td class="px-4 py-3 text-gray-900 font-semibold">₱{{ order.totalAmount|number_format(2, '.', ',') }}</td>
 						</tr>
