@@ -80,8 +80,8 @@ RUN mkdir -p \
 # Copy nginx config template
 COPY docker/nginx.conf /etc/nginx/sites-available/default.template
 
-# Expose Railway public port
-EXPOSE 8000
+# Expose common Railway HTTP ports
+EXPOSE 80 8000
 
 # Start script
 COPY docker/start.sh /start.sh

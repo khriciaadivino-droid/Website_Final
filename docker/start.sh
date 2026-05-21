@@ -99,6 +99,36 @@ try {
 PHP
 }
 
+render_nginx_config() {
+    php <<'PHP'
+<?php
+$port = getenv('PORT') ?: '8000';
+$listenDirectives = [sprintf('    listen %s;', $port)];
+
+foreach (['8000', '80'] as $fallbackPort) {
+    if ($fallbackPort !== $port) {
+        $listenDirectives[] = sprintf('    listen %s;', $fallbackPort);
+    }
+}
+
+$templatePath = '/etc/nginx/sites-available/default.template';
+$outputPath = '/etc/nginx/sites-available/default';
+$template = file_get_contents($templatePath);
+
+if ($template === false) {
+    fwrite(STDERR, "Unable to read Nginx template.\n");
+    exit(1);
+}
+
+$config = str_replace('__LISTEN_DIRECTIVES__', implode(PHP_EOL, $listenDirectives), $template);
+
+if (file_put_contents($outputPath, $config) === false) {
+    fwrite(STDERR, "Unable to write rendered Nginx config.\n");
+    exit(1);
+}
+PHP
+}
+
 write_runtime_env_file() {
     php <<'PHP'
 <?php
@@ -165,7 +195,7 @@ else
 fi
 
 echo "==> Rendering Nginx config for PORT=$PORT..."
-sed "s/__PORT__/${PORT}/g" /etc/nginx/sites-available/default.template > /etc/nginx/sites-available/default
+render_nginx_config
 
 echo "==> Configuring PHP-FPM to preserve runtime environment..."
 if grep -Eq '^[;[:space:]]*clear_env[[:space:]]*=' /usr/local/etc/php-fpm.d/www.conf; then
