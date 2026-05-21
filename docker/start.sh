@@ -99,6 +99,36 @@ try {
 PHP
 }
 
+write_runtime_env_file() {
+    php <<'PHP'
+<?php
+$envPath = '/var/www/html/.env.local';
+$values = [
+    'APP_ENV' => getenv('APP_ENV') ?: 'prod',
+    'APP_DEBUG' => getenv('APP_DEBUG') ?: '0',
+    'APP_SECRET' => getenv('APP_SECRET') ?: 'change-me-in-railway-app-secret',
+    'DATABASE_URL' => getenv('DATABASE_URL') ?: 'mysql://placeholder:placeholder@127.0.0.1:3306/app',
+    'JWT_SECRET_KEY' => getenv('JWT_SECRET_KEY') ?: '/var/www/html/config/jwt/private.pem',
+    'JWT_PUBLIC_KEY' => getenv('JWT_PUBLIC_KEY') ?: '/var/www/html/config/jwt/public.pem',
+    'JWT_PASSPHRASE' => getenv('JWT_PASSPHRASE') ?: '',
+    'MESSENGER_TRANSPORT_DSN' => getenv('MESSENGER_TRANSPORT_DSN') ?: 'doctrine://default?auto_setup=0',
+    'MAILER_DSN' => getenv('MAILER_DSN') ?: 'null://null',
+];
+
+$lines = [];
+foreach ($values as $key => $value) {
+    $escapedValue = str_replace(
+        ["\\", "\n", "\r", "'"],
+        ["\\\\", "\\n", "\\r", "\\'"],
+        (string) $value
+    );
+    $lines[] = sprintf("%s='%s'", $key, $escapedValue);
+}
+
+file_put_contents($envPath, implode(PHP_EOL, $lines) . PHP_EOL);
+PHP
+}
+
 if [ -z "$DATABASE_URL" ]; then
     if [ -n "$MYSQL_URL" ]; then
         export DATABASE_URL="$MYSQL_URL"
@@ -122,6 +152,9 @@ MAILER_DSN=null://null
 EOF
 fi
 
+echo "==> Writing runtime .env.local from active environment..."
+write_runtime_env_file
+
 echo "==> Runtime environment: APP_ENV=$APP_ENV"
 if [ -n "$DATABASE_URL" ]; then
     echo "==> DATABASE_URL resolved for startup"
@@ -133,6 +166,13 @@ fi
 
 echo "==> Rendering Nginx config for PORT=$PORT..."
 sed "s/__PORT__/${PORT}/g" /etc/nginx/sites-available/default.template > /etc/nginx/sites-available/default
+
+echo "==> Configuring PHP-FPM to preserve runtime environment..."
+if grep -Eq '^[;[:space:]]*clear_env[[:space:]]*=' /usr/local/etc/php-fpm.d/www.conf; then
+    sed -i 's/^[;[:space:]]*clear_env[[:space:]]*=.*/clear_env = no/' /usr/local/etc/php-fpm.d/www.conf
+else
+    printf '\nclear_env = no\n' >> /usr/local/etc/php-fpm.d/www.conf
+fi
 
 echo "==> Generating JWT keys if missing..."
 if [ ! -f /var/www/html/config/jwt/private.pem ]; then
