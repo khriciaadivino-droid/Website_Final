@@ -362,14 +362,26 @@ if [ ! -f /var/www/html/config/jwt/private.pem ]; then
     php /var/www/html/bin/console lexik:jwt:generate-keypair --overwrite --no-interaction
 fi
 
-wait_for_database
-
 echo "==> Starting PHP-FPM and Nginx early so Railway can reach the health check..."
 php-fpm -D
 nginx
 
+set +e
+wait_for_database
+db_status=$?
+set -e
+if [ "$db_status" -ne 0 ]; then
+    echo "==> WARNING: Database is not ready yet; continuing startup."
+fi
+
 echo "==> Warming up cache..."
+set +e
 run_with_retry "Cache warmup" php /var/www/html/bin/console cache:warmup --env=prod --no-debug
+cache_status=$?
+set -e
+if [ "$cache_status" -ne 0 ]; then
+    echo "==> WARNING: Cache warmup failed; continuing startup."
+fi
 
 echo "==> Waiting for migration lock..."
 set +e
@@ -386,23 +398,18 @@ if [ "$lock_status" -eq 0 ]; then
     release_migration_lock || true
 
     if [ "$migration_status" -ne 0 ]; then
-        echo "==> ERROR: Database migrations failed."
-        exit "$migration_status"
+        echo "==> WARNING: Database migrations failed; continuing startup so the app stays online."
     fi
 elif [ "$lock_status" -eq 2 ]; then
     echo "==> Another instance is running migrations. Continuing startup without local migration execution."
 else
-    echo "==> ERROR: Failed to acquire the migration lock."
-    exit "$lock_status"
+    echo "==> WARNING: Failed to acquire the migration lock; continuing startup."
 fi
 
 echo "==> Ensuring bootstrap admin accounts exist..."
 php /var/www/html/bin/console app:create-admin --no-interaction --env=prod || echo "==> WARNING: Bootstrap admin setup failed; continuing startup."
 
-echo "==> Application startup complete. Keeping Nginx in the foreground..."
-nginx_pid="$(cat /var/run/nginx.pid 2>/dev/null || cat /run/nginx.pid 2>/dev/null || true)"
-if [ -n "$nginx_pid" ]; then
-    wait "$nginx_pid"
-else
-    nginx -g "daemon off;"
-fi
+echo "==> Application startup complete. Running Nginx in the foreground..."
+nginx -s quit 2>/dev/null || true
+sleep 1
+exec nginx -g "daemon off;"
