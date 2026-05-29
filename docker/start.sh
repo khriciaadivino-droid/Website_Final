@@ -1,5 +1,5 @@
-#!/bin/sh
-set -e
+#!/bin/bash
+set -eo pipefail
 
 export APP_ENV="${APP_ENV:-prod}"
 export APP_DEBUG="${APP_DEBUG:-0}"
@@ -308,7 +308,14 @@ run_with_retry() {
 }
 
 run_console() {
-    su -s /bin/sh www-data -c "cd /var/www/html && php bin/console $(printf '%q ' "$@")"
+    local command="cd /var/www/html && php bin/console"
+    local arg
+
+    for arg in "$@"; do
+        command+=" $(printf '%q' "$arg")"
+    done
+
+    su -s /bin/bash www-data -c "$command"
 }
 
 fix_runtime_permissions() {
@@ -347,12 +354,42 @@ try {
         PDO::ATTR_TIMEOUT => 10,
     ]);
 
-    $statement = $pdo->query("SHOW COLUMNS FROM `user` LIKE 'push_token'");
-    $columnExists = $statement !== false && $statement->fetch(PDO::FETCH_ASSOC) !== false;
+    $columnExists = static function (PDO $pdo, string $table, string $column): bool {
+        $statement = $pdo->query(sprintf("SHOW COLUMNS FROM `%s` LIKE '%s'", $table, str_replace("'", "''", $column)));
 
-    if (!$columnExists) {
-        $pdo->exec('ALTER TABLE `user` ADD push_token VARCHAR(255) DEFAULT NULL');
-        fwrite(STDOUT, "Added missing user.push_token column.\n");
+        return $statement !== false && $statement->fetch(PDO::FETCH_ASSOC) !== false;
+    };
+
+    $addColumnIfMissing = static function (PDO $pdo, string $table, string $column, string $definition) use ($columnExists): void {
+        if ($columnExists($pdo, $table, $column)) {
+            return;
+        }
+
+        $pdo->exec(sprintf('ALTER TABLE `%s` ADD `%s` %s', $table, $column, $definition));
+        fwrite(STDOUT, sprintf("Added missing %s.%s column.\n", $table, $column));
+    };
+
+    $userColumns = [
+        'created_by' => 'VARCHAR(100) DEFAULT NULL',
+        'verified_at' => 'DATETIME DEFAULT NULL',
+        'google_id' => 'VARCHAR(255) DEFAULT NULL',
+        'push_token' => 'VARCHAR(255) DEFAULT NULL',
+        'last_login_at' => 'DATETIME DEFAULT NULL',
+        'status' => "VARCHAR(20) NOT NULL DEFAULT 'active'",
+    ];
+
+    foreach ($userColumns as $column => $definition) {
+        $addColumnIfMissing($pdo, 'user', $column, $definition);
+    }
+
+    if ($columnExists($pdo, 'user', 'google_id')) {
+        $indexStatement = $pdo->query("SHOW INDEX FROM `user` WHERE Column_name = 'google_id'");
+        $hasGoogleIdIndex = $indexStatement !== false && $indexStatement->fetch(PDO::FETCH_ASSOC) !== false;
+
+        if (!$hasGoogleIdIndex) {
+            $pdo->exec('CREATE UNIQUE INDEX UNIQ_8D93D64976F5C865 ON `user` (google_id)');
+            fwrite(STDOUT, "Added missing user.google_id unique index.\n");
+        }
     }
 } catch (Throwable $exception) {
     fwrite(STDERR, $exception->getMessage() . "\n");
@@ -456,7 +493,10 @@ else
 fi
 
 echo "==> Applying schema patches..."
-ensure_schema_patches || echo "==> WARNING: Schema patch step failed."
+ensure_schema_patches || {
+    echo "==> ERROR: Schema patch step failed."
+    exit 1
+}
 
 echo "==> Ensuring bootstrap admin accounts exist..."
 run_console app:create-admin --no-interaction --env=prod || echo "==> WARNING: Bootstrap admin setup failed; continuing startup."
