@@ -114,6 +114,13 @@ PHP
 acquire_migration_lock() {
     php <<'PHP'
 <?php
+if (!defined('STDOUT')) {
+    define('STDOUT', fopen('php://stdout', 'wb'));
+}
+if (!defined('STDERR')) {
+    define('STDERR', fopen('php://stderr', 'wb'));
+}
+
 $databaseUrl = getenv('DATABASE_URL') ?: '';
 $lockName = getenv('MIGRATION_LOCK_NAME') ?: 'website_final_doctrine_migrations';
 
@@ -166,6 +173,13 @@ PHP
 release_migration_lock() {
     php <<'PHP'
 <?php
+if (!defined('STDOUT')) {
+    define('STDOUT', fopen('php://stdout', 'wb'));
+}
+if (!defined('STDERR')) {
+    define('STDERR', fopen('php://stderr', 'wb'));
+}
+
 $databaseUrl = getenv('DATABASE_URL') ?: '';
 $lockName = getenv('MIGRATION_LOCK_NAME') ?: 'website_final_doctrine_migrations';
 
@@ -203,6 +217,13 @@ PHP
 render_nginx_config() {
     php <<'PHP'
 <?php
+if (!defined('STDOUT')) {
+    define('STDOUT', fopen('php://stdout', 'wb'));
+}
+if (!defined('STDERR')) {
+    define('STDERR', fopen('php://stderr', 'wb'));
+}
+
 $port = getenv('PORT') ?: '8000';
 $listenDirectives = [sprintf('    listen 0.0.0.0:%s default_server;', $port)];
 
@@ -326,6 +347,13 @@ fix_runtime_permissions() {
 ensure_schema_patches() {
     php <<'PHP'
 <?php
+if (!defined('STDOUT')) {
+    define('STDOUT', fopen('php://stdout', 'wb'));
+}
+if (!defined('STDERR')) {
+    define('STDERR', fopen('php://stderr', 'wb'));
+}
+
 $databaseUrl = getenv('DATABASE_URL') ?: '';
 if ($databaseUrl === '') {
     exit(0);
@@ -387,8 +415,12 @@ try {
         $hasGoogleIdIndex = $indexStatement !== false && $indexStatement->fetch(PDO::FETCH_ASSOC) !== false;
 
         if (!$hasGoogleIdIndex) {
-            $pdo->exec('CREATE UNIQUE INDEX UNIQ_8D93D64976F5C865 ON `user` (google_id)');
-            fwrite(STDOUT, "Added missing user.google_id unique index.\n");
+            try {
+                $pdo->exec('CREATE UNIQUE INDEX UNIQ_8D93D64976F5C865 ON `user` (google_id)');
+                fwrite(STDOUT, "Added missing user.google_id unique index.\n");
+            } catch (Throwable $indexException) {
+                fwrite(STDERR, 'Skipped google_id index patch: ' . $indexException->getMessage() . "\n");
+            }
         }
     }
 } catch (Throwable $exception) {
