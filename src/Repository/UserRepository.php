@@ -40,6 +40,41 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
     }
 
     /**
+     * @param list<string> $roles
+     *
+     * @return list<User>
+     */
+    public function findWithPushTokenByRoles(array $roles, ?int $excludeUserId = null): array
+    {
+        if ($roles === []) {
+            return [];
+        }
+
+        $qb = $this->createQueryBuilder('u')
+            ->andWhere('u.pushToken IS NOT NULL')
+            ->andWhere("u.pushToken != ''");
+
+        if ($excludeUserId !== null) {
+            $qb->andWhere('u.id != :excludeUserId')
+                ->setParameter('excludeUserId', $excludeUserId);
+        }
+
+        $roleFilters = $qb->expr()->orX();
+        foreach (array_values($roles) as $index => $role) {
+            $parameter = 'role' . $index;
+            $roleFilters->add('u.roles LIKE :' . $parameter);
+            $qb->setParameter($parameter, '%"' . $role . '"%');
+        }
+
+        $qb->andWhere($roleFilters);
+
+        /** @var list<User> $users */
+        $users = $qb->getQuery()->getResult();
+
+        return $users;
+    }
+
+    /**
      * Used to upgrade (rehash) the user's password automatically over time.
      */
     public function upgradePassword(PasswordAuthenticatedUserInterface $user, string $newHashedPassword): void

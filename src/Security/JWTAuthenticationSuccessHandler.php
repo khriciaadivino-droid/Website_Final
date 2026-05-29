@@ -38,6 +38,16 @@ class JWTAuthenticationSuccessHandler implements AuthenticationSuccessHandlerInt
             ], 403);
         }
 
+        $payload = json_decode($request->getContent(), true);
+        if (!is_array($payload)) {
+            $payload = [];
+        }
+
+        $pushToken = trim((string) ($payload['push_token'] ?? $payload['device_token'] ?? ''));
+        if ($pushToken !== '') {
+            $user->setPushToken($pushToken);
+        }
+
         // Update last login timestamp
         $user->setLastLoginAt(new \DateTime());
         $this->entityManager->flush();

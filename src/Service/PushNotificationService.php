@@ -15,6 +15,11 @@ class PushNotificationService
         private readonly ?string $serverKey = null,
     ) {}
 
+    public function isConfigured(): bool
+    {
+        return $this->serverKey !== null && trim($this->serverKey) !== '';
+    }
+
     public function sendToUser(User $user, string $title, string $body, array $data = []): bool
     {
         $token = trim((string) $user->getPushToken());
@@ -24,6 +29,22 @@ class PushNotificationService
         }
 
         return $this->sendToToken($token, $title, $body, $data);
+    }
+
+    /**
+     * @param iterable<User> $users
+     */
+    public function sendToUsers(iterable $users, string $title, string $body, array $data = []): int
+    {
+        $sent = 0;
+
+        foreach ($users as $user) {
+            if ($this->sendToUser($user, $title, $body, $data)) {
+                ++$sent;
+            }
+        }
+
+        return $sent;
     }
 
     public function sendToToken(string $token, string $title, string $body, array $data = []): bool

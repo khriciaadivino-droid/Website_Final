@@ -5,14 +5,15 @@ namespace App\Service;
 use App\Entity\ActivityLog;
 use App\Entity\Orders;
 use App\Entity\User;
+use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
-use App\Service\PushNotificationService;
 
 class ActivityLogService
 {
     public function __construct(
         private EntityManagerInterface $entityManager,
-        private PushNotificationService $pushNotificationService
+        private PushNotificationService $pushNotificationService,
+        private UserRepository $userRepository,
     ) {}
 
     /**
@@ -139,7 +140,8 @@ class ActivityLogService
             $actor->getFullName() ?: $actor->getEmail(),
             $this->resolvePrimaryRole($actor),
             'ORDER_STATUS',
-            $targetData
+            $targetData,
+            $actor->getId()
         );
 
         $this->pushNotificationService->sendToUser(
@@ -168,8 +170,14 @@ class ActivityLogService
         return 'ROLE_USER';
     }
 
-    private function persistLog(int $userId, string $username, string $role, string $action, ?string $targetData): void
-    {
+    private function persistLog(
+        int $userId,
+        string $username,
+        string $role,
+        string $action,
+        ?string $targetData,
+        ?int $actorUserId = null,
+    ): void {
         $log = new ActivityLog();
         $log->setUserId($userId);
         $log->setUsername($username);
@@ -179,5 +187,77 @@ class ActivityLogService
 
         $this->entityManager->persist($log);
         $this->entityManager->flush();
+
+        $this->dispatchPushNotifications(
+            $userId,
+            $username,
+            $role,
+            $action,
+            $targetData,
+            $actorUserId ?? $userId,
+        );
+    }
+
+    private function dispatchPushNotifications(
+        int $logUserId,
+        string $username,
+        string $role,
+        string $action,
+        ?string $targetData,
+        int $actorUserId,
+    ): void {
+        if (!$this->pushNotificationService->isConfigured()) {
+            return;
+        }
+
+        $title = $this->formatPushTitle($action);
+        $body = $this->formatPushBody($username, $action, $targetData);
+        $data = [
+            'action' => $action,
+            'role' => $role,
+            'log_user_id' => (string) $logUserId,
+        ];
+
+        $adminRecipients = $this->userRepository->findWithPushTokenByRoles(
+            ['ROLE_ADMIN', 'ROLE_STAFF'],
+            $actorUserId,
+        );
+        $this->pushNotificationService->sendToUsers($adminRecipients, $title, $body, $data);
+
+        if ($action === 'ORDER_STATUS' || $logUserId === $actorUserId) {
+            return;
+        }
+
+        $logUser = $this->entityManager->getRepository(User::class)->find($logUserId);
+        if ($logUser instanceof User) {
+            $this->pushNotificationService->sendToUser($logUser, $title, $body, $data);
+        }
+    }
+
+    private function formatPushTitle(string $action): string
+    {
+        return match ($action) {
+            'LOGIN' => 'New sign-in',
+            'LOGOUT' => 'Signed out',
+            'ORDER_STATUS' => 'Order status',
+            'CREATE' => 'New activity',
+            'UPDATE' => 'Update',
+            'DELETE' => 'Deletion',
+            default => 'PawStuff activity',
+        };
+    }
+
+    private function formatPushBody(string $username, string $action, ?string $targetData): string
+    {
+        return match ($action) {
+            'LOGIN' => sprintf('%s signed in', $username),
+            'LOGOUT' => sprintf('%s signed out', $username),
+            'ORDER_STATUS' => $targetData
+                ? trim($targetData) . ' Updated by ' . $username . '.'
+                : sprintf('Order updated by %s', $username),
+            default => $targetData
+                ? sprintf('%s %s', $username, $targetData)
+                : sprintf('%s performed %s', $username, $action),
+        };
     }
 }
