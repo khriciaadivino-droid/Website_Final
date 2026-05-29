@@ -16,6 +16,7 @@ use App\Repository\PetOwnersRepository;
 use App\Repository\PetProfileManagementRepository;
 use App\Repository\ProductssRepository;
 use App\Repository\StocksRepository;
+use App\Service\OrderLiveRevisionService;
 use App\Service\OrderStockService;
 use App\Service\ActivityLogService;
 use Doctrine\ORM\EntityManagerInterface;
@@ -221,13 +222,27 @@ class EntityReadApiController extends AbstractController
         return $this->success('Orders fetched successfully', $data);
     }
 
+    #[Route('/orders/revision', name: 'orders_revision', methods: ['GET'])]
+    public function ordersRevision(OrderLiveRevisionService $orderLiveRevisionService): JsonResponse
+    {
+        return $this->json([
+            'success' => true,
+            'message' => 'Orders revision fetched successfully',
+            'data' => [
+                'revision' => $orderLiveRevisionService->current(),
+                'updated_at' => (new \DateTimeImmutable())->format('Y-m-d H:i:s'),
+            ],
+        ]);
+    }
+
     #[Route('/orders', name: 'orders_create', methods: ['POST'])]
     public function createOrder(
         Request $request,
         EntityManagerInterface $entityManager,
         ProductssRepository $productssRepository,
         OrderStockService $orderStockService,
-        ActivityLogService $activityLogService
+        ActivityLogService $activityLogService,
+        OrderLiveRevisionService $orderLiveRevisionService
     ): JsonResponse {
         $data = $this->parseJson($request);
         if ($data === null) {
@@ -324,6 +339,8 @@ class EntityReadApiController extends AbstractController
             );
         }
 
+        $orderLiveRevisionService->bump();
+
         return $this->json([
             'success' => true,
             'message' => 'Order created successfully',
@@ -347,7 +364,8 @@ class EntityReadApiController extends AbstractController
         ProductssRepository $productssRepository,
         EntityManagerInterface $entityManager,
         OrderStockService $orderStockService,
-        ActivityLogService $activityLogService
+        ActivityLogService $activityLogService,
+        OrderLiveRevisionService $orderLiveRevisionService
     ): JsonResponse {
         $order = $ordersRepository->find($id);
         if (!$order) {
@@ -445,6 +463,8 @@ class EntityReadApiController extends AbstractController
             );
         }
 
+        $orderLiveRevisionService->bump();
+
         return $this->success('Order updated successfully', [[
             'id' => $order->getId(),
             'order_number' => $order->getOrderNumber(),
@@ -460,7 +480,8 @@ class EntityReadApiController extends AbstractController
         OrdersRepository $ordersRepository,
         EntityManagerInterface $entityManager,
         OrderStockService $orderStockService,
-        ActivityLogService $activityLogService
+        ActivityLogService $activityLogService,
+        OrderLiveRevisionService $orderLiveRevisionService
     ): JsonResponse {
         $order = $ordersRepository->find($id);
         if (!$order) {
@@ -482,6 +503,8 @@ class EntityReadApiController extends AbstractController
         if ($currentUser) {
             $activityLogService->logDelete($currentUser, 'Order', $orderLabel, $id);
         }
+
+        $orderLiveRevisionService->bump();
 
         return $this->success('Order deleted successfully', [['id' => $id]]);
     }

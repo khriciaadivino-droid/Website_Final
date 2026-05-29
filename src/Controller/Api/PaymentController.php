@@ -3,6 +3,7 @@
 namespace App\Controller\Api;
 
 use App\Repository\OrdersRepository;
+use App\Service\OrderLiveRevisionService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -29,7 +30,10 @@ class PaymentController extends AbstractController
 {
     private const PAYMONGO_BASE = 'https://api.paymongo.com/v1';
 
-    public function __construct(private readonly HttpClientInterface $httpClient) {}
+    public function __construct(
+        private readonly HttpClientInterface $httpClient,
+        private readonly OrderLiveRevisionService $orderLiveRevisionService,
+    ) {}
 
     // ──────────────────────────────────────────────────────────────────────
     //  POST /api/payment/create
@@ -220,6 +224,7 @@ class PaymentController extends AbstractController
                     }
                 }
                 $em->flush();
+                $this->orderLiveRevisionService->bump();
             }
         }
 
@@ -255,6 +260,7 @@ class PaymentController extends AbstractController
             }
         }
         $em->flush();
+        $this->orderLiveRevisionService->bump();
     }
 
     private function createSource(

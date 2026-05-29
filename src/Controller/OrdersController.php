@@ -6,9 +6,11 @@ use App\Entity\Orders;
 use App\Form\OrdersType;
 use App\Repository\OrdersRepository;
 use App\Service\ActivityLogService;
+use App\Service\OrderLiveRevisionService;
 use App\Service\OrderStockService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -26,12 +28,22 @@ final class OrdersController extends AbstractController
         ]);
     }
 
+    #[Route('/revision', name: 'app_orders_revision', methods: ['GET'])]
+    public function revision(OrderLiveRevisionService $orderLiveRevisionService): JsonResponse
+    {
+        return $this->json([
+            'revision' => $orderLiveRevisionService->current(),
+            'updated_at' => (new \DateTimeImmutable())->format('Y-m-d H:i:s'),
+        ]);
+    }
+
     #[Route('/new', name: 'app_orders_new', methods: ['GET', 'POST'])]
     public function new(
         Request $request,
         EntityManagerInterface $entityManager,
         ActivityLogService $activityLogService,
-        OrderStockService $orderStockService
+        OrderStockService $orderStockService,
+        OrderLiveRevisionService $orderLiveRevisionService
     ): Response {
         $order = new Orders();
         $canEditStatus = $this->canEditOrderStatus();
@@ -90,6 +102,8 @@ final class OrdersController extends AbstractController
                 $activityLogService->logCreate($user, 'Order', 'Order #' . $order->getId(), $order->getId());
             }
 
+            $orderLiveRevisionService->bump();
+
             return $this->redirectToRoute('app_orders_index', [], Response::HTTP_SEE_OTHER);
         }
 
@@ -113,7 +127,8 @@ final class OrdersController extends AbstractController
         Orders $order,
         EntityManagerInterface $entityManager,
         ActivityLogService $activityLogService,
-        OrderStockService $orderStockService
+        OrderStockService $orderStockService,
+        OrderLiveRevisionService $orderLiveRevisionService
     ): Response {
         // Prevent editing completed orders
         if ($order->getStatus() === 'Completed') {
@@ -183,6 +198,8 @@ final class OrdersController extends AbstractController
                 );
             }
 
+            $orderLiveRevisionService->bump();
+
             return $this->redirectToRoute('app_orders_index', [], Response::HTTP_SEE_OTHER);
         }
 
@@ -198,7 +215,8 @@ final class OrdersController extends AbstractController
         Orders $order,
         EntityManagerInterface $entityManager,
         ActivityLogService $activityLogService,
-        OrderStockService $orderStockService
+        OrderStockService $orderStockService,
+        OrderLiveRevisionService $orderLiveRevisionService
     ): Response {
         if ($this->isCsrfTokenValid('delete' . $order->getId(), $request->getPayload()->getString('_token'))) {
             $orderId = $order->getId();
@@ -213,6 +231,8 @@ final class OrdersController extends AbstractController
             if ($user) {
                 $activityLogService->logDelete($user, 'Order', 'Order #' . $orderId, $orderId);
             }
+
+            $orderLiveRevisionService->bump();
         }
 
         return $this->redirectToRoute('app_orders_index', [], Response::HTTP_SEE_OTHER);
