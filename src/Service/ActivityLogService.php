@@ -6,11 +6,13 @@ use App\Entity\ActivityLog;
 use App\Entity\Orders;
 use App\Entity\User;
 use Doctrine\ORM\EntityManagerInterface;
+use App\Service\PushNotificationService;
 
 class ActivityLogService
 {
     public function __construct(
-        private EntityManagerInterface $entityManager
+        private EntityManagerInterface $entityManager,
+        private PushNotificationService $pushNotificationService
     ) {}
 
     /**
@@ -138,6 +140,17 @@ class ActivityLogService
             $this->resolvePrimaryRole($actor),
             'ORDER_STATUS',
             $targetData
+        );
+
+        $this->pushNotificationService->sendToUser(
+            $customer,
+            'Order update',
+            $targetData,
+            [
+                'action' => 'ORDER_STATUS',
+                'order_number' => (string) ($order->getOrderNumber() ?: $order->getId()),
+                'status' => $normalizedStatus,
+            ]
         );
     }
 

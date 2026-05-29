@@ -79,6 +79,11 @@ class ApiRegistrationController extends AbstractController
         // Mobile app registrations are auto-verified — no email link required.
         $user->setVerifiedAt(new \DateTimeImmutable());
 
+        $pushToken = trim((string) ($data['push_token'] ?? $data['device_token'] ?? ''));
+        if ($pushToken !== '') {
+            $user->setPushToken($pushToken);
+        }
+
         $hashedPassword = $this->passwordHasher->hashPassword($user, $password);
         $user->setPassword($hashedPassword);
 

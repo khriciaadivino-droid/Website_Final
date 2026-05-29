@@ -11,6 +11,7 @@ compose*.yml
 *.md
 screenshots
 source
+.env.local
 .env.dev
 .env.test
 phpunit.dist.xml

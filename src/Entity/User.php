@@ -46,6 +46,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(length: 255, nullable: true, unique: true)]
     private ?string $googleId = null;
 
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $pushToken = null;
+
     public function __construct()
     {
         $this->createdAt = new \DateTime();
@@ -227,6 +230,18 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setGoogleId(?string $googleId): static
     {
         $this->googleId = $googleId;
+        return $this;
+    }
+
+    public function getPushToken(): ?string
+    {
+        return $this->pushToken;
+    }
+
+    public function setPushToken(?string $pushToken): static
+    {
+        $this->pushToken = $pushToken;
+
         return $this;
     }
 }

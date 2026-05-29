@@ -85,6 +85,11 @@ class AuthApiController extends AbstractController
         $user->setRoles(['ROLE_USER']);
         $user->setStatus('active');
 
+        $pushToken = trim((string) ($data['push_token'] ?? $data['device_token'] ?? ''));
+        if ($pushToken !== '') {
+            $user->setPushToken($pushToken);
+        }
+
         $hashedPassword = $passwordHasher->hashPassword($user, $data['password']);
         $user->setPassword($hashedPassword);
 
@@ -163,6 +168,41 @@ class AuthApiController extends AbstractController
                 'verified' => $user->isVerified(),
                 'last_login' => $user->getLastLoginAt()?->format('Y-m-d H:i:s'),
                 'created_at' => $user->getCreatedAt()?->format('Y-m-d H:i:s'),
+                'push_token' => $user->getPushToken(),
+            ],
+        ], Response::HTTP_OK);
+    }
+
+    #[Route('/users/me/push-token', name: 'update_push_token', methods: ['POST'])]
+    public function updatePushToken(Request $request, EntityManagerInterface $entityManager): JsonResponse
+    {
+        $user = $this->getUser();
+
+        if (!$user instanceof User) {
+            return new JsonResponse([
+                'success' => false,
+                'message' => 'Not authenticated',
+            ], Response::HTTP_UNAUTHORIZED);
+        }
+
+        $data = json_decode($request->getContent(), true);
+        $pushToken = trim((string) ($data['push_token'] ?? $data['device_token'] ?? ''));
+
+        if ($pushToken === '') {
+            return new JsonResponse([
+                'success' => false,
+                'message' => 'push_token is required',
+            ], Response::HTTP_BAD_REQUEST);
+        }
+
+        $user->setPushToken($pushToken);
+        $entityManager->flush();
+
+        return new JsonResponse([
+            'success' => true,
+            'message' => 'Push token saved successfully',
+            'data' => [
+                'push_token' => $user->getPushToken(),
             ],
         ], Response::HTTP_OK);
     }

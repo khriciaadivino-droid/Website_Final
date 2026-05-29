@@ -10,6 +10,107 @@ export JWT_PUBLIC_KEY="${JWT_PUBLIC_KEY:-/var/www/html/config/jwt/public.pem}"
 export JWT_PASSPHRASE="${JWT_PASSPHRASE:-}"
 export MIGRATION_LOCK_NAME="${MIGRATION_LOCK_NAME:-website_final_doctrine_migrations}"
 
+resolve_database_url() {
+    php <<'PHP'
+<?php
+$readEnv = static function (string $key): string {
+    $value = getenv($key);
+
+    return is_string($value) ? trim($value) : '';
+};
+
+$candidates = [
+    $readEnv('DATABASE_URL'),
+    $readEnv('DATABASE_PRIVATE_URL'),
+    $readEnv('MYSQL_URL'),
+    $readEnv('MYSQL_PRIVATE_URL'),
+    $readEnv('MYSQL_PUBLIC_URL'),
+];
+
+foreach ($candidates as $candidate) {
+    if ($candidate !== '') {
+        echo $candidate;
+        exit(0);
+    }
+}
+
+$host = $readEnv('MYSQLHOST');
+$port = $readEnv('MYSQLPORT') ?: '3306';
+$user = $readEnv('MYSQLUSER');
+$password = $readEnv('MYSQLPASSWORD');
+$database = $readEnv('MYSQLDATABASE');
+
+if ($host !== '' && $user !== '' && $database !== '') {
+    echo sprintf(
+        'mysql://%s:%s@%s:%s/%s',
+        rawurlencode($user),
+        rawurlencode($password),
+        $host,
+        $port,
+        rawurlencode($database)
+    );
+    exit(0);
+}
+
+exit(1);
+PHP
+}
+
+wait_for_database() {
+    max_attempts="${DB_WAIT_ATTEMPTS:-60}"
+    attempt=1
+
+    echo "==> Waiting for database (up to $max_attempts attempts)..."
+    while [ "$attempt" -le "$max_attempts" ]; do
+        if php <<'PHP'
+<?php
+$databaseUrl = getenv('DATABASE_URL') ?: '';
+if ($databaseUrl === '') {
+    exit(1);
+}
+
+$parts = parse_url($databaseUrl);
+if ($parts === false || !in_array($parts['scheme'] ?? '', ['mysql', 'mysqli'], true)) {
+    exit(1);
+}
+
+$host = $parts['host'] ?? '127.0.0.1';
+$port = (int) ($parts['port'] ?? 3306);
+$database = rawurldecode(ltrim($parts['path'] ?? '', '/'));
+$username = rawurldecode($parts['user'] ?? '');
+$password = rawurldecode($parts['pass'] ?? '');
+
+if ($database === '' || $username === '') {
+    exit(1);
+}
+
+$dsn = sprintf('mysql:host=%s;port=%d;dbname=%s;charset=utf8mb4', $host, $port, $database);
+
+try {
+    $pdo = new PDO($dsn, $username, $password, [
+        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+        PDO::ATTR_TIMEOUT => 5,
+    ]);
+    $pdo->query('SELECT 1');
+    exit(0);
+} catch (Throwable) {
+    exit(1);
+}
+PHP
+        then
+            echo "==> Database is ready."
+            return 0
+        fi
+
+        echo "==> Database not ready yet (attempt $attempt/$max_attempts)..."
+        attempt=$((attempt + 1))
+        sleep 2
+    done
+
+    echo "==> ERROR: Database did not become ready in time."
+    return 1
+}
+
 acquire_migration_lock() {
     php <<'PHP'
 <?php
@@ -22,7 +123,7 @@ if ($databaseUrl === '') {
 }
 
 $parts = parse_url($databaseUrl);
-if ($parts === false || ($parts['scheme'] ?? '') !== 'mysql') {
+if ($parts === false || !in_array($parts['scheme'] ?? '', ['mysql', 'mysqli'], true)) {
     fwrite(STDERR, "Unsupported DATABASE_URL for MySQL advisory lock.\n");
     exit(1);
 }
@@ -69,7 +170,7 @@ $databaseUrl = getenv('DATABASE_URL') ?: '';
 $lockName = getenv('MIGRATION_LOCK_NAME') ?: 'website_final_doctrine_migrations';
 
 $parts = parse_url($databaseUrl);
-if ($parts === false || ($parts['scheme'] ?? '') !== 'mysql') {
+if ($parts === false || !in_array($parts['scheme'] ?? '', ['mysql', 'mysqli'], true)) {
     exit(0);
 }
 
@@ -103,11 +204,11 @@ render_nginx_config() {
     php <<'PHP'
 <?php
 $port = getenv('PORT') ?: '8000';
-$listenDirectives = [sprintf('    listen %s;', $port)];
+$listenDirectives = [sprintf('    listen 0.0.0.0:%s default_server;', $port)];
 
 foreach (['8000', '80'] as $fallbackPort) {
     if ($fallbackPort !== $port) {
-        $listenDirectives[] = sprintf('    listen %s;', $fallbackPort);
+        $listenDirectives[] = sprintf('    listen 0.0.0.0:%s;', $fallbackPort);
     }
 }
 
@@ -184,11 +285,32 @@ file_put_contents($envPath, implode(PHP_EOL, $lines) . PHP_EOL);
 PHP
 }
 
+run_with_retry() {
+    label="$1"
+    shift
+    max_attempts="${RETRY_ATTEMPTS:-3}"
+    attempt=1
+
+    while [ "$attempt" -le "$max_attempts" ]; do
+        echo "==> $label (attempt $attempt/$max_attempts)..."
+        if "$@"; then
+            return 0
+        fi
+
+        attempt=$((attempt + 1))
+        if [ "$attempt" -le "$max_attempts" ]; then
+            sleep 3
+        fi
+    done
+
+    echo "==> ERROR: $label failed after $max_attempts attempts."
+    return 1
+}
+
 if [ -z "$DATABASE_URL" ]; then
-    if [ -n "$MYSQL_URL" ]; then
-        export DATABASE_URL="$MYSQL_URL"
-    elif [ -n "$MYSQLHOST" ] && [ -n "$MYSQLPORT" ] && [ -n "$MYSQLUSER" ] && [ -n "$MYSQLPASSWORD" ] && [ -n "$MYSQLDATABASE" ]; then
-        export DATABASE_URL="mysql://${MYSQLUSER}:${MYSQLPASSWORD}@${MYSQLHOST}:${MYSQLPORT}/${MYSQLDATABASE}"
+    resolved_database_url="$(resolve_database_url || true)"
+    if [ -n "$resolved_database_url" ]; then
+        export DATABASE_URL="$resolved_database_url"
     fi
 fi
 
@@ -210,12 +332,12 @@ fi
 echo "==> Writing runtime .env.local from active environment..."
 write_runtime_env_file
 
-echo "==> Runtime environment: APP_ENV=$APP_ENV"
+echo "==> Runtime environment: APP_ENV=$APP_ENV PORT=$PORT"
 if [ -n "$DATABASE_URL" ]; then
     echo "==> DATABASE_URL resolved for startup"
 else
-    echo "==> WARNING: DATABASE_URL is not set"
-    echo "==> ERROR: Connect the Railway MySQL variables to this app service or set DATABASE_URL manually."
+    echo "==> ERROR: DATABASE_URL is not set."
+    echo "==> Connect the Railway MySQL service to this app or set DATABASE_URL manually."
     exit 1
 fi
 
@@ -224,6 +346,9 @@ render_nginx_config
 
 echo "==> Ensuring upload directories exist..."
 mkdir -p /var/www/html/public/uploads/products /var/www/html/public/uploads/pets
+mkdir -p /var/www/html/var/cache /var/www/html/var/log /var/www/html/var/sessions
+chown -R www-data:www-data /var/www/html/var /var/www/html/config/jwt 2>/dev/null || true
+chmod -R 775 /var/www/html/var 2>/dev/null || true
 
 echo "==> Configuring PHP-FPM to preserve runtime environment..."
 if grep -Eq '^[;[:space:]]*clear_env[[:space:]]*=' /usr/local/etc/php-fpm.d/www.conf; then
@@ -237,8 +362,14 @@ if [ ! -f /var/www/html/config/jwt/private.pem ]; then
     php /var/www/html/bin/console lexik:jwt:generate-keypair --overwrite --no-interaction
 fi
 
+wait_for_database
+
+echo "==> Starting PHP-FPM and Nginx early so Railway can reach the health check..."
+php-fpm -D
+nginx
+
 echo "==> Warming up cache..."
-php /var/www/html/bin/console cache:warmup --env=prod --no-debug
+run_with_retry "Cache warmup" php /var/www/html/bin/console cache:warmup --env=prod --no-debug
 
 echo "==> Waiting for migration lock..."
 set +e
@@ -255,6 +386,7 @@ if [ "$lock_status" -eq 0 ]; then
     release_migration_lock || true
 
     if [ "$migration_status" -ne 0 ]; then
+        echo "==> ERROR: Database migrations failed."
         exit "$migration_status"
     fi
 elif [ "$lock_status" -eq 2 ]; then
@@ -265,10 +397,12 @@ else
 fi
 
 echo "==> Ensuring bootstrap admin accounts exist..."
-php /var/www/html/bin/console app:create-admin --no-interaction --env=prod
+php /var/www/html/bin/console app:create-admin --no-interaction --env=prod || echo "==> WARNING: Bootstrap admin setup failed; continuing startup."
 
-echo "==> Starting PHP-FPM..."
-php-fpm -D
-
-echo "==> Starting Nginx..."
-nginx -g "daemon off;"
+echo "==> Application startup complete. Keeping Nginx in the foreground..."
+nginx_pid="$(cat /var/run/nginx.pid 2>/dev/null || cat /run/nginx.pid 2>/dev/null || true)"
+if [ -n "$nginx_pid" ]; then
+    wait "$nginx_pid"
+else
+    nginx -g "daemon off;"
+fi
