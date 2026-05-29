@@ -307,6 +307,60 @@ run_with_retry() {
     return 1
 }
 
+run_console() {
+    su -s /bin/sh www-data -c "cd /var/www/html && php bin/console $(printf '%q ' "$@")"
+}
+
+fix_runtime_permissions() {
+    chown -R www-data:www-data /var/www/html/var /var/www/html/config/jwt 2>/dev/null || true
+    chmod -R 775 /var/www/html/var 2>/dev/null || true
+}
+
+ensure_schema_patches() {
+    php <<'PHP'
+<?php
+$databaseUrl = getenv('DATABASE_URL') ?: '';
+if ($databaseUrl === '') {
+    exit(0);
+}
+
+$parts = parse_url($databaseUrl);
+if ($parts === false || !in_array($parts['scheme'] ?? '', ['mysql', 'mysqli'], true)) {
+    exit(0);
+}
+
+$host = $parts['host'] ?? '127.0.0.1';
+$port = (int) ($parts['port'] ?? 3306);
+$database = rawurldecode(ltrim($parts['path'] ?? '', '/'));
+$username = rawurldecode($parts['user'] ?? '');
+$password = rawurldecode($parts['pass'] ?? '');
+
+if ($database === '' || $username === '') {
+    exit(0);
+}
+
+$dsn = sprintf('mysql:host=%s;port=%d;dbname=%s;charset=utf8mb4', $host, $port, $database);
+
+try {
+    $pdo = new PDO($dsn, $username, $password, [
+        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+        PDO::ATTR_TIMEOUT => 10,
+    ]);
+
+    $statement = $pdo->query("SHOW COLUMNS FROM `user` LIKE 'push_token'");
+    $columnExists = $statement !== false && $statement->fetch(PDO::FETCH_ASSOC) !== false;
+
+    if (!$columnExists) {
+        $pdo->exec('ALTER TABLE `user` ADD push_token VARCHAR(255) DEFAULT NULL');
+        fwrite(STDOUT, "Added missing user.push_token column.\n");
+    }
+} catch (Throwable $exception) {
+    fwrite(STDERR, $exception->getMessage() . "\n");
+    exit(1);
+}
+PHP
+}
+
 if [ -z "$DATABASE_URL" ]; then
     resolved_database_url="$(resolve_database_url || true)"
     if [ -n "$resolved_database_url" ]; then
@@ -360,6 +414,7 @@ fi
 echo "==> Generating JWT keys if missing..."
 if [ ! -f /var/www/html/config/jwt/private.pem ]; then
     php /var/www/html/bin/console lexik:jwt:generate-keypair --overwrite --no-interaction
+    chown -R www-data:www-data /var/www/html/config/jwt 2>/dev/null || true
 fi
 
 echo "==> Starting PHP-FPM and Nginx early so Railway can reach the health check..."
@@ -371,16 +426,8 @@ wait_for_database
 db_status=$?
 set -e
 if [ "$db_status" -ne 0 ]; then
-    echo "==> WARNING: Database is not ready yet; continuing startup."
-fi
-
-echo "==> Warming up cache..."
-set +e
-run_with_retry "Cache warmup" php /var/www/html/bin/console cache:warmup --env=prod --no-debug
-cache_status=$?
-set -e
-if [ "$cache_status" -ne 0 ]; then
-    echo "==> WARNING: Cache warmup failed; continuing startup."
+    echo "==> ERROR: Database is not ready. Cannot continue startup."
+    exit 1
 fi
 
 echo "==> Waiting for migration lock..."
@@ -392,22 +439,33 @@ set -e
 if [ "$lock_status" -eq 0 ]; then
     echo "==> Running database migrations..."
     migration_status=0
-    php /var/www/html/bin/console doctrine:migrations:migrate --no-interaction --allow-no-migration --env=prod || migration_status=$?
+    run_with_retry "Database migrations" run_console doctrine:migrations:migrate --no-interaction --allow-no-migration --env=prod || migration_status=$?
 
     echo "==> Releasing migration lock..."
     release_migration_lock || true
 
     if [ "$migration_status" -ne 0 ]; then
-        echo "==> WARNING: Database migrations failed; continuing startup so the app stays online."
+        echo "==> ERROR: Database migrations failed."
+        exit 1
     fi
 elif [ "$lock_status" -eq 2 ]; then
     echo "==> Another instance is running migrations. Continuing startup without local migration execution."
 else
-    echo "==> WARNING: Failed to acquire the migration lock; continuing startup."
+    echo "==> ERROR: Failed to acquire the migration lock."
+    exit 1
 fi
 
+echo "==> Applying schema patches..."
+ensure_schema_patches || echo "==> WARNING: Schema patch step failed."
+
 echo "==> Ensuring bootstrap admin accounts exist..."
-php /var/www/html/bin/console app:create-admin --no-interaction --env=prod || echo "==> WARNING: Bootstrap admin setup failed; continuing startup."
+run_console app:create-admin --no-interaction --env=prod || echo "==> WARNING: Bootstrap admin setup failed; continuing startup."
+
+echo "==> Clearing and warming Symfony cache..."
+run_with_retry "Cache clear" run_console cache:clear --env=prod --no-debug
+run_with_retry "Cache warmup" run_console cache:warmup --env=prod --no-debug
+
+fix_runtime_permissions
 
 echo "==> Application startup complete. Running Nginx in the foreground..."
 nginx -s quit 2>/dev/null || true
