@@ -16,6 +16,7 @@ use App\Repository\PetOwnersRepository;
 use App\Repository\PetProfileManagementRepository;
 use App\Repository\ProductssRepository;
 use App\Repository\StocksRepository;
+use App\Service\ActivityLiveRevisionService;
 use App\Service\OrderLiveRevisionService;
 use App\Service\OrderStockService;
 use App\Service\ActivityLogService;
@@ -74,6 +75,20 @@ class EntityReadApiController extends AbstractController
     {
         // Alias endpoint for mobile/Postman collections expecting /api/events.
         return $this->activityLogs($request, $activityLogRepository);
+    }
+
+    #[Route('/events/revision', name: 'events_revision', methods: ['GET'])]
+    #[Route('/activity_logs/revision', name: 'activity_logs_revision', methods: ['GET'])]
+    public function activityRevision(ActivityLiveRevisionService $activityLiveRevisionService): JsonResponse
+    {
+        return $this->json([
+            'success' => true,
+            'message' => 'Activity revision fetched successfully',
+            'data' => [
+                'revision' => $activityLiveRevisionService->current(),
+                'updated_at' => (new \DateTimeImmutable())->format('Y-m-d H:i:s'),
+            ],
+        ]);
     }
 
     #[Route('/stocks', name: 'stocks', methods: ['GET'])]

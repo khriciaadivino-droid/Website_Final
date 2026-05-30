@@ -14,6 +14,7 @@ class ActivityLogService
         private EntityManagerInterface $entityManager,
         private PushNotificationService $pushNotificationService,
         private UserRepository $userRepository,
+        private ActivityLiveRevisionService $activityLiveRevisionService,
     ) {}
 
     /**
@@ -187,6 +188,8 @@ class ActivityLogService
 
         $this->entityManager->persist($log);
         $this->entityManager->flush();
+
+        $this->activityLiveRevisionService->bump();
 
         $this->dispatchPushNotifications(
             $userId,
