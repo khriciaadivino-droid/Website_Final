@@ -3,7 +3,9 @@
 namespace App\Controller\Api;
 
 use App\Entity\User;
+use App\Service\ActivityLogService;
 use App\Service\EmailVerificationService;
+use App\Service\LiveRevisionService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -21,6 +23,8 @@ class ApiRegistrationController extends AbstractController
         private readonly UserPasswordHasherInterface $passwordHasher,
         private readonly EmailVerificationService $emailVerificationService,
         private readonly ValidatorInterface $validator,
+        private readonly ActivityLogService $activityLogService,
+        private readonly LiveRevisionService $liveRevisionService,
     ) {}
 
     #[Route('/register', name: 'api_register', methods: ['POST'])]
@@ -103,6 +107,9 @@ class ApiRegistrationController extends AbstractController
 
         $this->entityManager->persist($user);
         $this->entityManager->flush();
+
+        $this->activityLogService->logCreate($user, 'User', $user->getEmail(), (int) $user->getId());
+        $this->liveRevisionService->bump(LiveRevisionService::USERS);
 
         try {
             $verificationUrl = $this->emailVerificationService->generateAndGetVerificationUrl($user);

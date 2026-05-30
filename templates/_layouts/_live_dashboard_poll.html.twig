@@ -1,0 +1,84 @@
+{# Poll dashboard revision and refresh admin content in-place (no full page reload). #}
+{% set poll_interval = live_revision_interval|default(3000) %}
+<style>
+	#admin-dashboard-live {
+		transition: opacity 0.25s ease;
+	}
+	#admin-dashboard-live.is-refreshing {
+		opacity: 0.55;
+		pointer-events: none;
+	}
+</style>
+<script>
+(function () {
+	let lastRevision = null;
+	let isRefreshing = false;
+	const revisionUrl = {{ path('app_live_revision_domain', { domain: 'dashboard' })|json_encode|raw }};
+	const fragmentUrl = {{ path('app_admin_dashboard_live_fragment')|json_encode|raw }};
+	const pollIntervalMs = {{ poll_interval }};
+	const root = document.getElementById('admin-dashboard-live');
+
+	if (!root) {
+		return;
+	}
+
+	const fetchOptions = {
+		headers: { 'X-Requested-With': 'XMLHttpRequest' },
+		credentials: 'same-origin',
+	};
+
+	const refreshDashboard = async function () {
+		if (isRefreshing) {
+			return;
+		}
+
+		isRefreshing = true;
+		root.classList.add('is-refreshing');
+
+		try {
+			const fragmentResponse = await fetch(fragmentUrl, fetchOptions);
+			if (fragmentResponse.ok) {
+				const html = await fragmentResponse.text();
+				root.innerHTML = html;
+			}
+		} catch (_error) {
+			// Ignore transient network errors while refreshing.
+		} finally {
+			root.classList.remove('is-refreshing');
+			isRefreshing = false;
+		}
+	};
+
+	const pollRevision = async function () {
+		if (document.hidden || isRefreshing) {
+			return;
+		}
+
+		try {
+			const response = await fetch(revisionUrl, fetchOptions);
+			if (!response.ok) {
+				return;
+			}
+
+			const payload = await response.json();
+			const revision = Number(payload.revision || 0);
+
+			if (lastRevision === null) {
+				lastRevision = revision;
+				return;
+			}
+
+			if (revision !== lastRevision) {
+				lastRevision = revision;
+				await refreshDashboard();
+			}
+		} catch (_error) {
+			// Ignore transient network errors while polling.
+		}
+	};
+
+	window.setInterval(pollRevision, pollIntervalMs);
+	document.addEventListener('visibilitychange', pollRevision);
+	pollRevision();
+})();
+</script>

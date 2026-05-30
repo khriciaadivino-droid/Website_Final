@@ -4,7 +4,9 @@ namespace App\Controller\Api;
 
 use App\Entity\User;
 use App\Entity\Productss;
+use App\Service\ActivityLogService;
 use App\Service\EmailVerificationService;
+use App\Service\LiveRevisionService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -39,7 +41,9 @@ class AuthApiController extends AbstractController
         Request $request,
         UserPasswordHasherInterface $passwordHasher,
         EntityManagerInterface $entityManager,
-        EmailVerificationService $emailVerificationService
+        EmailVerificationService $emailVerificationService,
+        ActivityLogService $activityLogService,
+        LiveRevisionService $liveRevisionService,
     ): JsonResponse {
         $data = json_decode($request->getContent(), true);
 
@@ -95,6 +99,9 @@ class AuthApiController extends AbstractController
 
         $entityManager->persist($user);
         $entityManager->flush();
+
+        $activityLogService->logCreate($user, 'User', $user->getEmail(), (int) $user->getId());
+        $liveRevisionService->bump(LiveRevisionService::USERS);
 
         // Send verification email
         $emailVerificationService->createAndSendVerificationEmail($user);

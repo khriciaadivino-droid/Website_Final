@@ -17,7 +17,6 @@ use App\Repository\PetProfileManagementRepository;
 use App\Repository\ProductssRepository;
 use App\Repository\StocksRepository;
 use App\Service\ActivityLiveRevisionService;
-use App\Service\ActivityLiveRevisionService;
 use App\Service\LiveRevisionService;
 use App\Service\OrderLiveRevisionService;
 use App\Service\OrderStockService;
@@ -116,7 +115,7 @@ class EntityReadApiController extends AbstractController
     }
 
     #[Route('/stocks', name: 'stocks_create', methods: ['POST'])]
-    public function createStock(Request $request, EntityManagerInterface $entityManager, ProductssRepository $productssRepository): JsonResponse
+    public function createStock(Request $request, EntityManagerInterface $entityManager, ProductssRepository $productssRepository, LiveRevisionService $liveRevisionService): JsonResponse
     {
         $data = $this->parseJson($request);
         if ($data === null) {
@@ -142,6 +141,8 @@ class EntityReadApiController extends AbstractController
 
         $entityManager->persist($stock);
         $entityManager->flush();
+        $liveRevisionService->bump(LiveRevisionService::STOCKS);
+        $liveRevisionService->bump(LiveRevisionService::PRODUCTS);
 
         return $this->json([
             'success' => true,
@@ -151,7 +152,7 @@ class EntityReadApiController extends AbstractController
     }
 
     #[Route('/stocks/{id}', name: 'stocks_update', methods: ['PUT', 'PATCH'])]
-    public function updateStock(int $id, Request $request, StocksRepository $stocksRepository, ProductssRepository $productssRepository, EntityManagerInterface $entityManager): JsonResponse
+    public function updateStock(int $id, Request $request, StocksRepository $stocksRepository, ProductssRepository $productssRepository, EntityManagerInterface $entityManager, LiveRevisionService $liveRevisionService): JsonResponse
     {
         $stock = $stocksRepository->find($id);
         if (!$stock) {
@@ -181,12 +182,14 @@ class EntityReadApiController extends AbstractController
 
         $stock->setUpdateAt(new \DateTimeImmutable());
         $entityManager->flush();
+        $liveRevisionService->bump(LiveRevisionService::STOCKS);
+        $liveRevisionService->bump(LiveRevisionService::PRODUCTS);
 
         return $this->success('Stock updated successfully', [['id' => $stock->getId()]]);
     }
 
     #[Route('/stocks/{id}', name: 'stocks_delete', methods: ['DELETE'])]
-    public function deleteStock(int $id, StocksRepository $stocksRepository, EntityManagerInterface $entityManager): JsonResponse
+    public function deleteStock(int $id, StocksRepository $stocksRepository, EntityManagerInterface $entityManager, LiveRevisionService $liveRevisionService): JsonResponse
     {
         $stock = $stocksRepository->find($id);
         if (!$stock) {
@@ -195,6 +198,8 @@ class EntityReadApiController extends AbstractController
 
         $entityManager->remove($stock);
         $entityManager->flush();
+        $liveRevisionService->bump(LiveRevisionService::STOCKS);
+        $liveRevisionService->bump(LiveRevisionService::PRODUCTS);
 
         return $this->success('Stock deleted successfully', [['id' => $id]]);
     }
@@ -543,7 +548,7 @@ class EntityReadApiController extends AbstractController
     }
 
     #[Route('/categories', name: 'categories_create', methods: ['POST'])]
-    public function createCategory(Request $request, EntityManagerInterface $entityManager): JsonResponse
+    public function createCategory(Request $request, EntityManagerInterface $entityManager, LiveRevisionService $liveRevisionService): JsonResponse
     {
         $data = $this->parseJson($request);
         if ($data === null) {
@@ -559,6 +564,7 @@ class EntityReadApiController extends AbstractController
 
         $entityManager->persist($category);
         $entityManager->flush();
+        $liveRevisionService->bump(LiveRevisionService::CATEGORIES);
 
         return $this->json([
             'success' => true,
@@ -568,7 +574,7 @@ class EntityReadApiController extends AbstractController
     }
 
     #[Route('/categories/{id}', name: 'categories_update', methods: ['PUT', 'PATCH'])]
-    public function updateCategory(int $id, Request $request, CategoryRepository $categoryRepository, EntityManagerInterface $entityManager): JsonResponse
+    public function updateCategory(int $id, Request $request, CategoryRepository $categoryRepository, EntityManagerInterface $entityManager, LiveRevisionService $liveRevisionService): JsonResponse
     {
         $category = $categoryRepository->find($id);
         if (!$category) {
@@ -586,12 +592,13 @@ class EntityReadApiController extends AbstractController
 
         $category->setName(trim((string) $data['name']));
         $entityManager->flush();
+        $liveRevisionService->bump(LiveRevisionService::CATEGORIES);
 
         return $this->success('Category updated successfully', [['id' => $category->getId()]]);
     }
 
     #[Route('/categories/{id}', name: 'categories_delete', methods: ['DELETE'])]
-    public function deleteCategory(int $id, CategoryRepository $categoryRepository, EntityManagerInterface $entityManager): JsonResponse
+    public function deleteCategory(int $id, CategoryRepository $categoryRepository, EntityManagerInterface $entityManager, LiveRevisionService $liveRevisionService): JsonResponse
     {
         $category = $categoryRepository->find($id);
         if (!$category) {
@@ -601,6 +608,7 @@ class EntityReadApiController extends AbstractController
         try {
             $entityManager->remove($category);
             $entityManager->flush();
+            $liveRevisionService->bump(LiveRevisionService::CATEGORIES);
         } catch (\Throwable $exception) {
             return $this->error('Unable to delete category: ' . $exception->getMessage(), Response::HTTP_CONFLICT);
         }
@@ -744,7 +752,7 @@ class EntityReadApiController extends AbstractController
     }
 
     #[Route('/pet-profiles/{id}/set-pet-of-month', name: 'pet_profiles_set_pet_of_month', methods: ['POST'])]
-    public function setPetOfTheMonth(int $id, PetProfileManagementRepository $petProfileRepository, EntityManagerInterface $entityManager): JsonResponse
+    public function setPetOfTheMonth(int $id, PetProfileManagementRepository $petProfileRepository, EntityManagerInterface $entityManager, LiveRevisionService $liveRevisionService): JsonResponse
     {
         if (!$this->canManageAllOrders()) {
             return $this->error('Access denied. Admin or staff role required.', Response::HTTP_FORBIDDEN);
@@ -769,6 +777,7 @@ class EntityReadApiController extends AbstractController
         }
 
         $entityManager->flush();
+        $liveRevisionService->bump(LiveRevisionService::PETS);
 
         return $this->success('Pet of the month updated', [['id' => $pet->getId(), 'is_pet_of_the_month' => $pet->isPetOfTheMonth()]]);
     }

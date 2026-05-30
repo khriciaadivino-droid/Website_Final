@@ -12,9 +12,32 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 final class LiveRevisionController extends AbstractController
 {
     #[Route('/live/revision', name: 'app_live_revision_snapshot', methods: ['GET'])]
-    #[Route('/api/live/revision', name: 'api_live_revision_snapshot', methods: ['GET'])]
     #[IsGranted('ROLE_STAFF')]
-    public function snapshot(LiveRevisionService $liveRevisionService): JsonResponse
+    public function webSnapshot(LiveRevisionService $liveRevisionService): JsonResponse
+    {
+        return $this->buildSnapshotResponse($liveRevisionService);
+    }
+
+    #[Route('/api/live/revision', name: 'api_live_revision_snapshot', methods: ['GET'])]
+    public function apiSnapshot(LiveRevisionService $liveRevisionService): JsonResponse
+    {
+        return $this->buildSnapshotResponse($liveRevisionService);
+    }
+
+    #[Route('/live/revision/{domain}', name: 'app_live_revision_domain', methods: ['GET'])]
+    #[IsGranted('ROLE_STAFF')]
+    public function webDomain(string $domain, LiveRevisionService $liveRevisionService): JsonResponse
+    {
+        return $this->buildDomainResponse($domain, $liveRevisionService);
+    }
+
+    #[Route('/api/live/revision/{domain}', name: 'api_live_revision_domain', methods: ['GET'])]
+    public function apiDomain(string $domain, LiveRevisionService $liveRevisionService): JsonResponse
+    {
+        return $this->buildDomainResponse($domain, $liveRevisionService);
+    }
+
+    private function buildSnapshotResponse(LiveRevisionService $liveRevisionService): JsonResponse
     {
         return $this->json([
             'success' => true,
@@ -24,9 +47,7 @@ final class LiveRevisionController extends AbstractController
         ]);
     }
 
-    #[Route('/live/revision/{domain}', name: 'app_live_revision_domain', methods: ['GET'])]
-    #[IsGranted('ROLE_STAFF')]
-    public function domain(string $domain, LiveRevisionService $liveRevisionService): JsonResponse
+    private function buildDomainResponse(string $domain, LiveRevisionService $liveRevisionService): JsonResponse
     {
         if (!in_array($domain, LiveRevisionService::DOMAINS, true)) {
             return $this->json([

@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\ContactMessage;
+use App\Service\LiveRevisionService;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -114,6 +115,7 @@ class SecurityController extends AbstractController
         MailerInterface $mailer,
         EntityManagerInterface $entityManager,
         LoggerInterface $logger,
+        LiveRevisionService $liveRevisionService,
     ): Response {
         $name = trim((string) $request->request->get('name', ''));
         $email = trim((string) $request->request->get('email', ''));
@@ -179,6 +181,7 @@ class SecurityController extends AbstractController
         try {
             $entityManager->persist($contactMessage);
             $entityManager->flush();
+            $liveRevisionService->bump(LiveRevisionService::CONTACT);
         } catch (\Throwable $exception) {
             $logger->error('Contact form persistence failed', [
                 'error' => $exception->getMessage(),

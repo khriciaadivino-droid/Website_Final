@@ -25,6 +25,46 @@ class AdminDashboardController extends AbstractController
         ActivityLogRepository $activityLogRepository,
         ContactMessageRepository $contactMessageRepository
     ): Response {
+        return $this->render('admin_dashboard/index.html.twig', $this->buildDashboardContext(
+            $userRepository,
+            $productssRepository,
+            $ordersRepository,
+            $petProfileRepository,
+            $activityLogRepository,
+            $contactMessageRepository,
+        ));
+    }
+
+    #[Route('/admin/dashboard/live-fragment', name: 'app_admin_dashboard_live_fragment', methods: ['GET'])]
+    public function liveFragment(
+        UserRepository $userRepository,
+        ProductssRepository $productssRepository,
+        OrdersRepository $ordersRepository,
+        PetProfileManagementRepository $petProfileRepository,
+        ActivityLogRepository $activityLogRepository,
+        ContactMessageRepository $contactMessageRepository
+    ): Response {
+        return $this->render('admin_dashboard/_content.html.twig', $this->buildDashboardContext(
+            $userRepository,
+            $productssRepository,
+            $ordersRepository,
+            $petProfileRepository,
+            $activityLogRepository,
+            $contactMessageRepository,
+        ));
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function buildDashboardContext(
+        UserRepository $userRepository,
+        ProductssRepository $productssRepository,
+        OrdersRepository $ordersRepository,
+        PetProfileManagementRepository $petProfileRepository,
+        ActivityLogRepository $activityLogRepository,
+        ContactMessageRepository $contactMessageRepository,
+    ): array {
         $totalUsers = $userRepository->count([]);
         $totalAdmins = $userRepository->countAdminUsers();
         $totalStaff = $userRepository->countStaffUsers();
@@ -37,15 +77,7 @@ class AdminDashboardController extends AbstractController
             ->getQuery()
             ->getSingleScalarResult();
 
-        $recentUsers = $userRepository->findBy([], ['createdAt' => 'DESC'], 5);
-        $petOfTheMonth = $petProfileRepository->findOneBy(['isPetOfTheMonth' => true]);
-        $allPets = $petProfileRepository->findBy([], ['id' => 'DESC']);
-        $recentActivityLogs = $activityLogRepository->findRecentLogs(6);
-        $recentContactMessages = $contactMessageRepository->findLatest(5);
-        $pendingContactMessages = $contactMessageRepository->count(['emailSent' => false]);
-        $totalContactMessages = $contactMessageRepository->count([]);
-
-        return $this->render('admin_dashboard/index.html.twig', [
+        return [
             'totalUsers' => $totalUsers,
             'totalAdmins' => $totalAdmins,
             'totalStaff' => $totalStaff,
@@ -53,13 +85,13 @@ class AdminDashboardController extends AbstractController
             'totalOrders' => $totalOrders,
             'totalCompletedIncome' => $totalCompletedIncome,
             'totalStockQuantity' => $totalStockQuantity,
-            'recentUsers' => $recentUsers,
-            'petOfTheMonth' => $petOfTheMonth,
-            'allPets' => $allPets,
-            'recentActivityLogs' => $recentActivityLogs,
-            'recentContactMessages' => $recentContactMessages,
-            'pendingContactMessages' => $pendingContactMessages,
-            'totalContactMessages' => $totalContactMessages,
-        ]);
+            'recentUsers' => $userRepository->findBy([], ['createdAt' => 'DESC'], 5),
+            'petOfTheMonth' => $petProfileRepository->findOneBy(['isPetOfTheMonth' => true]),
+            'allPets' => $petProfileRepository->findBy([], ['id' => 'DESC']),
+            'recentActivityLogs' => $activityLogRepository->findRecentLogs(6),
+            'recentContactMessages' => $contactMessageRepository->findLatest(5),
+            'pendingContactMessages' => $contactMessageRepository->count(['emailSent' => false]),
+            'totalContactMessages' => $contactMessageRepository->count([]),
+        ];
     }
 }

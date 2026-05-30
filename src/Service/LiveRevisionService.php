@@ -2,7 +2,7 @@
 
 namespace App\Service;
 
-use Symfony\Contracts\Cache\CacheInterface;
+use Doctrine\DBAL\Connection;
 
 class LiveRevisionService
 {
@@ -13,6 +13,7 @@ class LiveRevisionService
     public const CATEGORIES = 'categories';
     public const USERS = 'users';
     public const PETS = 'pets';
+    public const CONTACT = 'contact';
     public const DASHBOARD = 'dashboard';
 
     /** @var list<string> */
@@ -24,11 +25,12 @@ class LiveRevisionService
         self::CATEGORIES,
         self::USERS,
         self::PETS,
+        self::CONTACT,
         self::DASHBOARD,
     ];
 
     public function __construct(
-        private readonly CacheInterface $cache,
+        private readonly Connection $connection,
     ) {}
 
     public function bump(string $domain): int
@@ -37,13 +39,10 @@ class LiveRevisionService
             throw new \InvalidArgumentException(sprintf('Unknown live revision domain "%s".', $domain));
         }
 
-        $next = $this->current($domain) + 1;
-        $cacheKey = $this->cacheKey($domain);
-        $this->cache->delete($cacheKey);
-        $this->cache->get($cacheKey, static fn () => $next);
+        $next = $this->increment($domain);
 
         if ($domain !== self::DASHBOARD) {
-            $this->bump(self::DASHBOARD);
+            $this->increment(self::DASHBOARD);
         }
 
         return $next;
@@ -55,7 +54,12 @@ class LiveRevisionService
             return 0;
         }
 
-        return (int) $this->cache->get($this->cacheKey($domain), static fn () => 0);
+        $revision = $this->connection->fetchOne(
+            'SELECT revision FROM live_revision WHERE domain = ?',
+            [$domain]
+        );
+
+        return $revision !== false ? (int) $revision : 0;
     }
 
     /**
@@ -72,8 +76,14 @@ class LiveRevisionService
         return $snapshot;
     }
 
-    private function cacheKey(string $domain): string
+    private function increment(string $domain): int
     {
-        return sprintf('live_revision.%s', $domain);
+        $this->connection->executeStatement(
+            'INSERT INTO live_revision (domain, revision) VALUES (?, 1)
+             ON DUPLICATE KEY UPDATE revision = revision + 1',
+            [$domain]
+        );
+
+        return $this->current($domain);
     }
 }

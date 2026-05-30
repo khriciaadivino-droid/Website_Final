@@ -3,7 +3,9 @@
 namespace App\Controller;
 
 use App\Entity\User;
+use App\Service\ActivityLogService;
 use App\Service\EmailVerificationService;
+use App\Service\LiveRevisionService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -18,7 +20,9 @@ class RegistrationController extends AbstractController
         Request $request,
         UserPasswordHasherInterface $passwordHasher,
         EntityManagerInterface $entityManager,
-        EmailVerificationService $emailVerificationService
+        EmailVerificationService $emailVerificationService,
+        ActivityLogService $activityLogService,
+        LiveRevisionService $liveRevisionService,
     ): Response {
         $error = null;
         $success = false;
@@ -60,6 +64,9 @@ class RegistrationController extends AbstractController
                     // Save to database
                     $entityManager->persist($user);
                     $entityManager->flush();
+
+                    $activityLogService->logCreate($user, 'User', $user->getEmail(), (int) $user->getId());
+                    $liveRevisionService->bump(LiveRevisionService::USERS);
 
                     // Send verification email
                     $emailVerificationService->createAndSendVerificationEmail($user);
