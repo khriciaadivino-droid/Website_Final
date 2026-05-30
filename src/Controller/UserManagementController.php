@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\User;
 use App\Repository\UserRepository;
 use App\Service\ActivityLogService;
+use App\Service\LiveRevisionService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -26,7 +27,7 @@ class UserManagementController extends AbstractController
     }
 
     #[Route('/new', name: 'app_user_management_new', methods: ['GET', 'POST'])]
-    public function new(Request $request, EntityManagerInterface $entityManager, UserPasswordHasherInterface $passwordHasher, ActivityLogService $activityLogService): Response
+    public function new(Request $request, EntityManagerInterface $entityManager, UserPasswordHasherInterface $passwordHasher, ActivityLogService $activityLogService, LiveRevisionService $liveRevisionService): Response
     {
         if ($request->isMethod('POST')) {
             $email = $request->request->get('email');
@@ -65,6 +66,7 @@ class UserManagementController extends AbstractController
 
                 // Log the user creation
                 $activityLogService->logUserCreate($currentUser, $user);
+                $liveRevisionService->bump(LiveRevisionService::USERS);
 
                 $this->addFlash('success', 'User created successfully.');
                 return $this->redirectToRoute('app_user_management_index');
@@ -83,7 +85,7 @@ class UserManagementController extends AbstractController
     }
 
     #[Route('/{id}/edit', name: 'app_user_management_edit', methods: ['GET', 'POST'])]
-    public function edit(Request $request, User $user, EntityManagerInterface $entityManager, UserPasswordHasherInterface $passwordHasher, ActivityLogService $activityLogService): Response
+    public function edit(Request $request, User $user, EntityManagerInterface $entityManager, UserPasswordHasherInterface $passwordHasher, ActivityLogService $activityLogService, LiveRevisionService $liveRevisionService): Response
     {
         if ($request->isMethod('POST')) {
             $email = $request->request->get('email');
@@ -117,6 +119,7 @@ class UserManagementController extends AbstractController
                 /** @var \App\Entity\User $currentUser */
                 $currentUser = $this->getUser();
                 $activityLogService->logUserUpdate($currentUser, $user);
+                $liveRevisionService->bump(LiveRevisionService::USERS);
 
                 $this->addFlash('success', 'User updated successfully.');
                 return $this->redirectToRoute('app_user_management_index');
@@ -129,7 +132,7 @@ class UserManagementController extends AbstractController
     }
 
     #[Route('/{id}', name: 'app_user_management_delete', methods: ['POST'])]
-    public function delete(Request $request, User $user, EntityManagerInterface $entityManager, ActivityLogService $activityLogService): Response
+    public function delete(Request $request, User $user, EntityManagerInterface $entityManager, ActivityLogService $activityLogService, LiveRevisionService $liveRevisionService): Response
     {
         if ($this->isCsrfTokenValid('delete' . $user->getId(), $request->getPayload()->getString('_token'))) {
             // Prevent deleting yourself
@@ -149,6 +152,7 @@ class UserManagementController extends AbstractController
 
             // Log the user deletion
             $activityLogService->logUserDelete($currentUser, $deletedUserEmail, $deletedUserId);
+            $liveRevisionService->bump(LiveRevisionService::USERS);
 
             $this->addFlash('success', 'User deleted successfully.');
         }
@@ -157,12 +161,13 @@ class UserManagementController extends AbstractController
     }
 
     #[Route('/{id}/toggle-status', name: 'app_user_management_toggle_status', methods: ['POST'])]
-    public function toggleStatus(Request $request, User $user, EntityManagerInterface $entityManager): Response
+    public function toggleStatus(Request $request, User $user, EntityManagerInterface $entityManager, LiveRevisionService $liveRevisionService): Response
     {
         if ($this->isCsrfTokenValid('toggle_status' . $user->getId(), $request->request->get('_token'))) {
             $newStatus = $user->getStatus() === 'active' ? 'disabled' : 'active';
             $user->setStatus($newStatus);
             $entityManager->flush();
+            $liveRevisionService->bump(LiveRevisionService::USERS);
 
             $this->addFlash('success', 'User status updated to ' . $newStatus . '.');
         }

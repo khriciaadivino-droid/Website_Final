@@ -6,6 +6,7 @@ use App\Entity\PetProfileManagement;
 use App\Form\PetProfileManagementType;
 use App\Repository\PetProfileManagementRepository;
 use App\Service\ActivityLogService;
+use App\Service\LiveRevisionService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\File\Exception\FileException;
@@ -28,7 +29,7 @@ final class PetProfileManagementController extends AbstractController
     }
 
     #[Route('/new', name: 'app_pet_profile_management_new', methods: ['GET', 'POST'])]
-    public function new(Request $request, EntityManagerInterface $entityManager, SluggerInterface $slugger, ActivityLogService $activityLogService): Response
+    public function new(Request $request, EntityManagerInterface $entityManager, SluggerInterface $slugger, ActivityLogService $activityLogService, LiveRevisionService $liveRevisionService): Response
     {
         $petProfileManagement = new PetProfileManagement();
         $form = $this->createForm(PetProfileManagementType::class, $petProfileManagement);
@@ -64,6 +65,8 @@ final class PetProfileManagementController extends AbstractController
                 $activityLogService->logCreate($user, 'Pet Profile', $petProfileManagement->getName(), $petProfileManagement->getId());
             }
 
+            $liveRevisionService->bump(LiveRevisionService::PETS);
+
             return $this->redirectToRoute('app_pet_profile_management_index', [], Response::HTTP_SEE_OTHER);
         }
 
@@ -82,7 +85,7 @@ final class PetProfileManagementController extends AbstractController
     }
 
     #[Route('/{id}/edit', name: 'app_pet_profile_management_edit', methods: ['GET', 'POST'])]
-    public function edit(Request $request, PetProfileManagement $petProfileManagement, EntityManagerInterface $entityManager, SluggerInterface $slugger, ActivityLogService $activityLogService): Response
+    public function edit(Request $request, PetProfileManagement $petProfileManagement, EntityManagerInterface $entityManager, SluggerInterface $slugger, ActivityLogService $activityLogService, LiveRevisionService $liveRevisionService): Response
     {
         $form = $this->createForm(PetProfileManagementType::class, $petProfileManagement);
         $form->handleRequest($request);
@@ -116,6 +119,8 @@ final class PetProfileManagementController extends AbstractController
                 $activityLogService->logUpdate($user, 'Pet Profile', $petProfileManagement->getName(), $petProfileManagement->getId());
             }
 
+            $liveRevisionService->bump(LiveRevisionService::PETS);
+
             return $this->redirectToRoute('app_pet_profile_management_index', [], Response::HTTP_SEE_OTHER);
         }
 
@@ -126,7 +131,7 @@ final class PetProfileManagementController extends AbstractController
     }
 
     #[Route('/{id}', name: 'app_pet_profile_management_delete', methods: ['POST'])]
-    public function delete(Request $request, PetProfileManagement $petProfileManagement, EntityManagerInterface $entityManager, ActivityLogService $activityLogService): Response
+    public function delete(Request $request, PetProfileManagement $petProfileManagement, EntityManagerInterface $entityManager, ActivityLogService $activityLogService, LiveRevisionService $liveRevisionService): Response
     {
         if ($this->isCsrfTokenValid('delete'.$petProfileManagement->getId(), $request->getPayload()->getString('_token'))) {
             // Store pet profile info before deletion
@@ -142,13 +147,15 @@ final class PetProfileManagementController extends AbstractController
             if ($user) {
                 $activityLogService->logDelete($user, 'Pet Profile', $petName, $petId);
             }
+
+            $liveRevisionService->bump(LiveRevisionService::PETS);
         }
 
         return $this->redirectToRoute('app_pet_profile_management_index', [], Response::HTTP_SEE_OTHER);
     }
 
     #[Route('/{id}/toggle-pet-of-month', name: 'app_pet_profile_toggle_pet_of_month', methods: ['POST'])]
-    public function togglePetOfTheMonth(Request $request, PetProfileManagement $petProfileManagement, EntityManagerInterface $entityManager, PetProfileManagementRepository $repository, ActivityLogService $activityLogService): Response
+    public function togglePetOfTheMonth(Request $request, PetProfileManagement $petProfileManagement, EntityManagerInterface $entityManager, PetProfileManagementRepository $repository, ActivityLogService $activityLogService, LiveRevisionService $liveRevisionService): Response
     {
         if ($this->isCsrfTokenValid('toggle-pet-of-month'.$petProfileManagement->getId(), $request->request->get('_token'))) {
             // If setting this pet as Pet of the Month, unset all others
@@ -172,6 +179,8 @@ final class PetProfileManagementController extends AbstractController
             if ($user) {
                 $activityLogService->logUpdate($user, 'Pet of the Month', $petProfileManagement->getName() . ' - ' . $action, $petProfileManagement->getId());
             }
+
+            $liveRevisionService->bump(LiveRevisionService::PETS);
 
             $this->addFlash('success', $action . ': ' . $petProfileManagement->getName());
         }

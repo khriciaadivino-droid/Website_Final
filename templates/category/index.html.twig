@@ -88,3 +88,8 @@
     </div>
 </div>
 {% endblock %}
+
+{% block javascripts %}
+	{{ parent() }}
+	{% include '_layouts/_live_revision_poll.html.twig' with { live_revision_domain: 'categories' } %}
+{% endblock %}

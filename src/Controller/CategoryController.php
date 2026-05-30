@@ -6,6 +6,7 @@ use App\Entity\Category;
 use App\Form\Category1Type;
 use App\Repository\CategoryRepository;
 use App\Service\ActivityLogService;
+use App\Service\LiveRevisionService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -26,7 +27,7 @@ final class CategoryController extends AbstractController
     }
 
     #[Route('/new', name: 'app_category_new', methods: ['GET', 'POST'])]
-    public function new(Request $request, EntityManagerInterface $entityManager, ActivityLogService $activityLogService): Response
+    public function new(Request $request, EntityManagerInterface $entityManager, ActivityLogService $activityLogService, LiveRevisionService $liveRevisionService): Response
     {
         $category = new Category();
         $form = $this->createForm(Category1Type::class, $category);
@@ -42,6 +43,8 @@ final class CategoryController extends AbstractController
             if ($user) {
                 $activityLogService->logCreate($user, 'Category', $category->getName(), $category->getId());
             }
+
+            $liveRevisionService->bump(LiveRevisionService::CATEGORIES);
 
             return $this->redirectToRoute('app_category_index');
         }
@@ -65,7 +68,7 @@ final class CategoryController extends AbstractController
     }
 
     #[Route('/{id}/edit', name: 'app_category_edit', methods: ['GET', 'POST'])]
-    public function edit(Request $request, Category $category, EntityManagerInterface $entityManager, ActivityLogService $activityLogService): Response
+    public function edit(Request $request, Category $category, EntityManagerInterface $entityManager, ActivityLogService $activityLogService, LiveRevisionService $liveRevisionService): Response
     {
         $form = $this->createForm(Category1Type::class, $category);
         $form->handleRequest($request);
@@ -80,6 +83,8 @@ final class CategoryController extends AbstractController
                 $activityLogService->logUpdate($user, 'Category', $category->getName(), $category->getId());
             }
 
+            $liveRevisionService->bump(LiveRevisionService::CATEGORIES);
+
             return $this->redirectToRoute('app_category_index');
         }
 
@@ -90,7 +95,7 @@ final class CategoryController extends AbstractController
     }
 
     #[Route('/{id}', name: 'app_category_delete', methods: ['POST'])]
-    public function delete(Request $request, Category $category, EntityManagerInterface $entityManager, ActivityLogService $activityLogService): Response
+    public function delete(Request $request, Category $category, EntityManagerInterface $entityManager, ActivityLogService $activityLogService, LiveRevisionService $liveRevisionService): Response
     {
         if ($this->isCsrfTokenValid('delete' . $category->getId(), $request->getPayload()->getString('_token'))) {
             $categoryName = $category->getName();
@@ -105,6 +110,8 @@ final class CategoryController extends AbstractController
             if ($user) {
                 $activityLogService->logDelete($user, 'Category', $categoryName, $categoryId);
             }
+
+            $liveRevisionService->bump(LiveRevisionService::CATEGORIES);
         }
 
         return $this->redirectToRoute('app_category_index');

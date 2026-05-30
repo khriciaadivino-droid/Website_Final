@@ -151,43 +151,6 @@ previous: "Previous"
 }
 });
 
-		(function () {
-			let lastRevision = null;
-			const revisionUrl = {{ path('app_orders_revision')|json_encode|raw }};
-
-			const pollOrdersRevision = async function () {
-				if (document.hidden) {
-					return;
-				}
-
-				try {
-					const response = await fetch(revisionUrl, {
-						headers: { 'X-Requested-With': 'XMLHttpRequest' },
-						credentials: 'same-origin',
-					});
-
-					if (!response.ok) {
-						return;
-					}
-
-					const payload = await response.json();
-					const revision = Number(payload.revision || 0);
-
-					if (lastRevision === null) {
-						lastRevision = revision;
-						return;
-					}
-
-					if (revision !== lastRevision) {
-						window.location.reload();
-					}
-				} catch (_error) {
-					// Ignore transient network errors while polling.
-				}
-			};
-
-			setInterval(pollOrdersRevision, 5000);
-			document.addEventListener('visibilitychange', pollOrdersRevision);
-		})();
+		{% include '_layouts/_live_revision_poll.html.twig' with { live_revision_domain: 'orders' } %}
 	</script>
 {% endblock %}

@@ -13,6 +13,7 @@ class OrderStockService
     public function __construct(
         private readonly EntityManagerInterface $entityManager,
         private readonly Security $security,
+        private readonly LiveRevisionService $liveRevisionService,
     ) {}
 
     public function syncForCreate(Orders $order, string $source = 'web'): void
@@ -36,6 +37,8 @@ class OrderStockService
             -$quantity,
             sprintf('Order %s created as completed%s. Deducted %d item(s).', $order->getOrderNumber(), $this->getSourceSuffix($source), $quantity)
         );
+
+        $this->bumpInventoryRevisions();
     }
 
     public function syncForUpdate(
@@ -70,6 +73,8 @@ class OrderStockService
                 sprintf('Order %s marked completed%s. Deducted %d item(s).', $order->getOrderNumber(), $this->getSourceSuffix($source), $currentQuantity)
             );
 
+            $this->bumpInventoryRevisions();
+
             return;
         }
 
@@ -92,6 +97,8 @@ class OrderStockService
             }
 
             $order->setStockDeducted(false);
+
+            $this->bumpInventoryRevisions();
 
             return;
         }
@@ -116,6 +123,8 @@ class OrderStockService
                 $this->createStockMovement($currentProduct, $stockAdjustment, $movementText);
             }
 
+            $this->bumpInventoryRevisions();
+
             return;
         }
 
@@ -137,6 +146,8 @@ class OrderStockService
             -$currentQuantity,
             sprintf('Order %s moved%s. Deducted %d item(s).', $order->getOrderNumber(), $this->getSourceSuffix($source), $currentQuantity)
         );
+
+        $this->bumpInventoryRevisions();
     }
 
     public function restoreForDelete(Orders $order, string $source = 'web'): void
@@ -158,6 +169,8 @@ class OrderStockService
             $quantity,
             sprintf('Order %s deleted%s. Restored %d item(s).', $order->getOrderNumber(), $this->getSourceSuffix($source), $quantity)
         );
+
+        $this->bumpInventoryRevisions();
     }
 
     private function shouldDeductStock(Orders $order): bool
@@ -223,6 +236,12 @@ class OrderStockService
         $movement->setUpdateAt(new \DateTimeImmutable());
 
         $this->entityManager->persist($movement);
+    }
+
+    public function bumpInventoryRevisions(): void
+    {
+        $this->liveRevisionService->bump(LiveRevisionService::STOCKS);
+        $this->liveRevisionService->bump(LiveRevisionService::PRODUCTS);
     }
 
     private function getSourceSuffix(string $source): string

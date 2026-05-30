@@ -17,6 +17,8 @@ use App\Repository\PetProfileManagementRepository;
 use App\Repository\ProductssRepository;
 use App\Repository\StocksRepository;
 use App\Service\ActivityLiveRevisionService;
+use App\Service\ActivityLiveRevisionService;
+use App\Service\LiveRevisionService;
 use App\Service\OrderLiveRevisionService;
 use App\Service\OrderStockService;
 use App\Service\ActivityLogService;
@@ -812,7 +814,7 @@ class EntityReadApiController extends AbstractController
     }
 
     #[Route('/pet-profiles', name: 'pet_profiles_create', methods: ['POST'])]
-    public function createPetProfile(Request $request, EntityManagerInterface $entityManager, PetOwnersRepository $petOwnersRepository, ActivityLogService $activityLogService): JsonResponse
+    public function createPetProfile(Request $request, EntityManagerInterface $entityManager, PetOwnersRepository $petOwnersRepository, ActivityLogService $activityLogService, LiveRevisionService $liveRevisionService): JsonResponse
     {
         $data = $this->parseJson($request);
         if ($data === null) {
@@ -869,6 +871,8 @@ class EntityReadApiController extends AbstractController
             $activityLogService->logCreate($currentUser, 'Pet Profile', $pet->getName() ?: ('Pet #' . $pet->getId()), (int) $pet->getId());
         }
 
+        $liveRevisionService->bump(LiveRevisionService::PETS);
+
         return $this->json([
             'success' => true,
             'message' => 'Pet profile created successfully',
@@ -877,7 +881,7 @@ class EntityReadApiController extends AbstractController
     }
 
     #[Route('/pet-profiles/{id}', name: 'pet_profiles_update', methods: ['PUT', 'PATCH'])]
-    public function updatePetProfile(int $id, Request $request, PetProfileManagementRepository $petProfileRepository, PetOwnersRepository $petOwnersRepository, EntityManagerInterface $entityManager, ActivityLogService $activityLogService): JsonResponse
+    public function updatePetProfile(int $id, Request $request, PetProfileManagementRepository $petProfileRepository, PetOwnersRepository $petOwnersRepository, EntityManagerInterface $entityManager, ActivityLogService $activityLogService, LiveRevisionService $liveRevisionService): JsonResponse
     {
         $pet = $petProfileRepository->find($id);
         if (!$pet) {
@@ -930,11 +934,13 @@ class EntityReadApiController extends AbstractController
             $activityLogService->logUpdate($currentUser, 'Pet Profile', $pet->getName() ?: ('Pet #' . $pet->getId()), (int) $pet->getId());
         }
 
+        $liveRevisionService->bump(LiveRevisionService::PETS);
+
         return $this->success('Pet profile updated successfully', [['id' => $pet->getId()]]);
     }
 
     #[Route('/pet-profiles/{id}', name: 'pet_profiles_delete', methods: ['DELETE'])]
-    public function deletePetProfile(int $id, PetProfileManagementRepository $petProfileRepository, EntityManagerInterface $entityManager, ActivityLogService $activityLogService): JsonResponse
+    public function deletePetProfile(int $id, PetProfileManagementRepository $petProfileRepository, EntityManagerInterface $entityManager, ActivityLogService $activityLogService, LiveRevisionService $liveRevisionService): JsonResponse
     {
         $pet = $petProfileRepository->find($id);
         if (!$pet) {
@@ -951,11 +957,13 @@ class EntityReadApiController extends AbstractController
             $activityLogService->logDelete($currentUser, 'Pet Profile', $petLabel, $id);
         }
 
+        $liveRevisionService->bump(LiveRevisionService::PETS);
+
         return $this->success('Pet profile deleted successfully', [['id' => $id]]);
     }
 
     #[Route('/products', name: 'products_create', methods: ['POST'])]
-    public function createProduct(Request $request, EntityManagerInterface $entityManager, CategoryRepository $categoryRepository): JsonResponse
+    public function createProduct(Request $request, EntityManagerInterface $entityManager, CategoryRepository $categoryRepository, LiveRevisionService $liveRevisionService): JsonResponse
     {
         $data = $this->parseJson($request);
         if ($data === null) {
@@ -987,6 +995,8 @@ class EntityReadApiController extends AbstractController
         $entityManager->persist($product);
         $entityManager->flush();
 
+        $liveRevisionService->bump(LiveRevisionService::PRODUCTS);
+
         return $this->json([
             'success' => true,
             'message' => 'Product created successfully',
@@ -995,7 +1005,7 @@ class EntityReadApiController extends AbstractController
     }
 
     #[Route('/products/{id}', name: 'products_update', methods: ['PUT', 'PATCH'])]
-    public function updateProduct(int $id, Request $request, ProductssRepository $productssRepository, CategoryRepository $categoryRepository, EntityManagerInterface $entityManager): JsonResponse
+    public function updateProduct(int $id, Request $request, ProductssRepository $productssRepository, CategoryRepository $categoryRepository, EntityManagerInterface $entityManager, LiveRevisionService $liveRevisionService): JsonResponse
     {
         $product = $productssRepository->find($id);
         if (!$product) {
@@ -1036,11 +1046,13 @@ class EntityReadApiController extends AbstractController
 
         $entityManager->flush();
 
+        $liveRevisionService->bump(LiveRevisionService::PRODUCTS);
+
         return $this->success('Product updated successfully', [['id' => $product->getId()]]);
     }
 
     #[Route('/products/{id}', name: 'products_delete', methods: ['DELETE'])]
-    public function deleteProduct(int $id, ProductssRepository $productssRepository, EntityManagerInterface $entityManager): JsonResponse
+    public function deleteProduct(int $id, ProductssRepository $productssRepository, EntityManagerInterface $entityManager, LiveRevisionService $liveRevisionService): JsonResponse
     {
         $product = $productssRepository->find($id);
         if (!$product) {
@@ -1050,6 +1062,7 @@ class EntityReadApiController extends AbstractController
         try {
             $entityManager->remove($product);
             $entityManager->flush();
+            $liveRevisionService->bump(LiveRevisionService::PRODUCTS);
         } catch (\Throwable $exception) {
             return $this->error('Unable to delete product: ' . $exception->getMessage(), Response::HTTP_CONFLICT);
         }

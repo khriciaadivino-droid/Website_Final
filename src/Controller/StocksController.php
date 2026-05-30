@@ -6,6 +6,7 @@ use App\Entity\Stocks;
 use App\Form\StocksType;
 use App\Repository\StocksRepository;
 use App\Service\ActivityLogService;
+use App\Service\LiveRevisionService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -26,7 +27,7 @@ final class StocksController extends AbstractController
     }
 
     #[Route('/new', name: 'app_stocks_new', methods: ['GET', 'POST'])]
-    public function new(Request $request, EntityManagerInterface $entityManager, ActivityLogService $activityLogService): Response
+    public function new(Request $request, EntityManagerInterface $entityManager, ActivityLogService $activityLogService, LiveRevisionService $liveRevisionService): Response
     {
         $stock = new Stocks();
         $form = $this->createForm(StocksType::class, $stock);
@@ -54,6 +55,9 @@ final class StocksController extends AbstractController
                 $activityLogService->logCreate($user, 'Stock', $product->getName() . ' Stock', $stock->getId());
             }
 
+            $liveRevisionService->bump(LiveRevisionService::STOCKS);
+            $liveRevisionService->bump(LiveRevisionService::PRODUCTS);
+
             return $this->redirectToRoute('app_stocks_index', [], Response::HTTP_SEE_OTHER);
         }
 
@@ -72,7 +76,7 @@ final class StocksController extends AbstractController
     }
 
     #[Route('/{id}/edit', name: 'app_stocks_edit', methods: ['GET', 'POST'])]
-    public function edit(Request $request, Stocks $stock, EntityManagerInterface $entityManager, ActivityLogService $activityLogService): Response
+    public function edit(Request $request, Stocks $stock, EntityManagerInterface $entityManager, ActivityLogService $activityLogService, LiveRevisionService $liveRevisionService): Response
     {
         $originalQuantityChange = $stock->getQuantityChange();
         $form = $this->createForm(StocksType::class, $stock);
@@ -98,6 +102,9 @@ final class StocksController extends AbstractController
                 $activityLogService->logUpdate($user, 'Stock', $product->getName() . ' Stock', $stock->getId());
             }
 
+            $liveRevisionService->bump(LiveRevisionService::STOCKS);
+            $liveRevisionService->bump(LiveRevisionService::PRODUCTS);
+
             return $this->redirectToRoute('app_stocks_index', [], Response::HTTP_SEE_OTHER);
         }
 
@@ -108,7 +115,7 @@ final class StocksController extends AbstractController
     }
 
     #[Route('/{id}', name: 'app_stocks_delete', methods: ['POST'])]
-    public function delete(Request $request, Stocks $stock, EntityManagerInterface $entityManager, ActivityLogService $activityLogService): Response
+    public function delete(Request $request, Stocks $stock, EntityManagerInterface $entityManager, ActivityLogService $activityLogService, LiveRevisionService $liveRevisionService): Response
     {
         if ($this->isCsrfTokenValid('delete' . $stock->getId(), $request->getPayload()->getString('_token'))) {
             // Update the product's quantity before deleting the stock
@@ -130,6 +137,9 @@ final class StocksController extends AbstractController
             if ($user) {
                 $activityLogService->logDelete($user, 'Stock', $productName . ' Stock', $stockId);
             }
+
+            $liveRevisionService->bump(LiveRevisionService::STOCKS);
+            $liveRevisionService->bump(LiveRevisionService::PRODUCTS);
         }
 
         return $this->redirectToRoute('app_stocks_index', [], Response::HTTP_SEE_OTHER);

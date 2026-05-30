@@ -6,6 +6,7 @@ use App\Entity\Productss;
 use App\Form\ProductssType;
 use App\Repository\ProductssRepository;
 use App\Service\ActivityLogService;
+use App\Service\LiveRevisionService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\File\Exception\FileException;
@@ -29,7 +30,7 @@ final class ProductssController extends AbstractController
 
     #[Route('/new', name: 'app_productss_new', methods: ['GET', 'POST'])]
     #[IsGranted('ROLE_STAFF')]
-    public function new(Request $request, EntityManagerInterface $entityManager, SluggerInterface $slugger, ActivityLogService $activityLogService): Response
+    public function new(Request $request, EntityManagerInterface $entityManager, SluggerInterface $slugger, ActivityLogService $activityLogService, LiveRevisionService $liveRevisionService): Response
     {
         $productss = new Productss();
         $form = $this->createForm(ProductssType::class, $productss);
@@ -81,6 +82,8 @@ final class ProductssController extends AbstractController
                 $activityLogService->logCreate($user, 'Product', $productss->getName(), $productss->getId());
             }
 
+            $liveRevisionService->bump(LiveRevisionService::PRODUCTS);
+
             return $this->redirectToRoute('app_productss_index', [], Response::HTTP_SEE_OTHER);
         }
 
@@ -100,7 +103,7 @@ final class ProductssController extends AbstractController
 
     #[Route('/{id}/edit', name: 'app_productss_edit', methods: ['GET', 'POST'])]
     #[IsGranted('ROLE_STAFF')]
-    public function edit(Request $request, Productss $productss, EntityManagerInterface $entityManager, ActivityLogService $activityLogService, SluggerInterface $slugger): Response
+    public function edit(Request $request, Productss $productss, EntityManagerInterface $entityManager, ActivityLogService $activityLogService, SluggerInterface $slugger, LiveRevisionService $liveRevisionService): Response
     {
         $form = $this->createForm(ProductssType::class, $productss);
         $form->handleRequest($request);
@@ -146,6 +149,8 @@ final class ProductssController extends AbstractController
                 $activityLogService->logUpdate($user, 'Product', $productss->getName(), $productss->getId());
             }
 
+            $liveRevisionService->bump(LiveRevisionService::PRODUCTS);
+
             return $this->redirectToRoute('app_productss_index', [], Response::HTTP_SEE_OTHER);
         }
 
@@ -157,7 +162,7 @@ final class ProductssController extends AbstractController
 
     #[Route('/{id}', name: 'app_productss_delete', methods: ['POST'])]
     #[IsGranted('ROLE_STAFF')]
-    public function delete(Request $request, Productss $productss, EntityManagerInterface $entityManager, ActivityLogService $activityLogService): Response
+    public function delete(Request $request, Productss $productss, EntityManagerInterface $entityManager, ActivityLogService $activityLogService, LiveRevisionService $liveRevisionService): Response
     {
         if ($this->isCsrfTokenValid('delete' . $productss->getId(), $request->getPayload()->getString('_token'))) {
             // Check if product has related stocks
@@ -179,6 +184,8 @@ final class ProductssController extends AbstractController
             if ($user) {
                 $activityLogService->logDelete($user, 'Product', $productName, $productId);
             }
+
+            $liveRevisionService->bump(LiveRevisionService::PRODUCTS);
 
             $this->addFlash('success', 'Product deleted successfully.');
         }
